@@ -1,0 +1,50 @@
+{
+  "loc000": {
+    "osm_id": 1001,
+    "name": "Piazza Bilotti",
+    "lat": 39.2984,
+    "lon": 16.253
+  },
+  "loc001": {
+    "osm_id": 1002,
+    "name": "Corso Mazzini",
+    "lat": 39.2975,
+    "lon": 16.2541
+  },
+  "loc002": {
+    "osm_id": 1003,
+    "name": "Piazza Fera",
+    "lat": 39.2963,
+    "lon": 16.2558
+  },
+  "loc003": {
+    "osm_id": 1004,
+    "name": "Via Roma",
+    "lat": 39.295,
+    "lon": 16.257
+  },
+  "loc004": {
+    "osm_id": 1005,
+    "name": "Via Panebianco",
+    "lat": 39.298,
+    "lon": 16.251
+  },
+  "loc005": {
+    "osm_id": 1006,
+    "name": "Via Piave",
+    "lat": 39.297,
+    "lon": 16.2525
+  },
+  "loc006": {
+    "osm_id": 1007,
+    "name": "Ponte Mario Martire",
+    "lat": 39.296,
+    "lon": 16.2545
+  },
+  "loc007": {
+    "osm_id": 1008,
+    "name": "Stazione Centrale",
+    "lat": 39.299,
+    "lon": 16.2555
+  }
+}

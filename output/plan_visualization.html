@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Piano PDDL+ – Cosenza</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: Arial, sans-serif; background:#1a1a2e; color:#eee; }
+    #header {
+      padding: 14px 20px;
+      background: #16213e;
+      border-bottom: 2px solid #0f3460;
+      display: flex; align-items: center; gap: 20px;
+    }
+    #header h1 { font-size: 1.2rem; color: #e94560; }
+    .stat {
+      background: #0f3460; border-radius: 8px; padding: 6px 14px;
+      font-size: 0.85rem;
+    }
+    .stat span { color: #e2b96f; font-weight: bold; font-size: 1rem; }
+    #map { height: calc(100vh - 58px); width: 100%; }
+    .legend {
+      background: rgba(22,33,62,0.95); padding: 12px 16px;
+      border-radius: 8px; font-size: 0.82rem; line-height: 1.8;
+      border: 1px solid #0f3460;
+    }
+    .legend-dot {
+      display:inline-block; width:12px; height:12px;
+      border-radius:50%; margin-right:6px; vertical-align:middle;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <h1>🗺 Piano PDDL+ — Navigazione a Cosenza</h1>
+  <div class="stat">Nodi grafo: <span>40</span></div>
+  <div class="stat">Archi stradali: <span>84</span></div>
+  <div class="stat">Tratti percorso: <span>8</span></div>
+  <div class="stat">Tempo totale: <span>1430 s ≈ 23.8 min</span></div>
+  <div class="stat">Planner: <span>ENHSP sat-hadd</span></div>
+</div>
+
+<div id="map"></div>
+
+<script>
+// ── Mappa ──────────────────────────────────────────────────────────────────
+const map = L.map('map').setView([39.60, 16.35], 12);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 18
+}).addTo(map);
+
+// ── Tutti i nodi del grafo ─────────────────────────────────────────────────
+const allNodes = {
+  "loc000": {lat:39.6418332, lon:16.3493669},
+  "loc001": {lat:39.5520981, lon:16.3607686},
+  "loc002": {lat:39.6071269, lon:16.3879574},
+  "loc003": {lat:39.6402497, lon:16.373912},
+  "loc004": {lat:39.5832257, lon:16.29097},
+  "loc005": {lat:39.573431,  lon:16.3430796},
+  "loc006": {lat:39.6153005, lon:16.3380801},
+  "loc007": {lat:39.5888792, lon:16.2832885},
+  "loc008": {lat:39.6405461, lon:16.3594094},
+  "loc009": {lat:39.5799512, lon:16.2992266},
+  "loc010": {lat:39.583716,  lon:16.345064},
+  "loc011": {lat:39.5887315, lon:16.265363},
+  "loc012": {lat:39.5918663, lon:16.3422956},
+  "loc013": {lat:39.6116787, lon:16.3333058},
+  "loc014": {lat:39.5713253, lon:16.2864092},
+  "loc015": {lat:39.5921154, lon:16.3421088},
+  "loc016": {lat:39.5733711, lon:16.3029597},
+  "loc017": {lat:39.57188,   lon:16.2848692},
+  "loc018": {lat:39.6149709, lon:16.3864215},
+  "loc019": {lat:39.6636397, lon:16.3966803},
+  "loc020": {lat:39.6606173, lon:16.3979227},
+  "loc021": {lat:39.6405433, lon:16.3586778},
+  "loc022": {lat:39.6415252, lon:16.3486718},
+  "loc023": {lat:39.6418059, lon:16.3488799},
+  "loc024": {lat:39.5608676, lon:16.3590836},
+  "loc025": {lat:39.5680852, lon:16.2856122},
+  "loc026": {lat:39.5911838, lon:16.2833739},
+  "loc027": {lat:39.5716656, lon:16.3151972},
+  "loc028": {lat:39.5540991, lon:16.3614542},
+  "loc029": {lat:39.5549968, lon:16.3480991},
+  "loc030": {lat:39.5566342, lon:16.3474065},
+  "loc031": {lat:39.5575883, lon:16.3511611},
+  "loc032": {lat:39.5585259, lon:16.3469808},
+  "loc033": {lat:39.5736354, lon:16.3411756},
+  "loc034": {lat:39.6458378, lon:16.3982066},
+  "loc035": {lat:39.6404175, lon:16.3968909},
+  "loc036": {lat:39.6497757, lon:16.4025324},
+  "loc037": {lat:39.5754734, lon:16.3467979},
+  "loc038": {lat:39.5717843, lon:16.3461949},
+  "loc039": {lat:39.568883,  lon:16.3490861}
+};
+
+// Il piano trovato da ENHSP
+const plan = [
+  {loc:"loc000", t:0,      step:0, road:"loc000→loc021", dur:67},
+  {loc:"loc021", t:67,     step:1, road:"loc021→loc008", dur:5},
+  {loc:"loc008", t:72,     step:2, road:"loc008→loc003", dur:99},
+  {loc:"loc003", t:171,    step:3, road:"loc003→loc018", dur:441},
+  {loc:"loc018", t:612,    step:4, road:"loc018→loc010", dur:570},
+  {loc:"loc010", t:1182,   step:5, road:"loc010→loc005", dur:169},
+  {loc:"loc005", t:1351,   step:6, road:"loc005→loc038", dur:36},
+  {loc:"loc038", t:1387,   step:7, road:"loc038→loc039", dur:43},
+  {loc:"loc039", t:1430,   step:8, road:"GOAL",          dur:0}
+];
+
+const planLocs = new Set(plan.map(p => p.loc));
+
+// ── Disegna tutti i nodi del grafo (grigio piccolo) ────────────────────────
+for (const [name, pos] of Object.entries(allNodes)) {
+  if (planLocs.has(name)) continue; // quelli nel piano li disegniamo dopo
+  L.circleMarker([pos.lat, pos.lon], {
+    radius: 4, color:'#555', fillColor:'#888', fillOpacity:0.6, weight:1
+  }).bindTooltip(name, {direction:'top', offset:[0,-4]}).addTo(map);
+}
+
+// ── Disegna il percorso pianificato ───────────────────────────────────────
+const routeCoords = plan.map(p => [allNodes[p.loc].lat, allNodes[p.loc].lon]);
+
+// Linea del percorso
+L.polyline(routeCoords, {
+  color:'#e94560', weight:5, opacity:0.85,
+  dashArray: null
+}).addTo(map);
+
+// Frecce di direzione lungo il percorso
+for (let i = 0; i < plan.length - 1; i++) {
+  const from = allNodes[plan[i].loc];
+  const to   = allNodes[plan[i+1].loc];
+  const midLat = (from.lat + to.lat) / 2;
+  const midLon = (from.lon + to.lon) / 2;
+  const mins = Math.round(plan[i].dur / 60 * 10) / 10;
+  L.circleMarker([midLat, midLon], {
+    radius: 3, color:'#e2b96f', fillColor:'#e2b96f', fillOpacity:1, weight:1
+  }).bindTooltip(`${plan[i].dur}s (${mins} min)`, {direction:'right'}).addTo(map);
+}
+
+// ── Nodi del percorso ──────────────────────────────────────────────────────
+const colors = ['#00c851','#ff8800','#ff8800','#ff8800','#ff8800','#ff8800','#ff8800','#ff8800','#e94560'];
+
+plan.forEach((p, i) => {
+  const pos = allNodes[p.loc];
+  const isStart = i === 0;
+  const isGoal  = i === plan.length - 1;
+  const r = (isStart || isGoal) ? 10 : 7;
+  const c = colors[i] || '#ff8800';
+
+  const marker = L.circleMarker([pos.lat, pos.lon], {
+    radius: r, color:'#fff', fillColor: c,
+    fillOpacity: 1, weight: 2
+  });
+
+  const elapsed = `${p.t}s`;
+  const label = isStart ? '🟢 START' : isGoal ? '🔴 GOAL' : `Step ${p.step}`;
+  const mins = Math.round(p.t / 60 * 10) / 10;
+  marker.bindPopup(`
+    <b>${label}</b><br>
+    Nodo: <code>${p.loc}</code><br>
+    Arco: ${p.road}<br>
+    Tempo: ${elapsed} (${mins} min)
+  `);
+  marker.bindTooltip(`${label}: ${p.loc}`, {direction:'top'});
+  marker.addTo(map);
+
+  // Numero step
+  if (!isStart && !isGoal) {
+    L.marker([pos.lat, pos.lon], {
+      icon: L.divIcon({
+        className:'',
+        html:`<div style="background:#0f3460;color:#e2b96f;border:2px solid #e2b96f;
+                   border-radius:50%;width:18px;height:18px;line-height:18px;
+                   text-align:center;font-size:11px;font-weight:bold;">${p.step}</div>`,
+        iconSize:[18,18], iconAnchor:[9,9]
+      })
+    }).addTo(map);
+  }
+});
+
+// ── Legenda ────────────────────────────────────────────────────────────────
+const legend = L.control({position:'bottomright'});
+legend.onAdd = () => {
+  const div = L.DomUtil.create('div','legend');
+  div.innerHTML = `
+    <b>Legenda</b><br>
+    <span class="legend-dot" style="background:#00c851"></span> START (loc000)<br>
+    <span class="legend-dot" style="background:#e94560"></span> GOAL (loc039)<br>
+    <span class="legend-dot" style="background:#ff8800"></span> Nodo percorso<br>
+    <span class="legend-dot" style="background:#888"></span> Nodo grafo<br>
+    <span class="legend-dot" style="background:#e2b96f"></span> Punto medio (durata)<br>
+    <hr style="margin:6px 0; border-color:#0f3460">
+    <b>Piano PDDL+:</b><br>
+    8 azioni <code>start-drive</code><br>
+    Processo <code>moving</code> continuo<br>
+    Evento <code>arrive</code> per ogni tappa<br>
+    <b>Tempo totale: 1430 s ≈ 23.8 min</b>
+  `;
+  return div;
+};
+legend.addTo(map);
+
+// Fit bounds sul percorso
+map.fitBounds(L.polyline(routeCoords).getBounds(), {padding:[40,40]});
+</script>
+</body>
+</html>
