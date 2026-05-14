@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<trips>
+    <trip id="enhsp_route" type="auto" depart="0"
+          from="2000023054"
+          to="-2000032908"/>
+</trips>
