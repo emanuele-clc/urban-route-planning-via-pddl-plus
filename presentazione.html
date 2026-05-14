@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Project #2 – Map Construction in PDDL+</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ── Slide container ── */
+  .slides { width:100%; height:100vh; position:relative; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .slide.active { display:flex; opacity:1; }
+
+  /* ── Navigation ── */
+  #nav {
+    position: fixed; bottom: 28px; right: 36px;
+    display: flex; align-items: center; gap: 14px;
+    z-index: 100;
+  }
+  .btn {
+    background: #1f6feb; color: #fff;
+    border: none; border-radius: 8px;
+    padding: 10px 22px; font-size: 1rem;
+    cursor: pointer; transition: background .2s;
+  }
+  .btn:hover { background: #388bfd; }
+  .btn:disabled { background: #30363d; cursor: default; }
+  #counter { color: #8b949e; font-size: 0.9rem; min-width: 60px; text-align:center; }
+
+  /* ── Progress bar ── */
+  #progress {
+    position: fixed; top:0; left:0; height:3px;
+    background: linear-gradient(90deg,#1f6feb,#58a6ff);
+    transition: width .4s ease;
+    z-index: 100;
+  }
+
+  /* ── Keyboard hint ── */
+  #hint {
+    position:fixed; bottom:28px; left:36px;
+    color:#30363d; font-size:0.78rem;
+  }
+
+  /* ── Slide 1: Title ── */
+  .slide-title { background: linear-gradient(135deg,#0d1117 0%,#161b22 100%); }
+  .slide-title .kicker {
+    font-size:0.9rem; letter-spacing:3px; text-transform:uppercase;
+    color:#58a6ff; margin-bottom:18px;
+  }
+  .slide-title h1 {
+    font-size:3rem; font-weight:800; color:#e6edf3;
+    text-align:center; line-height:1.15; margin-bottom:20px;
+  }
+  .slide-title h1 span { color:#58a6ff; }
+  .slide-title .subtitle {
+    font-size:1.15rem; color:#8b949e; margin-bottom:40px; text-align:center;
+  }
+  .authors {
+    display:flex; gap:16px; flex-wrap:wrap; justify-content:center;
+  }
+  .author-chip {
+    background:#161b22; border:1px solid #30363d;
+    border-radius:20px; padding:8px 20px;
+    font-size:0.9rem; color:#c9d1d9;
+  }
+  .course-badge {
+    margin-top:32px;
+    background:#1f6feb22; border:1px solid #1f6feb44;
+    border-radius:8px; padding:10px 24px;
+    font-size:0.85rem; color:#58a6ff; text-align:center;
+  }
+
+  /* ── Section slides ── */
+  .slide-section { background: #0d1117; }
+  .section-num {
+    font-size:6rem; font-weight:900; color:#1f6feb22;
+    position:absolute; top:30px; right:50px; line-height:1;
+  }
+  .slide h2 {
+    font-size:2rem; font-weight:700; color:#58a6ff;
+    margin-bottom:28px; border-bottom:2px solid #1f6feb44;
+    padding-bottom:12px; width:100%;
+  }
+  .slide p { font-size:1.05rem; color:#c9d1d9; line-height:1.7; margin-bottom:14px; }
+  .slide ul { list-style:none; width:100%; }
+  .slide ul li {
+    padding:10px 0 10px 28px; position:relative;
+    font-size:1rem; color:#c9d1d9; border-bottom:1px solid #21262d;
+    line-height:1.5;
+  }
+  .slide ul li::before {
+    content:"▸"; position:absolute; left:0; color:#1f6feb; font-size:0.9rem;
+  }
+  .slide ul li strong { color:#e6edf3; }
+
+  /* ── Cards ── */
+  .cards { display:flex; gap:20px; width:100%; flex-wrap:wrap; margin-top:10px; }
+  .card {
+    flex:1; min-width:180px;
+    background:#161b22; border:1px solid #30363d;
+    border-radius:12px; padding:24px 20px; text-align:center;
+  }
+  .card .icon { font-size:2rem; margin-bottom:10px; }
+  .card .label { font-size:0.8rem; color:#8b949e; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+  .card .value { font-size:1.4rem; font-weight:700; color:#58a6ff; }
+  .card .sub { font-size:0.82rem; color:#8b949e; margin-top:4px; }
+
+  /* ── Code block ── */
+  .codeblock {
+    background:#161b22; border:1px solid #30363d; border-radius:8px;
+    padding:20px 24px; font-family: 'Consolas','Courier New', monospace;
+    font-size:0.82rem; color:#79c0ff; line-height:1.6;
+    width:100%; overflow:auto; margin:16px 0;
+  }
+  .codeblock .kw { color:#ff7b72; }
+  .codeblock .fn { color:#d2a8ff; }
+  .codeblock .cm { color:#8b949e; font-style:italic; }
+  .codeblock .ht { color:#e6edf3; }
+
+  /* ── Flow diagram ── */
+  .flow {
+    display:flex; align-items:center; gap:0; width:100%;
+    justify-content:center; margin:20px 0; flex-wrap:wrap;
+  }
+  .flow-step {
+    background:#161b22; border:1px solid #1f6feb44;
+    border-radius:10px; padding:14px 18px; text-align:center;
+    min-width:110px;
+  }
+  .flow-step .ficon { font-size:1.5rem; margin-bottom:6px; }
+  .flow-step .fname { font-size:0.78rem; color:#58a6ff; font-weight:700; }
+  .flow-step .fsub { font-size:0.7rem; color:#8b949e; margin-top:3px; }
+  .flow-arrow { color:#1f6feb; font-size:1.6rem; padding:0 6px; }
+
+  /* ── Result table ── */
+  .rtable { width:100%; border-collapse:collapse; margin-top:16px; }
+  .rtable th {
+    background:#1f6feb; color:#fff; padding:12px 16px;
+    text-align:left; font-size:0.9rem;
+  }
+  .rtable td { padding:12px 16px; border-bottom:1px solid #21262d; font-size:0.95rem; }
+  .rtable tr:nth-child(even) td { background:#161b22; }
+  .rtable .highlight td { color:#58a6ff; font-weight:700; }
+  .rtable .badge {
+    display:inline-block; background:#238636; color:#fff;
+    border-radius:12px; padding:2px 10px; font-size:0.78rem; margin-left:8px;
+  }
+  .rtable .badge-warn {
+    display:inline-block; background:#9e6a03; color:#fff;
+    border-radius:12px; padding:2px 10px; font-size:0.78rem; margin-left:8px;
+  }
+
+  /* ── Conclusion box ── */
+  .conclusion-box {
+    background:#0f2a1a; border:1px solid #238636;
+    border-radius:12px; padding:24px 30px; width:100%; margin-top:16px;
+  }
+  .conclusion-box h3 { color:#3fb950; margin-bottom:12px; font-size:1.1rem; }
+  .conclusion-box p { color:#c9d1d9; font-size:0.95rem; margin-bottom:8px; }
+
+  /* ── Plan route ── */
+  .route-steps {
+    display:flex; flex-direction:column; gap:8px; width:100%;
+  }
+  .route-step {
+    display:flex; align-items:center; gap:14px;
+    background:#161b22; border-radius:8px; padding:10px 16px;
+    border-left:3px solid #1f6feb;
+  }
+  .route-step.start { border-left-color:#3fb950; }
+  .route-step.goal  { border-left-color:#f85149; }
+  .route-step .step-num { color:#58a6ff; font-weight:700; min-width:24px; font-size:0.85rem; }
+  .route-step .step-loc { color:#e6edf3; font-family:monospace; font-size:0.9rem; min-width:80px; }
+  .route-step .step-info { color:#8b949e; font-size:0.82rem; }
+  .route-step .step-time { margin-left:auto; color:#58a6ff; font-size:0.82rem; font-weight:600; }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<div class="slides">
+
+  <!-- ── SLIDE 1: Titolo ── -->
+  <div class="slide slide-title active" id="s1">
+    <div class="kicker">Automated Planning — Project #2</div>
+    <h1>Map Construction<br>in <span>PDDL+</span></h1>
+    <div class="subtitle">Navigazione veicolare a Cosenza con pianificazione formale</div>
+    <div class="authors">
+      <div class="author-chip">Chiara</div>
+      <div class="author-chip">Elisa</div>
+      <div class="author-chip">Emanuele</div>
+      <div class="author-chip">Pierluigi</div>
+    </div>
+    <div class="course-badge">Università della Calabria (UNICAL) &nbsp;|&nbsp; Prof. Marco Maratea &nbsp;|&nbsp; 2026</div>
+  </div>
+
+  <!-- ── SLIDE 2: Il problema ── -->
+  <div class="slide slide-section" id="s2">
+    <div class="section-num">01</div>
+    <h2>Il problema</h2>
+    <p>Un veicolo deve spostarsi da un punto A a un punto B nella città di Cosenza, percorrendo strade reali. Vogliamo trovare la sequenza di strade ottimale che minimizza il tempo di viaggio.</p>
+    <ul>
+      <li><strong>Perché non basta Google Maps?</strong> Il punto del corso è codificare il problema come istanza di pianificazione formale in PDDL+ e risolverlo con un planner AI.</li>
+      <li><strong>PDDL+</strong> è un linguaggio per pianificazione con cambiamento continuo nel tempo — perfetto per modellare un veicolo in movimento.</li>
+      <li><strong>Risultato atteso:</strong> una sequenza di azioni che il veicolo deve eseguire, con tempi precisi di percorrenza per ogni tratto.</li>
+    </ul>
+    <div class="flow" style="margin-top:30px">
+      <div class="flow-step"><div class="ficon">🗺️</div><div class="fname">OpenStreetMap</div><div class="fsub">Mappa reale</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="ficon">📐</div><div class="fname">PDDL+</div><div class="fsub">Modello formale</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="ficon">🤖</div><div class="fname">ENHSP</div><div class="fsub">Planner AI</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="ficon">✅</div><div class="fname">Piano</div><div class="fsub">Percorso ottimale</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="ficon">🔬</div><div class="fname">Validazione</div><div class="fsub">OSMnx + SUMO</div></div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 3: Strumenti ── -->
+  <div class="slide slide-section" id="s3">
+    <div class="section-num">02</div>
+    <h2>Strumenti usati</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">🌍</div>
+        <div class="label">Dati stradali</div>
+        <div class="value">OpenStreetMap</div>
+        <div class="sub">Mappa libera del mondo con nodi, archi e attributi stradali (maxspeed, lunghezza, tipo via)</div>
+      </div>
+      <div class="card">
+        <div class="icon">🐍</div>
+        <div class="label">Download & grafo</div>
+        <div class="value">OSMnx</div>
+        <div class="sub">Libreria Python che scarica OSM e costruisce un grafo NetworkX navigabile</div>
+      </div>
+      <div class="card">
+        <div class="icon">📋</div>
+        <div class="label">Linguaggio di planning</div>
+        <div class="value">PDDL+</div>
+        <div class="sub">Estensione di PDDL per modellare processi continui e eventi automatici nel tempo</div>
+      </div>
+      <div class="card">
+        <div class="icon">🤖</div>
+        <div class="label">Planner</div>
+        <div class="value">ENHSP</div>
+        <div class="sub">Expressive Numeric Heuristic Search Planner — supporta PDDL+ nativo con #t</div>
+      </div>
+      <div class="card">
+        <div class="icon">🚗</div>
+        <div class="label">Simulazione</div>
+        <div class="value">SUMO</div>
+        <div class="sub">Simulation of Urban MObility — simulatore microscopico di traffico</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 4: Il grafo ── -->
+  <div class="slide slide-section" id="s4">
+    <div class="section-num">03</div>
+    <h2>La rete stradale di Cosenza</h2>
+    <p>OSMnx scarica l'intera rete stradale di Cosenza da OpenStreetMap e la rappresenta come grafo diretto pesato.</p>
+    <div class="cards" style="margin-bottom:20px">
+      <div class="card"><div class="icon">📍</div><div class="label">Grafo completo</div><div class="value">39.181</div><div class="sub">nodi OSM</div></div>
+      <div class="card"><div class="icon">🛣️</div><div class="label">Archi completi</div><div class="value">92.723</div><div class="sub">connessioni stradali</div></div>
+      <div class="card"><div class="icon">✂️</div><div class="label">Sottografo PDDL+</div><div class="value">40 nodi</div><div class="sub">estratti con BFS</div></div>
+      <div class="card"><div class="icon">🔗</div><div class="label">Archi PDDL+</div><div class="value">84</div><div class="sub">tratti stradali</div></div>
+    </div>
+    <ul>
+      <li><strong>Perché solo 40 nodi?</strong> I planner di planning hanno complessità esponenziale con lo spazio degli stati — 40 nodi è sufficiente per dimostrare il metodo e rimanere trattabile.</li>
+      <li><strong>Selezione BFS:</strong> prendiamo i 40 nodi più vicini al centro di Cosenza tramite visita in ampiezza, garantendo che il sottografo sia connesso.</li>
+      <li><strong>Attributi estratti:</strong> per ogni arco salviamo lunghezza (m), limite di velocità (km/h) da OSM o default per tipo di strada.</li>
+    </ul>
+  </div>
+
+  <!-- ── SLIDE 5: Il modello PDDL+ ── -->
+  <div class="slide slide-section" id="s5">
+    <div class="section-num">04</div>
+    <h2>Il modello PDDL+</h2>
+    <p>PDDL+ modella il movimento del veicolo con tre elementi fondamentali:</p>
+    <div class="codeblock">
+<span class="cm">;; AZIONE istantanea: il veicolo decide di percorrere una strada</span>
+<span class="kw">(:action</span> <span class="fn">start-drive</span>  :parameters (?v - vehicle ?from ?to - location)
+  :precondition (and (at ?v ?from) (road ?from ?to) (free ?v))
+  :effect (and (not (at ?v ?from)) (driving ?v ?from ?to) (assign (position ?v) 0)))
+
+<span class="cm">;; PROCESSO continuo: la posizione aumenta nel tempo con #t</span>
+<span class="kw">(:process</span> <span class="fn">moving</span>  :parameters (?v - vehicle ?from ?to - location)
+  :precondition (and (driving ?v ?from ?to) (< (position ?v) (road-length ?from ?to)))
+  :effect (and (increase (position ?v) (* <span class="ht">#t</span> (speed-limit ?from ?to)))
+               (increase (travel-time ?v) <span class="ht">#t</span>)))
+
+<span class="cm">;; EVENTO automatico: quando arriva a destinazione</span>
+<span class="kw">(:event</span> <span class="fn">arrive</span>  :parameters (?v - vehicle ?from ?to - location)
+  :precondition (and (driving ?v ?from ?to) (>= (position ?v) (road-length ?from ?to)))
+  :effect (and (not (driving ?v ?from ?to)) (at ?v ?to) (free ?v)))
+    </div>
+    <p style="font-size:0.88rem; color:#8b949e">Il simbolo <strong style="color:#79c0ff">#t</strong> è la variabile temporale di PDDL+: aggiorna la posizione continuamente nel tempo in proporzione alla velocità limite dell'arco.</p>
+  </div>
+
+  <!-- ── SLIDE 6: Il piano ── -->
+  <div class="slide slide-section" id="s6">
+    <div class="section-num">05</div>
+    <h2>Il piano trovato da ENHSP</h2>
+    <p>ENHSP (modalità <code style="color:#79c0ff;background:#161b22;padding:2px 6px;border-radius:4px">sat-hadd</code>) ha trovato il percorso ottimale in <strong style="color:#3fb950">8 azioni start-drive</strong>:</p>
+    <div class="route-steps">
+      <div class="route-step start">
+        <div class="step-num">▶</div>
+        <div class="step-loc">loc000</div>
+        <div class="step-info">Cosenza nord — Madonna dei Cieli &nbsp;|&nbsp; t = 0 s</div>
+        <div class="step-time">START</div>
+      </div>
+      <div class="route-step">
+        <div class="step-num">1</div>
+        <div class="step-loc">loc021</div>
+        <div class="step-info">loc000 → loc021</div>
+        <div class="step-time">+67 s</div>
+      </div>
+      <div class="route-step">
+        <div class="step-num">2–3</div>
+        <div class="step-loc">loc008→003</div>
+        <div class="step-info">traversata verso est (SS107)</div>
+        <div class="step-time">+104 s</div>
+      </div>
+      <div class="route-step">
+        <div class="step-num">4</div>
+        <div class="step-loc">loc018</div>
+        <div class="step-info">tratto lungo verso sud — 441 s</div>
+        <div class="step-time">+441 s</div>
+      </div>
+      <div class="route-step">
+        <div class="step-num">5–7</div>
+        <div class="step-loc">loc010→039</div>
+        <div class="step-info">discesa verso Campagnano</div>
+        <div class="step-time">+818 s</div>
+      </div>
+      <div class="route-step goal">
+        <div class="step-num">■</div>
+        <div class="step-loc">loc039</div>
+        <div class="step-info">Cosenza sud — Campagnano &nbsp;|&nbsp; t = 1430 s</div>
+        <div class="step-time">GOAL ✓</div>
+      </div>
+    </div>
+    <div class="cards" style="margin-top:16px">
+      <div class="card"><div class="label">Tempo totale</div><div class="value">1430 s</div><div class="sub">≈ 23.8 minuti</div></div>
+      <div class="card"><div class="label">Numero azioni</div><div class="value">8</div><div class="sub">start-drive</div></div>
+      <div class="card"><div class="label">Distanza</div><div class="value">14.73 km</div><div class="sub">percorso reale</div></div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 7: Mappa interattiva ── -->
+  <div class="slide" id="s7" style="padding:0; background:#0d1117;">
+    <!-- Header -->
+    <div style="width:100%;padding:14px 32px;background:#161b22;border-bottom:1px solid #30363d;
+                display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <span style="color:#58a6ff;font-weight:700;font-size:1rem;">🗺 Percorso ENHSP su mappa reale — Cosenza</span>
+        <span style="color:#8b949e;font-size:0.82rem;margin-left:16px;">Clicca sui marker per i dettagli · Scrolla per zoomare</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button onclick="animateRoute()" style="background:#1f6feb;color:#fff;border:none;border-radius:6px;
+                padding:6px 14px;font-size:0.8rem;cursor:pointer;">▶ Anima percorso</button>
+        <button onclick="resetMap()" style="background:#21262d;color:#c9d1d9;border:1px solid #30363d;
+                border-radius:6px;padding:6px 14px;font-size:0.8rem;cursor:pointer;">↺ Reset</button>
+      </div>
+    </div>
+    <!-- Legenda -->
+    <div id="map-legend" style="position:absolute;bottom:60px;right:20px;z-index:1000;
+         background:rgba(22,27,34,0.95);border:1px solid #30363d;border-radius:8px;
+         padding:12px 16px;font-size:0.78rem;line-height:2;">
+      <div style="color:#e6edf3;font-weight:700;margin-bottom:4px;">Legenda</div>
+      <div><span style="display:inline-block;width:10px;height:10px;background:#3fb950;border-radius:50%;margin-right:6px;"></span>START (loc000)</div>
+      <div><span style="display:inline-block;width:10px;height:10px;background:#f85149;border-radius:50%;margin-right:6px;"></span>GOAL (loc039)</div>
+      <div><span style="display:inline-block;width:10px;height:10px;background:#58a6ff;border-radius:50%;margin-right:6px;"></span>Tappa intermedia</div>
+      <div><span style="display:inline-block;width:10px;height:10px;background:#888;border-radius:50%;margin-right:6px;"></span>Nodo grafo</div>
+      <div style="margin-top:4px;padding-top:4px;border-top:1px solid #30363d;color:#8b949e;">
+        Percorso: <span style="color:#f78166;">━━</span> ENHSP · Grafo: <span style="color:#444;">━━</span>
+      </div>
+    </div>
+    <!-- Mappa Leaflet -->
+    <div id="pres-map" style="flex:1;width:100%;"></div>
+  </div>
+
+  <!-- ── SLIDE 8: Validazione ── -->
+  <div class="slide slide-section" id="s8">
+    <div class="section-num">07</div>
+    <h2>Validazione del piano</h2>
+    <p>Abbiamo confrontato il tempo ENHSP con il tempo calcolato sulla rete stradale reale usando OSMnx con velocità e distanze reali da OpenStreetMap.</p>
+    <table class="rtable">
+      <tr>
+        <th>Metodo</th>
+        <th>Tempo</th>
+        <th>Note</th>
+      </tr>
+      <tr class="highlight">
+        <td>Piano PDDL+ — ENHSP sat-hadd</td>
+        <td>1430 s &nbsp; (23.8 min)</td>
+        <td><span class="badge">modello formale</span></td>
+      </tr>
+      <tr>
+        <td>Stesso percorso su rete OSM reale</td>
+        <td>1414 s &nbsp; (23.6 min)</td>
+        <td><span class="badge">differenza 1.1%</span></td>
+      </tr>
+      <tr>
+        <td>Percorso ottimale Dijkstra (OSMnx)</td>
+        <td>1152 s &nbsp; (19.2 min)</td>
+        <td><span class="badge-warn">rete completa</span></td>
+      </tr>
+    </table>
+    <div style="margin-top:20px; display:flex; gap:16px;">
+      <div class="card" style="border-color:#238636">
+        <div class="icon">✅</div>
+        <div class="label">Accuratezza modello</div>
+        <div class="value" style="color:#3fb950">1.1%</div>
+        <div class="sub">errore PDDL+ vs realtà</div>
+      </div>
+      <div class="card" style="border-color:#9e6a03">
+        <div class="icon">📊</div>
+        <div class="label">Gap da ottimale</div>
+        <div class="value" style="color:#d29922">24.1%</div>
+        <div class="sub">sottografo 40 nodi vs rete completa</div>
+      </div>
+      <div class="card">
+        <div class="icon">🚗</div>
+        <div class="label">SUMO</div>
+        <div class="value" style="color:#8b949e">tentato</div>
+        <div class="sub">rete dirigenziale disconnessa tra nord e sud</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 9: Conclusioni ── -->
+  <div class="slide slide-section" id="s9">
+    <div class="section-num">08</div>
+    <h2>Conclusioni</h2>
+    <div class="conclusion-box">
+      <h3>✅ Cosa abbiamo dimostrato</h3>
+      <p>Il modello PDDL+ cattura il comportamento stradale reale con solo l'<strong>1.1% di errore</strong> rispetto alle misurazioni OSM reali. La velocità costante per arco è una semplificazione appropriata.</p>
+      <p>ENHSP trova il piano ottimale sul modello formale. Il gap del 24% dall'ottimale globale è atteso e dovuto alla scelta di lavorare su 40 nodi invece dell'intera rete di 39.000 nodi.</p>
+    </div>
+    <ul style="margin-top:20px">
+      <li><strong>Pipeline completa realizzata:</strong> OSM → OSMnx → PDDL+ → ENHSP → Validazione OSMnx (+SUMO tentato)</li>
+      <li><strong>PDDL+ corretto:</strong> abbiamo scoperto empiricamente che ENHSP bundled supporta solo il PDDL+ puro (action/process/event), non le durative-action di PDDL 2.1</li>
+      <li><strong>Sviluppi possibili:</strong> grafo più grande, traffico dinamico, più veicoli, semafori come eventi, integrazione SUMO completa</li>
+    </ul>
+    <div style="margin-top:24px; text-align:center; color:#8b949e; font-size:0.88rem; border-top:1px solid #21262d; padding-top:16px;">
+      Codice disponibile su GitHub &nbsp;|&nbsp; Mappa interattiva: <code style="color:#58a6ff">output/plan_visualization.html</code>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Navigation ── -->
+<div id="nav">
+  <button class="btn" id="prev" onclick="go(-1)">← Indietro</button>
+  <span id="counter">1 / 8</span>
+  <button class="btn" id="next" onclick="go(1)">Avanti →</button>
+</div>
+<div id="hint">← → per navigare &nbsp;|&nbsp; F per fullscreen</div>
+
+<!-- Leaflet CSS/JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  // ── Navigazione slide ──────────────────────────────────────────────────────
+  const slides = document.querySelectorAll('.slide');
+  const TOTAL = slides.length;
+  let cur = 0;
+  let mapInitialized = false;
+
+  function show(i) {
+    slides[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(TOTAL - 1, i));
+    slides[cur].classList.add('active');
+    document.getElementById('counter').textContent = `${cur+1} / ${TOTAL}`;
+    document.getElementById('prev').disabled = cur === 0;
+    document.getElementById('next').disabled = cur === TOTAL - 1;
+    document.getElementById('progress').style.width = `${(cur/(TOTAL-1))*100}%`;
+    // Inizializza la mappa quando arrivi a quella slide
+    if (cur === 6 && !mapInitialized) { setTimeout(initMap, 100); }
+  }
+
+  function go(d) { show(cur + d); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') go(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp') go(-1);
+    if (e.key === 'f' || e.key === 'F') document.documentElement.requestFullscreen?.();
+  });
+
+  show(0);
+
+  // ── Dati mappa ─────────────────────────────────────────────────────────────
+  const allNodes = {
+    "loc000":{lat:39.6418332,lon:16.3493669}, "loc001":{lat:39.5520981,lon:16.3607686},
+    "loc002":{lat:39.6071269,lon:16.3879574}, "loc003":{lat:39.6402497,lon:16.373912},
+    "loc004":{lat:39.5832257,lon:16.29097},   "loc005":{lat:39.573431, lon:16.3430796},
+    "loc006":{lat:39.6153005,lon:16.3380801}, "loc007":{lat:39.5888792,lon:16.2832885},
+    "loc008":{lat:39.6405461,lon:16.3594094}, "loc009":{lat:39.5799512,lon:16.2992266},
+    "loc010":{lat:39.583716, lon:16.345064},  "loc011":{lat:39.5887315,lon:16.265363},
+    "loc012":{lat:39.5918663,lon:16.3422956}, "loc013":{lat:39.6116787,lon:16.3333058},
+    "loc014":{lat:39.5713253,lon:16.2864092}, "loc015":{lat:39.5921154,lon:16.3421088},
+    "loc016":{lat:39.5733711,lon:16.3029597}, "loc017":{lat:39.57188,  lon:16.2848692},
+    "loc018":{lat:39.6149709,lon:16.3864215}, "loc019":{lat:39.6636397,lon:16.3966803},
+    "loc020":{lat:39.6606173,lon:16.3979227}, "loc021":{lat:39.6405433,lon:16.3586778},
+    "loc022":{lat:39.6415252,lon:16.3486718}, "loc023":{lat:39.6418059,lon:16.3488799},
+    "loc024":{lat:39.5608676,lon:16.3590836}, "loc025":{lat:39.5680852,lon:16.2856122},
+    "loc026":{lat:39.5911838,lon:16.2833739}, "loc027":{lat:39.5716656,lon:16.3151972},
+    "loc028":{lat:39.5540991,lon:16.3614542}, "loc029":{lat:39.5549968,lon:16.3480991},
+    "loc030":{lat:39.5566342,lon:16.3474065}, "loc031":{lat:39.5575883,lon:16.3511611},
+    "loc032":{lat:39.5585259,lon:16.3469808}, "loc033":{lat:39.5736354,lon:16.3411756},
+    "loc034":{lat:39.6458378,lon:16.3982066}, "loc035":{lat:39.6404175,lon:16.3968909},
+    "loc036":{lat:39.6497757,lon:16.4025324}, "loc037":{lat:39.5754734,lon:16.3467979},
+    "loc038":{lat:39.5717843,lon:16.3461949}, "loc039":{lat:39.568883, lon:16.3490861}
+  };
+
+  const plan = [
+    {loc:"loc000", t:0,    step:0, road:"loc000→loc021", dur:67,  desc:"Partenza — Madonna dei Cieli"},
+    {loc:"loc021", t:67,   step:1, road:"loc021→loc008", dur:5,   desc:"Svincolo est"},
+    {loc:"loc008", t:72,   step:2, road:"loc008→loc003", dur:99,  desc:"Verso la SS107"},
+    {loc:"loc003", t:171,  step:3, road:"loc003→loc018", dur:441, desc:"Lungo tratto est"},
+    {loc:"loc018", t:612,  step:4, road:"loc018→loc010", dur:570, desc:"Discesa verso il centro"},
+    {loc:"loc010", t:1182, step:5, road:"loc010→loc005", dur:169, desc:"Centro-sud"},
+    {loc:"loc005", t:1351, step:6, road:"loc005→loc038", dur:36,  desc:"Avvicinamento a Campagnano"},
+    {loc:"loc038", t:1387, step:7, road:"loc038→loc039", dur:43,  desc:"Ultimo tratto"},
+    {loc:"loc039", t:1430, step:8, road:"GOAL",          dur:0,   desc:"Arrivo — Campagnano"}
+  ];
+
+  // ── Inizializza mappa Leaflet ───────────────────────────────────────────────
+  let presMap = null;
+  let routePolyline = null;
+  let animPolyline = null;
+
+  function initMap() {
+    mapInitialized = true;
+    presMap = L.map('pres-map', { zoomControl: true }).setView([39.60, 16.35], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors', maxZoom: 18
+    }).addTo(presMap);
+
+    // Nodi grigi (non nel piano)
+    const planLocs = new Set(plan.map(p => p.loc));
+    for (const [name, pos] of Object.entries(allNodes)) {
+      if (planLocs.has(name)) continue;
+      L.circleMarker([pos.lat, pos.lon], {
+        radius:4, color:'#444', fillColor:'#666', fillOpacity:0.7, weight:1
+      }).bindTooltip(name, {direction:'top'}).addTo(presMap);
+    }
+
+    // Percorso completo (sottile, trasparente — comparirà con animazione)
+    const coords = plan.map(p => [allNodes[p.loc].lat, allNodes[p.loc].lon]);
+    routePolyline = L.polyline(coords, {
+      color:'#f78166', weight:5, opacity:0.15, dashArray:'8,6'
+    }).addTo(presMap);
+
+    // Linea animata (parte vuota)
+    animPolyline = L.polyline([], {
+      color:'#f78166', weight:6, opacity:0.95
+    }).addTo(presMap);
+
+    // Marker dei nodi del piano
+    plan.forEach((p, i) => {
+      const pos = allNodes[p.loc];
+      const isStart = i === 0, isGoal = i === plan.length - 1;
+      const color = isStart ? '#3fb950' : isGoal ? '#f85149' : '#58a6ff';
+      const r = (isStart || isGoal) ? 12 : 8;
+
+      const m = L.circleMarker([pos.lat, pos.lon], {
+        radius: r, color:'#fff', fillColor: color, fillOpacity:1, weight:2
+      });
+
+      const label = isStart ? '🟢 START' : isGoal ? '🔴 GOAL' : `Tappa ${p.step}`;
+      m.bindPopup(`
+        <div style="font-family:Arial;min-width:180px">
+          <b style="color:#1f6feb">${label}</b><br>
+          <code>${p.loc}</code> — ${p.desc}<br>
+          <hr style="margin:6px 0;border-color:#ddd">
+          ⏱ Tempo: <b>${p.t} s</b> (${(p.t/60).toFixed(1)} min)<br>
+          ${p.dur > 0 ? `🛣 Prossimo tratto: <b>${p.dur} s</b>` : ''}
+        </div>
+      `);
+
+      if (!isStart && !isGoal) {
+        m.bindTooltip(`Tappa ${p.step}: ${p.loc} — t=${p.t}s`, {direction:'top'});
+      }
+      m.addTo(presMap);
+
+      // Etichetta numerica sul marker
+      if (!isStart && !isGoal) {
+        L.marker([pos.lat, pos.lon], {
+          icon: L.divIcon({
+            className:'',
+            html:`<div style="background:#1f6feb;color:#fff;border-radius:50%;
+                       width:16px;height:16px;line-height:16px;text-align:center;
+                       font-size:10px;font-weight:bold;border:2px solid #fff">${p.step}</div>`,
+            iconSize:[16,16], iconAnchor:[8,8]
+          })
+        }).addTo(presMap);
+      }
+    });
+
+    presMap.fitBounds(routePolyline.getBounds(), {padding:[40,40]});
+  }
+
+  // ── Animazione percorso ────────────────────────────────────────────────────
+  let animTimer = null;
+
+  function animateRoute() {
+    if (!presMap) return;
+    clearTimeout(animTimer);
+    animPolyline.setLatLngs([]);
+    routePolyline.setStyle({opacity: 0.08});
+
+    const coords = plan.map(p => [allNodes[p.loc].lat, allNodes[p.loc].lon]);
+    let i = 0;
+
+    function step() {
+      if (i >= coords.length) {
+        routePolyline.setStyle({opacity: 0.15});
+        return;
+      }
+      animPolyline.addLatLng(coords[i]);
+      // Apri popup automaticamente sull'ultimo punto
+      if (i > 0) {
+        presMap.panTo(coords[i], {animate:true, duration:0.5});
+      }
+      i++;
+      const delay = i < coords.length ? (plan[i-1].dur > 0 ? Math.min(plan[i-1].dur * 8, 1200) : 400) : 0;
+      if (i < coords.length) animTimer = setTimeout(step, delay);
+    }
+    step();
+  }
+
+  function resetMap() {
+    if (!presMap) return;
+    clearTimeout(animTimer);
+    animPolyline.setLatLngs([]);
+    routePolyline.setStyle({opacity:0.15});
+    presMap.fitBounds(routePolyline.getBounds(), {padding:[40,40]});
+  }
+</script>
+</body>
+</html>

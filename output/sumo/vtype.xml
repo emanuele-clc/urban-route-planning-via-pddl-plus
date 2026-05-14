@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<additional>
+    <vType id="auto" vClass="passenger" maxSpeed="50"
+           accel="2.6" decel="4.5" sigma="0.0" length="4.5"/>
+</additional>

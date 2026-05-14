@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="cosenza.net.xml"/>
+        <route-files value="route.rou.xml"/>
+        <additional-files value="vtype.xml"/>
+    </input>
+
+    <output>
+        <!-- tripinfo: contiene la durata effettiva del viaggio -->
+        <tripinfo-output value="tripinfo.xml"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+        <end value="7200"/>       <!-- max 2 ore di simulazione -->
+        <step-length value="0.1"/> <!-- passo 100ms per precisione -->
+    </time>
+
+    <report>
+        <no-warnings value="true"/>
+        <no-step-log value="true"/>
+        <verbose value="false"/>
+    </report>
+
+</configuration>
