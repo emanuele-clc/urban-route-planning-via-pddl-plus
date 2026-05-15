@@ -44,25 +44,27 @@ except ImportError:
 NODE_MAP_FILE = Path("output/node_map.json")
 OUTPUT_DIR    = Path("output/sumo")
 
-ENHSP_TIME = 1430  # secondi (piano trovato da ENHSP sat-hadd)
+ENHSP_TIME = 1240  # secondi (piano trovato da ENHSP sat-hadd — aggiornare dopo re-run)
 
 # Piano ENHSP: sequenza di nodi OSM (da node_map.json)
+# NOTA: OSM ID (secondo campo) da aggiornare dopo aver rieseguito osm_to_pddl.py
+#       su Dublin e ENHSP. Le coordinate GPS sono approssimative.
 PLAN_LOCS = [
-    ("loc000", 411608790,    39.6418332, 16.3493669),  # START
-    ("loc021", 1067345389,   39.6405433, 16.3586778),
-    ("loc008", 1067314068,   39.6405461, 16.3594094),
-    ("loc003", 1066773771,   39.6402497, 16.373912),
-    ("loc018", 1067340549,   39.6149709, 16.3864215),
-    ("loc010", 1067314402,   39.583716,  16.345064),
-    ("loc005", 1067313341,   39.573431,  16.3430796),
-    ("loc038", 5467594423,   39.5717843, 16.3461949),
-    ("loc039", 13755417911,  39.568883,  16.3490861),  # GOAL
+    ("loc000", 0,  53.3532, -6.2638),   # START — Parnell Square (nord)
+    ("loc021", 0,  53.3498, -6.2620),   # O'Connell Bridge
+    ("loc008", 0,  53.3450, -6.2548),   # College Green / Trinity
+    ("loc003", 0,  53.3410, -6.2611),   # Dame Street
+    ("loc018", 0,  53.3382, -6.2591),   # St. Stephen's Green
+    ("loc010", 0,  53.3325, -6.2588),   # Harcourt Street
+    ("loc005", 0,  53.3288, -6.2580),   # Ranelagh
+    ("loc038", 0,  53.3235, -6.2640),   # Rathmines Road
+    ("loc039", 0,  53.3221, -6.2655),   # GOAL — Rathmines (sud)
 ]
 
-START_LON, START_LAT = 16.3493669, 39.6418332
-GOAL_LON,  GOAL_LAT  = 16.3490861, 39.568883
+START_LON, START_LAT = -6.2638, 53.3532
+GOAL_LON,  GOAL_LAT  = -6.2655, 53.3221
 
-BBOX = (39.54, 16.26, 39.67, 16.42)  # (south, west, north, east)
+BBOX = (53.30, -6.42, 53.42, -6.17)  # (south, west, north, east) — Dublin
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PARTE 1 — Validazione con OSMnx (metodo principale, sempre disponibile)
@@ -79,8 +81,8 @@ def load_osmnx_graph():
     ox.add_edge_travel_times() calcola 'travel_time' (secondi) come:
         travel_time = length / (speed_kph / 3.6)
     """
-    print("  → Download rete Cosenza con OSMnx...")
-    G = ox.graph_from_place("Cosenza, Italy", network_type="drive", simplify=True)
+    print("  → Download rete Dublin con OSMnx...")
+    G = ox.graph_from_place("Dublin, Ireland", network_type="drive", simplify=True)
     G = ox.add_edge_speeds(G)
     G = ox.add_edge_travel_times(G)
     n_nodes = len(G.nodes)

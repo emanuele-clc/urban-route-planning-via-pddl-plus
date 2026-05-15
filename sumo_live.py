@@ -26,9 +26,9 @@ except ImportError:
 
 # ── Configurazione ─────────────────────────────────────────────────────────────
 
-START_LON, START_LAT = 16.3493669, 39.6418332   # loc000 — Cosenza nord
-GOAL_LON,  GOAL_LAT  = 16.3490861, 39.568883    # loc039 — Cosenza sud
-START_OSM_ID = 411608790                          # nodo OSM verificato in osmnx
+START_LON, START_LAT = -6.2638, 53.3532   # Parnell Square — Dublin nord
+GOAL_LON,  GOAL_LAT  = -6.2655, 53.3221  # Rathmines — Dublin sud
+START_OSM_ID = 0                           # aggiornato automaticamente da nearest_nodes
 
 OUTPUT_DIR = Path("output/sumo_live")
 
@@ -57,10 +57,10 @@ def sumo_cmd(tool, sumo_home):
 # ── Step 1: Scarica grafo osmnx ────────────────────────────────────────────────
 
 def get_graph():
-    print("  → Download rete Cosenza con osmnx...")
+    print("  → Download rete Dublin con osmnx...")
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        G = ox.graph_from_place("Cosenza, Italy", network_type="drive", simplify=True)
+        G = ox.graph_from_place("Dublin, Ireland", network_type="drive", simplify=True)
     G = ox.add_edge_speeds(G)
     G = ox.add_edge_travel_times(G)
     print(f"  ✓ Grafo: {len(G.nodes)} nodi, {len(G.edges)} archi")
@@ -360,7 +360,7 @@ def create_sumo_config(net_file, route_file, vtype_file, cfg_file, settings_file
 def main():
     print()
     print("=" * 60)
-    print("  SUMO-GUI LIVE — Piano ENHSP — Cosenza")
+    print("  SUMO-GUI LIVE — Piano ENHSP — Dublin")
     print("=" * 60)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -385,7 +385,7 @@ def main():
     G, start_node, goal_node = get_graph()
 
     # [2] OSM XML (usa cache se già presente e valida)
-    osm_file = OUTPUT_DIR / "cosenza_osmnx.osm"
+    osm_file = OUTPUT_DIR / "dublin_osmnx.osm"
     print("\n[2/6] Esportazione OSM XML...")
     if osm_file.exists() and osm_file.stat().st_size > 100_000:
         print(f"  ✓ Già presente: {osm_file.name} ({osm_file.stat().st_size // 1024} KB)")
@@ -393,7 +393,7 @@ def main():
         export_osm_xml(G, osm_file)
 
     # [3] netconvert (sempre rigenerato per applicare le fix)
-    net_file = OUTPUT_DIR / "cosenza_live.net.xml"
+    net_file = OUTPUT_DIR / "dublin_live.net.xml"
     print("\n[3/6] Conversione in rete SUMO (netconvert)...")
     run_netconvert(osm_file, net_file, sumo_home)
 
@@ -412,7 +412,7 @@ def main():
     trip_file     = OUTPUT_DIR / "trip_live.xml"
     vtype_file    = OUTPUT_DIR / "vtype_live.xml"
     route_file    = OUTPUT_DIR / "route_live.rou.xml"
-    cfg_file      = OUTPUT_DIR / "cosenza_live.sumocfg"
+    cfg_file      = OUTPUT_DIR / "dublin_live.sumocfg"
     settings_file = OUTPUT_DIR / "gui_settings.xml"
 
     print("\n[5/6] Calcolo percorso (duarouter)...")

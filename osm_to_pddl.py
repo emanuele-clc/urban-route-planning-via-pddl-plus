@@ -32,7 +32,7 @@ from pathlib import Path
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIGURAZIONE DEFAULT
 # ──────────────────────────────────────────────────────────────────────────────
-DEFAULT_CITY     = "Cosenza, Calabria, Italy"
+DEFAULT_CITY     = "Dublin, Ireland"
 DEFAULT_MAX_NODES = 40          # nodi massimi nel problema PDDL (per trattabilità)
 DEFAULT_SPEED_KPH = 50.0        # velocità di default se OSM non la specifica
 OUTPUT_DIR        = Path("output")
@@ -202,7 +202,7 @@ def generate_problem(G, start_node: int, goal_node: int, node_map: dict) -> str:
     lines.append(f";; Città: {DEFAULT_CITY}")
     lines.append(f";; Nodi: {len(G.nodes)}  |  Archi: {len(G.edges)}")
     lines.append("")
-    lines.append("(define (problem navigate-cosenza)")
+    lines.append("(define (problem navigate-dublin)")
     lines.append("  (:domain map-navigation)")
     lines.append("")
 

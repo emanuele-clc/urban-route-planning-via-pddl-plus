@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<additional>
-    <vType id="auto" vClass="passenger"
-           maxSpeed="50" accel="2.0" decel="4.5"
-           sigma="0.2" length="4.5"
-           color="255,80,80"/>
-</additional>
