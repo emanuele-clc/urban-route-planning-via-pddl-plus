@@ -22,12 +22,10 @@ zone_configs = {
 for nome, info in zone_configs.items():
     print(f"Scaricando {nome}...")
     
-    # Scarichiamo il grafo senza semplificazione per SUMO
+
     G = ox.graph_from_point(info["coords"], dist=info["dist"], network_type="drive", simplify=False)
     
-    # Salvataggio in formato OSM XML
     filename = f"dublin_{nome}.osm"
     ox.save_graph_xml(G, filepath=filename)
     print(f"Salvato: {filename}")
 
-print("\nDownload completato. Ora puoi usare NETCONVERT su ogni file.")

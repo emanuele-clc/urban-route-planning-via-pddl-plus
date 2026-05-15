@@ -12,12 +12,12 @@
 
   (:functions
     (distance ?from ?to - location)   ; distanza in metri
-    (speed ?from ?to - location)      ; velocità in m/s
-    (progress)                        ; metri percorsi sul tratto corrente
-    (total-time)                      ; tempo totale accumulato
+    (speed ?from ?to - location)      ; velocita' in m/s
+    (progress ?from ?to - location)   ; metri percorsi su questo tratto
+    (total-dist)                      ; distanza totale percorsa
   )
 
-  ;; AZIONE: il veicolo inizia a muoversi da ?from verso ?to
+  ;; AZIONE: inizia a percorrere la strada da ?from a ?to
   (:action start-move
     :parameters (?from ?to - location)
     :precondition (and
@@ -27,31 +27,31 @@
     :effect (and
       (not (at ?from))
       (moving ?from ?to)
-      (assign (progress) 0)
+      (assign (progress ?from ?to) 0)
     )
   )
 
-  ;; PROCESSO: mentre è in movimento, il progresso aumenta continuamente
+  ;; PROCESSO: la distanza percorsa su questo tratto aumenta nel tempo
   (:process driving
     :parameters (?from ?to - location)
     :precondition (moving ?from ?to)
     :effect (and
-      (increase (progress) (* #t (speed ?from ?to)))
-      (increase (total-time) (* #t 1))
+      (increase (progress ?from ?to) (* #t (speed ?from ?to)))
     )
   )
 
-  ;; EVENTO: quando progress >= distanza, il veicolo è arrivato
+  ;; EVENTO: quando si raggiunge la destinazione
   (:event arrive
     :parameters (?from ?to - location)
     :precondition (and
       (moving ?from ?to)
-      (>= (progress) (distance ?from ?to))
+      (>= (progress ?from ?to) (distance ?from ?to))
     )
     :effect (and
       (not (moving ?from ?to))
       (at ?to)
-      (assign (progress) 0)
+      (increase (total-dist) (distance ?from ?to))
+      (assign (progress ?from ?to) 0)
     )
   )
 
