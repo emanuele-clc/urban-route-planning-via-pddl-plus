@@ -1,0 +1,7033 @@
+============================================================
+  STRADE — zona GRANDE
+  File OSM: dublin_grande_porto.osm
+  Vie totali trovate: 3320
+  Nomi unici: 1171
+============================================================
+
+  (senza nome)
+    tipo      : living_street, residential, secondary_link, tertiary, tertiary_link, unclassified
+    velocita' : 15, 30, 40, 50, ? km/h
+    senso unico: no (o misto)
+    tratti OSM: 104  (nodi totali: 594)
+
+  Abbey Street Lower
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 7  (nodi totali: 22)
+
+  Abercorn Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Adair
+    tipo      : residential
+    velocita' : ? km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 17)
+
+  Addison Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Adelaide
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Adelaide Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 57)
+
+  Admiral Brown Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Aikenhead Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Ailesbury Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 28)
+
+  Ailesbury Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 15)
+
+  Ailesbury Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 13)
+
+  Ailesbury Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Ailesbury Road
+    tipo      : secondary, tertiary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 112)
+
+  Albert Court East
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 8)
+
+  Albert Place East
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Albert Place West
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Albert Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Aldborough Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Alexandra Road
+    tipo      : secondary_link, unclassified
+    velocita' : 40, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 12  (nodi totali: 97)
+
+  Alexandra Road Extension
+    tipo      : tertiary, tertiary_link, unclassified
+    velocita' : 40, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 10  (nodi totali: 45)
+
+  Alfie Byrne Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 63)
+
+  Alma Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Alma Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Amiens Street
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 16  (nodi totali: 60)
+
+  Anglesea
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Anglesea Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 11  (nodi totali: 96)
+
+  Anglesea Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Anna Villa
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 11)
+
+  Annadale Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Annadale Crescent
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 15)
+
+  Annadale Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 27)
+
+  Annesley Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Annesley Bridge Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 39)
+
+  Annesley Close
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  Annesley Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Annesley Place
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 21)
+
+  Appian Way
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 13)
+
+  Ardilaun Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Ardilaun Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Ardoyne Mews
+    tipo      : residential
+    velocita' : ? km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Argyle Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Arranmore Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Asdill's Row
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Asgard Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 7)
+
+  Ashbrook
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 45)
+
+  Ashfield Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Ashfield Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 18)
+
+  Aston Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Aston Quay
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 4  (nodi totali: 14)
+
+  Athlumney Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Auburn
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Auburn Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Auburn Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Austin's Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Bachelors Walk
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 8  (nodi totali: 22)
+
+  Baggot Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 17)
+
+  Baggot Street Lower
+    tipo      : secondary, secondary_link
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 16  (nodi totali: 83)
+
+  Baggot Street Upper
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 14)
+
+  Balfe Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Ball's Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Ballsbridge Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Ballsbridge Park
+    tipo      : secondary_link, unclassified
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 16)
+
+  Ballsbridge Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 16)
+
+  Ballybough Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Ballybough Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 25)
+
+  Bannaville
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Bargy Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 13)
+
+  Barrack Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Barron Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Barrow Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 28)
+
+  Bass Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Bath Avenue
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 38)
+
+  Bath Avenue Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Bath Avenue Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 7)
+
+  Bath Street
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 12)
+
+  Baymount Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Bayview Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 7)
+
+  Beach Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Beach Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Beach Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 13  (nodi totali: 62)
+
+  Beatty's Avenue
+    tipo      : living_street, residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 25)
+
+  Beaver Close
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Beaver Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Bedford Row
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Beechwood Avenue Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 18)
+
+  Beechwood Avenue Upper
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Beechwood Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Beechwood Road
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Belgrave Avenue
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Belgrave Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Belgrave Road
+    tipo      : residential, tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Belgrave Square East
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Belgrave Square North
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Belgrave Square South
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Belgrave Square West
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Belgrave View
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 16)
+
+  Belgrove Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Belgrove Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Bella Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Bella Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Bella Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Bellman's Walk
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Belmont Avenue
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 49)
+
+  Belmont Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Belmont Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Belmont Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Belvedere Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Belvedere Place
+    tipo      : tertiary, tertiary_link
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 17)
+
+  Belvedere Road
+    tipo      : tertiary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 11)
+
+  Belvidere Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Belvidere Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 5)
+
+  Benson Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Beresford Place
+    tipo      : secondary, unclassified
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 16  (nodi totali: 61)
+
+  Berystede
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 19)
+
+  Bessborough Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Bessborough Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Binns Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Blackheath Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Blackheath Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Blackheath Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Blackheath Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Blackheath Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Blackheath Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 20)
+
+  Blood Stoney Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Bloody Sunday Bridge
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 10)
+
+  Bloomfield Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Bloomfield Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Blythe Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Bond Drive
+    tipo      : unclassified
+    velocita' : 40 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 18)
+
+  Bond Drive Extension
+    tipo      : unclassified
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 40)
+
+  Bond Road
+    tipo      : trunk, trunk_link, unclassified
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 11  (nodi totali: 45)
+
+  Boolavogue Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Botanic Avenue
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 41)
+
+  Botanic Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Botanic Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Bottlemaker Place
+    tipo      : living_street
+    velocita' : ? km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Bow Lane East
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 2)
+
+  Boyne Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 15)
+
+  Breakwater Road North
+    tipo      : unclassified
+    velocita' : 40 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 11)
+
+  Breakwater Road South
+    tipo      : unclassified
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 28)
+
+  Bremen Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 16)
+
+  Bremen Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 32)
+
+  Brendan Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  Brian Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Brian Boru Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Brian Boru Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Brian Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 25)
+
+  Brian Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Bridge Street
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 7  (nodi totali: 24)
+
+  Brighton Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Brooklawn
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 40)
+
+  Brookvale Road
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Brunswick Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Buckingham Street Lower
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 4  (nodi totali: 16)
+
+  Buckingham Street Upper
+    tipo      : tertiary, tertiary_link
+    velocita' : 30, ? km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 15)
+
+  Bull Island Bridge
+    tipo      : unclassified
+    velocita' : 15 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Burgh Quay
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 8  (nodi totali: 22)
+
+  Burleigh Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 17)
+
+  Burlington Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Burlington Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 25)
+
+  Bushfield Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Bushfield Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Bushfield Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Bushfield Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 27)
+
+  Butt Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 6  (nodi totali: 14)
+
+  Byrne's Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Cadogan Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Cadogan Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Calderwood Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Caledon Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 20)
+
+  Cambridge Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Cambridge Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Cambridge Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Cambridge Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 36)
+
+  Cambridge Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Cambridge Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Cambridge Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 19)
+
+  Campbell's Row
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Canal Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Canon Lillis Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Canon Mooney Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 14)
+
+  Cardiff Lane
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 17)
+
+  Carleton Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Carlingford Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Carlingford Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Carlisle Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 16)
+
+  Casino Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 21)
+
+  Casino Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  Castilla Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Castle Avenue
+    tipo      : tertiary, tertiary_link
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 14  (nodi totali: 113)
+
+  Castle Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 26)
+
+  Castle Gate
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Castle Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Castle Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Castle Vernon
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 25)
+
+  Castleforbes Road
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 18)
+
+  Castlewood Avenue
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Castlewood Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 7)
+
+  Castlewood Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 22)
+
+  Cathal Brugha Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 12)
+
+  Cathedral Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 8)
+
+  Cavendish Row
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 9  (nodi totali: 33)
+
+  Cecil Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Celestine Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Champions' Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 15)
+
+  Chapel Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Chapelgate
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Charlemont
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 28)
+
+  Charlemont Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 6)
+
+  Charlemont Mall
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 13)
+
+  Charlemont Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Charlemont Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Charlemont Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 16)
+
+  Charlemont Row
+    tipo      : residential
+    velocita' : ? km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Charlemont Street
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 33)
+
+  Charles Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Charleston Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Charleston Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 22)
+
+  Charleville Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 9)
+
+  Charleville Mall
+    tipo      : residential
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 26)
+
+  Charlotte Way
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Chatham Lane
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 2)
+
+  Chatham Row
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 7)
+
+  Chatham Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Chelmsford Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Chelmsford Close
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Chelmsford Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 18)
+
+  Chelmsford Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 19)
+
+  Chelsea Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Cheltenham Place
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Cherryfield Avenue Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Cherrymount Crescent
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Chester Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Chester Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Chimney View
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Church Avenue
+    tipo      : residential, secondary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 53)
+
+  Church Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Church Lane
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Church Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Church Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 68)
+
+  Church Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Church Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Church View
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Churchgate Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Churchill Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Cian Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  City Quay
+    tipo      : secondary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 25)
+
+  Clanawley Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Clancarthy Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 16)
+
+  Clanwilliam Place
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 13)
+
+  Clare Street
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 15)
+
+  Claremont Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 38)
+
+  Claremont Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 34)
+
+  Clarence Place Great
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Clarendon Row
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Clarendon Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 15)
+
+  Clarke's Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 8)
+
+  Clifton Mews
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Clinch Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 8)
+
+  Clonlara Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Clonliffe Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 30)
+
+  Clonliffe Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 22)
+
+  Clonliffe Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 38)
+
+  Clonmel Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Clonmore Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Clonmore Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Clontarf Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 22)
+
+  Clontarf Road
+    tipo      : residential, secondary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 27  (nodi totali: 263)
+
+  Clonturk Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Clonturk Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Clonturk Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Clyde Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 26)
+
+  Clyde Road
+    tipo      : residential
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 37)
+
+  Coburg Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 6)
+
+  College Green
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 16  (nodi totali: 57)
+
+  College Manor
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 17)
+
+  College Street
+    tipo      : secondary, secondary_link
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 7  (nodi totali: 35)
+
+  Colliers Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Collins Avenue East
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 46)
+
+  Commons Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 16)
+
+  Comyn Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Conquer Hill Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 23)
+
+  Convent Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Cope Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Copeland Avenue
+    tipo      : residential
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 12)
+
+  Copeland Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Corn Exchange Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Courtney Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Crampton Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Crampton Quay
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 2)
+
+  Cranfield Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 13)
+
+  Cranmer Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 24)
+
+  Cranmer Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Crawford Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  Creighton Street
+    tipo      : residential, tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  Crescent Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Crescent Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Crescent Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Crinan Strand
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Croydon Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 31)
+
+  Croydon Green
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 14)
+
+  Croydon Park Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 7  (nodi totali: 31)
+
+  Croydon Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Cuffe Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Cuffe Street
+    tipo      : secondary, secondary_link
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 13)
+
+  Cullenswood Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 16)
+
+  Cullenswood Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Cullenswood Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 13)
+
+  Cumberland Road
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Cumberland Street North
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Custom House Quay
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 21  (nodi totali: 66)
+
+  Cymric Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  D'Olier Street
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 18)
+
+  Dame Lane
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Dame Street
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 6)
+
+  Dargle Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 17)
+
+  Dartmouth Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Dartmouth Road
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 43)
+
+  Dartmouth Square East
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Dartmouth Square North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Dartmouth Square South
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Dartmouth Square West
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Dartmouth Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Dawson Street
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 7  (nodi totali: 46)
+
+  De Valera Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Demesne
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 36)
+
+  Denzille Lane
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 21)
+
+  Dermot O'Hurley Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 15)
+
+  Derrynane Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Derrynane Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 10)
+
+  Derrynane Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Deverell Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Dexter Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Digges Lane
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 2)
+
+  Distillery Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Dodder Greenway
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 10)
+
+  Dodder Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Dodder View Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Dollymount Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 15)
+
+  Dollymount Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Dollymount Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 30)
+
+  Dollymount Rise
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Donnybrook Manor
+    tipo      : residential
+    velocita' : 15 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 32)
+
+  Donnybrook Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 33)
+
+  Donnycarney Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Doris Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Dorset Street Lower
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 11  (nodi totali: 43)
+
+  Dorset Street Upper
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 8)
+
+  Dowling's Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Doyles Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Dromard Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 13)
+
+  Dromard Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Drumcondra Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Drumcondra Road Lower
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 14  (nodi totali: 56)
+
+  Drumcondra Road Upper
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 7  (nodi totali: 40)
+
+  Drury Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 10)
+
+  Dublin Tunnel
+    tipo      : motorway, motorway_link
+    velocita' : 50, 80 km/h
+    senso unico: si
+    tratti OSM: 28  (nodi totali: 196)
+
+  Duke Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Dunluce
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Dunluce Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 62)
+
+  Dunne Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 12)
+
+  Dunseverick Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 18)
+
+  Dunville Avenue
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 27)
+
+  Dunville Close
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Durham Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 36)
+
+  Earlsfort Terrace
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 22)
+
+  East Road
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 41)
+
+  East Wall Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 35  (nodi totali: 152)
+
+  East-Link Roundabout
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 31)
+
+  Eastmoreland Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Eastmoreland Place
+    tipo      : residential, tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 9)
+
+  Eblana Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Eccles Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Eccles Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Eden Quay
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 6  (nodi totali: 19)
+
+  Edenvale Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Eglinton Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Eglinton Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Elgin Road
+    tipo      : residential, tertiary_link
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 34)
+
+  Elizabeth Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Elmpark Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Elmwood Avenue Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Elmwood Avenue Upper
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Ely Place
+    tipo      : tertiary, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 12)
+
+  Ely Place Upper
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Emerald Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  Emerald Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Emmet Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Empress Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Enaville Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Enaville Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Ennis Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Erne Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 6)
+
+  Erne Place Little
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Erne Place Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Erne Street Lower
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Erne Street Upper
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 18)
+
+  Erne Terrace (Front)
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Erne Terrace (Rear)
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Estate Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 13)
+
+  Exchange Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Exchequer Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Fairfield Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Fairview
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 13)
+
+  Fairview Avenue Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 12)
+
+  Fairview Avenue Upper
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Fairview Close
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Fairview Green
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 19)
+
+  Fairview Strand
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 42)
+
+  Fairview Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Faith Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 6)
+
+  Farney Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 66)
+
+  Fenian Street
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 25)
+
+  Ferguson Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 13)
+
+  Ferryman's Crossing
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Fields Terrace
+    tipo      : tertiary_link
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 8)
+
+  Findlater Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  First Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Fitzgibbon Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Fitzroy Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 14)
+
+  Fitzwilliam Lane
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Fitzwilliam Place
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 14)
+
+  Fitzwilliam Quay
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Fitzwilliam Square East
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Fitzwilliam Square North
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Fitzwilliam Square South
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Fitzwilliam Square West
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Fitzwilliam Street
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 12)
+
+  Fitzwilliam Street Lower
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Fitzwilliam Street Upper
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Fitzwilliam Way
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 10)
+
+  Fleet Street
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 18)
+
+  Fleming Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Foley Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 4  (nodi totali: 16)
+
+  Forbes Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Forth Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Fortview Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Foster Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 17)
+
+  Foster Place North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Foster Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Fourth Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Fownes Street Upper
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Foyle Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 6)
+
+  Frankfort Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 14)
+
+  Frederick Street North
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 14)
+
+  Frenchman's Lane
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 6)
+
+  Furry Park Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 46)
+
+  Gaelic Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Gardiner Place
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Gardiner Row
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Gardiner Street Lower
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 24)
+
+  Gardiner Street Middle
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 10)
+
+  Gardiner Street Upper
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 14)
+
+  George's Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 13)
+
+  George's Quay
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 6  (nodi totali: 29)
+
+  Gerald Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Gilford Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Gilford Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Gilford Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 13)
+
+  Gilford Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 15)
+
+  Gilford Road
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 58)
+
+  Gilford Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Glandore Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Glass Bottle Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 13)
+
+  Glenarm Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Glencarrig Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Glendalough Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Gloucester Place Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Gloucester Place North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Gloucester Street South
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Glovers Alley
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 22)
+
+  Gordon Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 16)
+
+  Grace Park Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Grace Park Close
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Grace Park Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Grace Park Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Grace Park Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 50)
+
+  Grace Park Row
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Grace Park View
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Grace Park Way
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 22)
+
+  Gracepark Terrace
+    tipo      : residential, tertiary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 24)
+
+  Grafton Street
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 21)
+
+  Graham Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 27)
+
+  Grand Canal Quay
+    tipo      : living_street, residential, unclassified
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 33)
+
+  Grand Canal Street Lower
+    tipo      : secondary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 12  (nodi totali: 38)
+
+  Grand Canal Street Upper
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 27)
+
+  Grand Parade
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 14)
+
+  Granite Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 10)
+
+  Grant's Row
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 13)
+
+  Grattan Court East
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 12)
+
+  Grattan Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Grattan Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Grattan Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Great Charles Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 23)
+
+  Great Denmark Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Green Street East
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Greenore Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Greenore Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Grenville Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Griffith Avenue
+    tipo      : secondary, secondary_link
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 17  (nodi totali: 80)
+
+  Griffith Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 44)
+
+  Griffith Walk
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Grosvenor Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 13)
+
+  Guild Street
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 13  (nodi totali: 40)
+
+  Guildford Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Gulistan Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Gulistan Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Gulistan Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Haddington Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Haddington Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Haddington Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 26)
+
+  Haddon Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Haddon Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Hampton
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 42)
+
+  Hampton Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 18)
+
+  Hanover Quay
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 11)
+
+  Hanover Street East
+    tipo      : residential, tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 39)
+
+  Harbourmaster Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 24)
+
+  Harcourt Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 4  (nodi totali: 16)
+
+  Harcourt Street
+    tipo      : secondary, tertiary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 8  (nodi totali: 43)
+
+  Harcourt Terrace
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Harcourt Terrace Lane
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Hardwicke Place
+    tipo      : tertiary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 16)
+
+  Hardwicke Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Harmony Row
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Harry Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Hastings Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Hatch Street Lower
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 18)
+
+  Hatch Street Upper
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 14)
+
+  Havelock Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Havelock Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 19)
+
+  Havelock Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Haverty Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Hawkins Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 11)
+
+  Hawthorn Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Hawthorn Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 2)
+
+  Hazeldene
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 12)
+
+  Healy Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Herbert Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Herbert Park
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 37)
+
+  Herbert Place
+    tipo      : residential, tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Herbert Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 21)
+
+  Herbert Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Hewardine Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Heytesbury Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 67)
+
+  Hibernian Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Hill Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 13)
+
+  Hogan Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Hogan Place
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 11)
+
+  Holbrook Street
+    tipo      : residential
+    velocita' : ? km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Holles Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Holles Row
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 11)
+
+  Holles Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Hollybank Avenue Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Hollybank Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 18)
+
+  Hollybrook Court Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Hollybrook Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Hollybrook Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 17)
+
+  Hollybrook Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 17)
+
+  Holycross Avenue
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Holyrood Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 18)
+
+  Home Farm Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Home Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Hope Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Hope Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Horse Fair
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Howard Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Howth Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 22  (nodi totali: 170)
+
+  Huband Bridge
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 4)
+
+  Hume Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 15)
+
+  Hyacinth Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Innisfallen Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Inverness Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Iona Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Iona Crescent
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Iona Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 4)
+
+  Irishtown Road
+    tipo      : secondary, tertiary, tertiary_link
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 46)
+
+  Irvine Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Irvine Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Island Villa
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Isolda Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  James Joyce Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 16)
+
+  James Street East
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  James Street North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  James's Place East
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  John McCormack Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Johnson Place
+    tipo      : tertiary, unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 8)
+
+  Jones's Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Joy Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Joyce Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Kerlogue Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 27)
+
+  Kildare Street
+    tipo      : secondary, secondary_link
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 11  (nodi totali: 42)
+
+  Killane Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Killarney Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Killarney Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 9)
+
+  Killeen Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Killester Avenue
+    tipo      : residential, tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 19)
+
+  Kincora Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 38)
+
+  Kincora Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 29)
+
+  Kincora Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 33)
+
+  Kincora Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Kincora Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 51)
+
+  Kincora Walk
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Kings Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Kingston Lodge
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Kirkwood
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Knights Bridge
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Kyle-Clare Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Langrishe Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Lansdowne Hall
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Lansdowne Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Lansdowne Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 90)
+
+  Lansdowne Road
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 67)
+
+  Lansdowne Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Lansdowne Village
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 7  (nodi totali: 53)
+
+  Larch Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Lawrence Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 27)
+
+  Lazer Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Lea Crescent
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Lea Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 16)
+
+  Leahy's Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 20)
+
+  Leeson Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 27)
+
+  Leeson Park Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 19)
+
+  Leeson Street Lower
+    tipo      : secondary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 12  (nodi totali: 49)
+
+  Leeson Street Upper
+    tipo      : secondary, secondary_link
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 18  (nodi totali: 104)
+
+  Leeson Village
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Leinster Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Leinster Street East
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Leinster Street South
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 7  (nodi totali: 20)
+
+  Leo Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Leukos Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Liberty House
+    tipo      : living_street, residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Liffey Street Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 7)
+
+  Lime Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Lincoln Place
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 4  (nodi totali: 21)
+
+  Lindsay Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Litton Lane
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 2)
+
+  Lombard Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Lombard Street East
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 20  (nodi totali: 54)
+
+  Lomond Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  London Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 8)
+
+  Londonbridge Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Londonbridge Road
+    tipo      : living_street, residential, secondary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 25)
+
+  Love Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Love Lane East
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Luke Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 9)
+
+  Mabel Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Macken Street
+    tipo      : secondary, tertiary, tertiary_link
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 10  (nodi totali: 47)
+
+  MacMahon Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 13)
+
+  Magennis Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Magennis Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Main Street
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Malachi Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Malahide Road
+    tipo      : secondary, secondary_link
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 26  (nodi totali: 112)
+
+  Malone Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Manders Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Mannix Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Margaret Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Marine Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  Marine School Walk
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Marino Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Marino Green
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 14)
+
+  Marino Mart
+    tipo      : residential, secondary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 36)
+
+  Marino Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 35)
+
+  Marino Park Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 18)
+
+  Mark Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Mark's Lane
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Marlborough Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Marlborough Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 56)
+
+  Marlborough Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 8  (nodi totali: 40)
+
+  Martello Mews
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Martello View
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Martello Wood
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Matt Talbot Memorial Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 9  (nodi totali: 21)
+
+  May Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Mayor Street Lower
+    tipo      : tertiary, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 49)
+
+  Mayor Street Upper
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 45)
+
+  McGovern's Arch
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  McKenny's Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 10)
+
+  Meade's Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 4)
+
+  Melrose Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Melrose Court
+    tipo      : residential
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Memorial Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 18  (nodi totali: 66)
+
+  Mercer Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 7)
+
+  Merchant's Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Merchant's Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 14)
+
+  Merlyn Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 19)
+
+  Merlyn Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 53)
+
+  Merlyn Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 38)
+
+  Merrion Road
+    tipo      : secondary, secondary_link
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 29  (nodi totali: 184)
+
+  Merrion Row
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 11)
+
+  Merrion Square East
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 15)
+
+  Merrion Square North
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 15)
+
+  Merrion Square South
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 20)
+
+  Merrion Square West
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Merrion Street Lower
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 19)
+
+  Merrion Street Upper
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 21)
+
+  Merrion View Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Merton Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 19)
+
+  Merville Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 21)
+
+  Mespil Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 22)
+
+  Middle Abbey Street
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 4  (nodi totali: 15)
+
+  Middle Third
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 14)
+
+  Millbourne Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 12)
+
+  Millmount Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 34)
+
+  Millmount Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Millmount Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Millmount Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Misery Hill
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 16)
+
+  Moat Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Molesworth Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 14)
+
+  Montague Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Montague Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Monterey
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Moore Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Morehampton Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Morehampton Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 36)
+
+  Morehampton Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Morehampton Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Mornington Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 17)
+
+  Morrogh Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Moss Street
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 7  (nodi totali: 21)
+
+  Mount Eden Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 17)
+
+  Mount Prospect Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 74)
+
+  Mount Prospect Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 13)
+
+  Mount Prospect Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 17)
+
+  Mount Prospect Lawns
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Mount Prospect Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Mount Street Crescent
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 33)
+
+  Mount Street Lower
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 26)
+
+  Mount Street Upper
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Mountain View Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Mountjoy Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Mountjoy Square East
+    tipo      : residential, tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 13)
+
+  Mountjoy Square North
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 13)
+
+  Mountjoy Square South
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Mountjoy Square West
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 9)
+
+  Mountpleasant Avenue Lower
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 7  (nodi totali: 32)
+
+  Mountpleasant Avenue Upper
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 18)
+
+  Mountpleasant Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Mountpleasant Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 23)
+
+  Mountpleasant Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 26)
+
+  Mountpleasant Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 19)
+
+  Moy Elta Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Moyne Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Nassau Street
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 7  (nodi totali: 33)
+
+  New Bridge
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  New Wapping Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 23)
+
+  Newbridge Avenue
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 31)
+
+  Newbridge Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Newcomen Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 6)
+
+  Newgrove Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 24)
+
+  Noel Purcell Walk
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 9)
+
+  Norabrook
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  North Bull Wall
+    tipo      : unclassified
+    velocita' : 15, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 22)
+
+  North Circular Road
+    tipo      : residential, secondary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 13  (nodi totali: 56)
+
+  North Great Clarence Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  North Great George's Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  North Lotts
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  North Richmond Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  North Strand Road
+    tipo      : secondary, secondary_link
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 17  (nodi totali: 76)
+
+  North Wall Avenue
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 24)
+
+  North Wall Quay
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 26  (nodi totali: 97)
+
+  Northbrook Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 71)
+
+  Northbrook Avenue Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Northbrook Avenue Upper
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Northbrook Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 17)
+
+  Northbrook Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 15)
+
+  Northbrook Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Northumberland Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 42)
+
+  Norwood Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Nottingham Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Number 1 Branch Road North
+    tipo      : unclassified
+    velocita' : 40 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Number 2 Branch Road North
+    tipo      : unclassified
+    velocita' : 40 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Number 2 Branch Road North Extension
+    tipo      : unclassified
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Number 2 Branch Road South
+    tipo      : unclassified
+    velocita' : 20 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Number 3 Branch Road South
+    tipo      : unclassified
+    velocita' : 20 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Number 4 Branch Road South
+    tipo      : unclassified
+    velocita' : 20 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  O'Brien's Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  O'Connell Bridge
+    tipo      : secondary, secondary_link
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 13  (nodi totali: 42)
+
+  O'Connell Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 62)
+
+  O'Connell Street Lower
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 18  (nodi totali: 55)
+
+  O'Connell Street Upper
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 12  (nodi totali: 43)
+
+  O'Neachtain Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  O'Sullivan Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Oaklands Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Oaklands Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 23)
+
+  Oakley Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 25)
+
+  Oakley Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Oakley Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 27)
+
+  Old Mountpleasant
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 6)
+
+  Oliver Plunkett Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 20)
+
+  Ontario Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Ontario Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Orchard Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Oriel Hall
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Oriel Street Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 24)
+
+  Oriel Street Upper
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Ormeau Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Ormond Quay Lower
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Ormond Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Ossory Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 44)
+
+  Oswald Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Oulton Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 11)
+
+  Oxford Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 17)
+
+  Palmerston Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Palmerston Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Park Avenue
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 72)
+
+  Park Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Park Lane
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 7  (nodi totali: 38)
+
+  Park Lawn
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 18)
+
+  Park View
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 13)
+
+  Parkview Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Parnell Square East
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 16)
+
+  Parnell Square North
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 14)
+
+  Parnell Square West
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 9)
+
+  Parnell Street
+    tipo      : secondary, secondary_link
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 19  (nodi totali: 84)
+
+  Patrick Heeney Crescent
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 7)
+
+  Pearse Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Pearse Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 10)
+
+  Pearse Square West
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Pearse Street
+    tipo      : secondary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 25  (nodi totali: 118)
+
+  Pembroke Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 39)
+
+  Pembroke Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 28)
+
+  Pembroke Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Pembroke Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Pembroke Road
+    tipo      : secondary, tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 19  (nodi totali: 78)
+
+  Pembroke Street
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 22)
+
+  Pembroke Street Lower
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 7)
+
+  Pembroke Street Upper
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 9)
+
+  Penrose Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Percy Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 14)
+
+  Percy Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 17)
+
+  Peter Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 29)
+
+  Peterson's Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Philipsburgh Avenue
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 56)
+
+  Philipsburgh Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Philomena Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Pigeon House Road
+    tipo      : residential, unclassified
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 21  (nodi totali: 149)
+
+  Pine Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 26)
+
+  Poolbeg Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 15)
+
+  Poplar Row
+    tipo      : residential, secondary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 31)
+
+  Portland Close
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Portland Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Portland Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Portland Row
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 22)
+
+  Portland Street North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Power's Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Powerscourt
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 11)
+
+  Preston Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Price's Lane
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 14)
+
+  Prince of Wales Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 14)
+
+  Prince's Street North
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Prince's Street South
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Promenade Road
+    tipo      : tertiary, tertiary_link, unclassified
+    velocita' : 40, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 20  (nodi totali: 105)
+
+  Purser Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  R131
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 35)
+
+  Raglan Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Raglan Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Railway Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Railway Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 19)
+
+  Rampart Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 15)
+
+  Ranelagh
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 27  (nodi totali: 79)
+
+  Ranelagh Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Ranelagh Mews
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Ranelagh Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 7  (nodi totali: 36)
+
+  Ransford
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Ravensdale Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Redcourt Oaks
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 13)
+
+  Richelieu Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 23)
+
+  Richmond Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Richmond Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Richmond Cottages North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 10)
+
+  Richmond Crescent
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Richmond Estate
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Richmond Hill
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Richmond Lodge
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Richmond Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Richmond Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Richmond Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 55)
+
+  Ringsend Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 34)
+
+  Ringsend Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 20)
+
+  Robert Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Rope Walk Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Rosary Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Rostrevor Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 6)
+
+  Rugby Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Rugby Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Russell Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Russell Avenue East
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 67)
+
+  Russell Street
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 15)
+
+  Rutland Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 4)
+
+  Rutland Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Rutland Place North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  Rutland Street Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Sackville Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Sackville Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Sackville Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 7)
+
+  Saint Aidan's Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Saint Aidan's Park Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Saint Aidan's Park Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 13)
+
+  Saint Alban's Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 90)
+
+  Saint Alphonsus' Road Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Saint Andrew Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 10)
+
+  Saint Barnabas Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Saint Benedict's Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Saint Brigids Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Saint Brocs Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Saint Clement's Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Saint Columba's Road Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Saint Columba's Road Upper
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Saint Declan's Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 16)
+
+  Saint Declan's Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 4)
+
+  Saint Gabriels Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 22)
+
+  Saint Georges Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Saint Ignatius Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Saint James' Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Saint John's Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 38)
+
+  Saint Joseph's Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 6)
+
+  Saint Joseph's Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Saint Joseph's Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Saint Joseph's Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Saint Josephs Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Saint Laurence Place East
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Saint Lawrence Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 20)
+
+  Saint Magdalen Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Saint Margaret's Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Saint Mary's Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 17)
+
+  Saint Mary's Road
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Saint Mary's Road North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 15)
+
+  Saint Patrick's Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Saint Patrick's Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Sallymount Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 19)
+
+  Sallymount Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Sallymount Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Samuel Beckett Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 23)
+
+  Sandford Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 18)
+
+  Sandford Close
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 36)
+
+  Sandford Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Sandford Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 24  (nodi totali: 89)
+
+  Sandwith Street Lower
+    tipo      : secondary, tertiary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 7  (nodi totali: 24)
+
+  Sandwith Street Upper
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 26)
+
+  Sandymount Avenue
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 64)
+
+  Sandymount Castle Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Sandymount Castle Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Sandymount Castle Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Sandymount Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Sandymount Green
+    tipo      : residential, tertiary, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 31)
+
+  Sandymount Road
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 43)
+
+  Scherzer Lifting Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 4)
+
+  Seabury
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Seacourt
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 9)
+
+  Seafield Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Seafield Downs
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Seafield Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  Seafield Road East
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 29)
+
+  Seafield Road West
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 35)
+
+  Seafort Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 25)
+
+  Seafort Crescent
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Seafort Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 6)
+
+  Seafort Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Seafront Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Sean Mac Dermott Street Upper
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 6)
+
+  Sean MacDermott Street Lower
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 14)
+
+  Sean Moore Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 17  (nodi totali: 59)
+
+  Sean O'Casey Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Seapark
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 30)
+
+  Seapark Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 13)
+
+  Seapark Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 24)
+
+  Seaview Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 15)
+
+  Seaview Avenue North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 10)
+
+  Second Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Selskar Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Serpentine Avenue
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 46)
+
+  Serpentine Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 39)
+
+  Serpentine Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 25)
+
+  Serpentine Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Setanta Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 11)
+
+  Seville Place
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 15  (nodi totali: 52)
+
+  Seville Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Shamrock Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Shamrock Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Shamrock Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Shaw Street
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 7)
+
+  Shaws Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 13)
+
+  Shelbourne Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Shelbourne Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Shelbourne Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 47)
+
+  Shelmalier Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 13)
+
+  Shelmartin Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 10)
+
+  Shelmartin Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Sheriff Street Lower
+    tipo      : residential, tertiary
+    velocita' : 30, ? km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 37)
+
+  Sheriff Street Upper
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 19  (nodi totali: 67)
+
+  Sherrard Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Sherrard Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Sherrard Street Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Sherrard Street Upper
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 6)
+
+  Shrewsbury
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Shrewsbury Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Shrewsbury Road
+    tipo      : residential
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 35)
+
+  Simmons Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Simmonscourt Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  Simmonscourt Road
+    tipo      : unclassified
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 20)
+
+  Sir John Rogerson's Quay
+    tipo      : secondary, unclassified
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 47)
+
+  Smith's Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Somerset Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  South Bank Road
+    tipo      : unclassified
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 38)
+
+  South Cumberland Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 19)
+
+  South Dock Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  South Dock Road
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  South Dock Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 17)
+
+  South Frederick Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 7)
+
+  South Lotts Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 29)
+
+  Spafield Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Spencer Dock
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Spencer Dock Bridge
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 4)
+
+  Spencer Street North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Spring Garden Lane
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Spring Garden Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  St Alphonsus Road Upper
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 11)
+
+  St Alphonsus' Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 6)
+
+  St Anne's Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 15)
+
+  St Brendan's Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 18)
+
+  St Brendan's Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  St Brigid's Road Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  St Brigid's Road Upper
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  St John's
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 7  (nodi totali: 52)
+
+  St Joseph's Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  St Patrick's Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  St Patrick's Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 16)
+
+  St Patrick's Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 8)
+
+  St. John's Wood
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 19)
+
+  St. Joseph's Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  St. Stephen's Green
+    tipo      : secondary, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 27  (nodi totali: 134)
+
+  Stephen Street Lower
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 9)
+
+  Stephen's Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 14)
+
+  Stephen's Place
+    tipo      : residential, unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 22)
+
+  Stiles Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Stoney Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 11)
+
+  Store Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 7  (nodi totali: 27)
+
+  Strand Mews
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Strand Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 106)
+
+  Strand Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 17)
+
+  Strandville Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 8)
+
+  Strandville Avenue East
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Strandville House
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Strandville Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Strangford Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Strangford Road East
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Strasburg Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Summer Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Summer Street North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Summerhill
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 33)
+
+  Summerhill Parade
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Summerhill Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Susanville Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Sussex Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 3  (nodi totali: 25)
+
+  Sussex Terrace
+    tipo      : secondary, tertiary
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 5  (nodi totali: 22)
+
+  Swan Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Swan Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Sybil Hill Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 19)
+
+  Sydenham Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Sydney Parade Avenue
+    tipo      : residential, tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 55)
+
+  Synnott Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Synnott Row
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Taaffe's Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Talbot Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Talbot Street
+    tipo      : tertiary, unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 6  (nodi totali: 43)
+
+  Tara Street
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 7  (nodi totali: 24)
+
+  Temple Bar
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 3)
+
+  Temple Lane North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Temple Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 9)
+
+  Temple Street North
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Terminal Road North
+    tipo      : tertiary, unclassified
+    velocita' : 40 km/h
+    senso unico: no (o misto)
+    tratti OSM: 8  (nodi totali: 29)
+
+  Terminal Road South
+    tipo      : tertiary, unclassified
+    velocita' : 40, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 18  (nodi totali: 69)
+
+  Terminal Road West
+    tipo      : unclassified
+    velocita' : 50 km/h
+    senso unico: si
+    tratti OSM: 4  (nodi totali: 16)
+
+  Terrace Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  The Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  The Crescent
+    tipo      : residential, secondary_link
+    velocita' : 30, 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 42)
+
+  The Frank Flood Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 6)
+
+  The Mews
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  The Paddocks
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  The Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 20)
+
+  The Stiles Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 26)
+
+  Third Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Thomas Street
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Thomson Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Thorncastle Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 19)
+
+  Tolka Quay Road
+    tipo      : tertiary, tertiary_link, unclassified
+    velocita' : 40 km/h
+    senso unico: no (o misto)
+    tratti OSM: 21  (nodi totali: 126)
+
+  Tolka Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 30)
+
+  Toll Bridge Road
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 9  (nodi totali: 44)
+
+  Tom Clarke Bridge
+    tipo      : secondary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 14)
+
+  Tom Clarke House
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Townsend Street
+    tipo      : secondary, tertiary, unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 11  (nodi totali: 67)
+
+  Trinity Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Tritonville Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Tritonville Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 10)
+
+  Tritonville Crescent
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Tritonville Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Tritonville Road
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 31)
+
+  Turlough Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Turlough Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Tyrrell Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Ulster Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Upper Abbey Street
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 2)
+
+  Valentia Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Vavasour Square
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 11)
+
+  Vernon Avenue
+    tipo      : secondary, tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 10  (nodi totali: 68)
+
+  Vernon Drive
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Vernon Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Vernon Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 8)
+
+  Vernon Heath
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 23)
+
+  Vernon Mews
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 6)
+
+  Vernon Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 12)
+
+  Vernon Rise
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 14)
+
+  Veronica Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 9)
+
+  Verschoyle Court
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 22)
+
+  Verschoyle Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 11)
+
+  Victoria Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Victoria Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Victoria Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Walker's Cottages
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Walsh Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 21)
+
+  Warrington Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Warrington Place
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Waterfall Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Waterloo Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 9)
+
+  Waterloo Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 52)
+
+  Waterloo Road
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 61)
+
+  Waverly Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Wellesley Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  Wellington Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 22)
+
+  Wellington Place
+    tipo      : residential
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 10  (nodi totali: 39)
+
+  Wellington Quay
+    tipo      : secondary
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 6  (nodi totali: 13)
+
+  Wellington Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 49)
+
+  West Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 29)
+
+  Westland Court
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Westland Row
+    tipo      : secondary, secondary_link
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 20  (nodi totali: 60)
+
+  Westmoreland Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 6)
+
+  Westmoreland Street
+    tipo      : secondary, secondary_link
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 5  (nodi totali: 31)
+
+  Whitebank Road
+    tipo      : unclassified
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 15)
+
+  Whitfield Grove
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 5)
+
+  Whitworth Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Whitworth Parade
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Whitworth Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
+  Whitworth Road
+    tipo      : tertiary
+    velocita' : 50 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 15)
+
+  Whitworth Terrace
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  Wicklow Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 6)
+
+  Wilfield
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 22)
+
+  Wilfield Park
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 21)
+
+  Wilfield Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 23)
+
+  William Street North
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 3  (nodi totali: 17)
+
+  William Street South
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 15)
+
+  William's Place Lower
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 2)
+
+  William's Place Upper
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Willow Field
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 6  (nodi totali: 19)
+
+  Wilson's Place
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Wilton Place
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 18)
+
+  Wilton Terrace
+    tipo      : tertiary
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 28)
+
+  Windele Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 3)
+
+  Windmill Lane
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 2  (nodi totali: 7)
+
+  Windsor Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 9)
+
+  Windsor Villas
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Winton Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 2  (nodi totali: 18)
+
+  Woodside/Gate to park. right side pillar
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 12)
+
+  Woodstock Gardens
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 7)
+
+  Woodville Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 4)
+
+  Xavier Avenue
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 1  (nodi totali: 5)
+
+  York Road
+    tipo      : residential
+    velocita' : 30 km/h
+    senso unico: no (o misto)
+    tratti OSM: 4  (nodi totali: 20)
+
+  York Street
+    tipo      : unclassified
+    velocita' : 30 km/h
+    senso unico: si
+    tratti OSM: 1  (nodi totali: 5)
+
