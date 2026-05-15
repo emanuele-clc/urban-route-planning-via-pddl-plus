@@ -26,7 +26,7 @@ progetto_maratea/
 ├── projects.pdf                 # Specifiche del progetto (Prof. Maratea)
 ├── README.md
 │
-└── pulito/                      # Tutto il lavoro del progetto
+└── files/                      # Tutto il lavoro del progetto
     │
     ├── osm_files/               # Mappe scaricate da OpenStreetMap
     │   ├── dublin_piccola_centro.osm
@@ -104,7 +104,7 @@ Le velocità sono in **m/s** (convertite dal limite OSM in km/h).
 
 **1. Scaricare le mappe** (se non già presenti):
 ```bash
-cd pulito
+cd files
 python download_dublin_map.py
 ```
 
