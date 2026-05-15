@@ -7,15 +7,19 @@ Gruppo: Chiara, Elisa, Emanuele, Pierluigi
 
 ## Descrizione
 
-Il progetto consiste nella costruzione di una mappa reale in **PDDL+** e nella risoluzione di un problema di navigazione tramite il planner **ENHSP**.
+Il progetto implementa uno strumento software che:
+1. Scarica mappe reali da **OpenStreetMap** (città di Dublino)
+2. Le codifica in **PDDL+** come problema di navigazione
+3. Trova il percorso ottimale con il planner **ENHSP**
+4. Visualizza il percorso animato in **SUMO**
 
-La mappa utilizzata è quella di **Dublino, Irlanda**, scaricata da OpenStreetMap. Sono state create tre versioni della mappa a diversa scala:
+Sono state create tre istanze della mappa a diversa scala:
 
-| Zona | Area reale | Raggio | Nodi PDDL |
-|------|-----------|--------|-----------|
-| **Piccola** | Temple Bar / Dublino Centro | 400m | 14 |
-| **Media** | Ranelagh / zona residenziale | 1200m | ~50 |
-| **Grande** | Docklands / Porto | 3000m | ~150 |
+| Zona | Area | Raggio | Nodi PDDL | Archi | START → GOAL | Distanza | Tempo teorico |
+|------|------|--------|-----------|-------|--------------|----------|---------------|
+| **Piccola** | Temple Bar / Centro | 400m | 14 | 20 | Liffey St → Aungier St | 1.57 km | 194 s |
+| **Media** | Ranelagh / Residenziale | 1200m | 50 | 93 | Leeson St → Saint Mary's Rd | 1.62 km | 150 s |
+| **Grande** | Phibsborough / Nord | 3000m | 120 | 206 | Sherrard St → Botanic Ave | 1.33 km | 142 s |
 
 ---
 
@@ -23,10 +27,10 @@ La mappa utilizzata è quella di **Dublino, Irlanda**, scaricata da OpenStreetMa
 
 ```
 progetto_maratea/
-├── projects.pdf                 # Specifiche del progetto
-├── requirements.txt             # Dipendenze Python
-├── setup.bat                    # Setup automatico (Windows)
 ├── README.md
+├── requirements.txt             # Dipendenze Python (up-enhsp, osmnx)
+├── setup.bat                    # Installazione automatica (Windows)
+├── projects.pdf                 # Specifiche del progetto
 │
 └── files/
     ├── osm_files/               # Mappe scaricate da OpenStreetMap
@@ -34,107 +38,142 @@ progetto_maratea/
     │   ├── dublin_media_residenziale.osm
     │   └── dublin_grande_porto.osm
     │
-    ├── net_files/               # Reti convertite per SUMO (netconvert)
+    ├── net_files/               # Reti stradali per SUMO (da netconvert)
     │   ├── piccola.net.xml
     │   ├── media.net.xml
     │   └── grande.net.xml
     │
-    ├── pddl_files/              # File PDDL+ del progetto
-    │   ├── domain.pddl          # Dominio (uguale per tutte e tre le mappe)
-    │   ├── problem_piccola.pddl # Problema zona piccola (14 nodi)
-    │   ├── problem_media.pddl   # Problema zona media (~50 nodi)
-    │   ├── problem_grande.pddl  # Problema zona grande (~150 nodi)
-    │   └── run.py               # Script per lanciare ENHSP
+    ├── cfg_files/               # File generati da sumo_visualize.py
+    │   ├── {zona}.sumocfg
+    │   ├── {zona}_piano.rou.xml
+    │   └── gui_{zona}.xml
     │
-    ├── encoder/                 # Analisi delle strade OSM
-    │   ├── encoder.py           # Legge OSM e genera report .txt
+    ├── pddl_files/              # File PDDL+ del progetto
+    │   ├── domain.pddl          # Dominio (uguale per tutte le mappe)
+    │   ├── problem_piccola.pddl # Problema zona piccola (14 nodi)
+    │   ├── problem_media.pddl   # Problema zona media (50 nodi)
+    │   ├── problem_grande.pddl  # Problema zona grande (120 nodi)
+    │   └── run.py               # Lancia ENHSP e mostra il piano
+    │
+    ├── encoder/                 # Analisi strade OSM
+    │   ├── encoder.py           # Genera report .txt per ogni zona
     │   ├── strade_piccola.txt
     │   ├── strade_media.txt
     │   └── strade_grande.txt
     │
-    ├── download_dublin_map.py   # Scarica le mappe OSM tramite osmnx
-    └── convert_to_osm.py        # Converte OSM → net.xml con netconvert
+    ├── download_dublin_map.py   # Scarica le mappe OSM via osmnx
+    ├── convert_to_osm.py        # Converte OSM → net.xml con netconvert
+    ├── build_problems.py        # Genera problem_media.pddl e problem_grande.pddl da OSM
+    └── sumo_visualize.py        # Visualizza il piano ENHSP in sumo-gui (tutte le zone)
 ```
 
 ---
 
 ## Requisiti
 
-| Strumento | Versione | Download |
-|-----------|----------|---------|
-| Python | 3.9+ | https://www.python.org/downloads/ |
-| Java | qualsiasi | https://www.java.com/it/download/ |
-| up-enhsp | 0.1.0 | installato con pip (vedi sotto) |
-| osmnx | ≥1.9 | installato con pip (vedi sotto) |
-
-> **Nota:** Java è necessario perché ENHSP è un programma Java (`.jar`). Senza Java non si può risolvere il problema PDDL+.
+| Strumento | Versione | Note |
+|-----------|----------|------|
+| Python | 3.9+ | https://www.python.org |
+| Java | 17+ | Necessario per ENHSP |
+| SUMO | 1.x | Per la visualizzazione |
+| up-enhsp | 0.1.0 | Installato via pip |
+| osmnx | ≥ 1.9 | Installato via pip |
 
 ---
 
 ## Setup (una volta sola)
 
-**Windows** — doppio click su `setup.bat`, oppure da terminale:
+**Windows:**
 ```bat
 setup.bat
 ```
 
-**Mac / Linux** — da terminale:
+**Mac / Linux:**
 ```bash
 pip install -r requirements.txt
 ```
 
-Questo installa automaticamente `up-enhsp` (il planner) e `osmnx` (per scaricare mappe).
-
 ---
 
-## Come eseguire il progetto
+## Come eseguire
 
 ### 1. Risolvere il problema PDDL+ con ENHSP
 
+`run.py` trova automaticamente ENHSP, risolve il problema e stampa il piano ottimale.
+
 ```bash
 cd files/pddl_files
-python run.py piccola
-python run.py media
-python run.py grande
+python run.py piccola   # oppure: media, grande
 ```
 
-`run.py` trova ENHSP automaticamente sul PC, lancia il planner e stampa il piano trovato. Il log completo viene salvato in `output_piccola.txt` / `output_media.txt` / `output_grande.txt`.
+Output atteso per piccola:
+```
+Problem Solved
+0: (start-move liffey_st_upper wellington_quay_e)
+10.0: (start-move wellington_quay_e aston_quay)
+...
+183.0: (start-move sgeorges_m aungier_st)
+Elapsed Time: 194s  |  Planning Time: 44ms  |  Expanded Nodes: 207
+```
 
-**Oppure**, se preferisci il comando Java diretto:
+Ogni riga del piano è un'**azione istantanea**: il veicolo inizia a percorrere un tratto.
+Tra un'azione e la successiva il **processo** `driving` avanza la posizione in modo continuo,
+finché l'**evento** `arrive` scatta quando `progress >= distance`.
+Il tempo finale è la durata teorica del viaggio a 30 km/h senza traffico né semafori —
+un *lower bound* ottimistico rispetto ai tempi reali.
+
+> ⚠️ Il planner usa il motore `-s aibr`. Non usare `sat-hadd` con domini PDDL+ che
+> contengono processi ed eventi: ritorna h(I)=0.0 e non converge.
+
+### 2. Visualizzare il percorso in SUMO
+
 ```bash
-java -jar <percorso>/enhsp.jar -o domain.pddl -f problem_piccola.pddl -s aibr
+cd files
+python sumo_visualize.py piccola   # oppure: media, grande
 ```
 
-> ⚠️ Usare sempre `-s aibr` (non `sat-hadd`): è l'unico motore che funziona correttamente con domini PDDL+ che usano processi ed eventi.
+Si apre sumo-gui con la rete di Dublino e il veicolo rosso pronto a partire.
+- Premi **▶ Play** per avviare la simulazione
+- **Ctrl+A** per adattare la vista all'intera rete
+- Click destro sull'auto → **Track** per seguirla lungo il percorso
+- Il veicolo **sparisce quando raggiunge la destinazione** — è normale: SUMO rimuove
+  il veicolo alla fine del suo itinerario
 
-### 2. Analizzare le strade OSM
+### 3. (Opzionale) Rigenerare i problemi media e grande
+
+I file `problem_media.pddl` e `problem_grande.pddl` sono già inclusi nel repository.
+Per rigenerarli dai file OSM originali (utile se si cambia area o numero di nodi):
+
+```bash
+cd files
+python build_problems.py
+```
+
+L'algoritmo: costruisce il grafo contratto degli incroci OSM → espande un sottografo
+connesso di N nodi via BFS diretto → scrive il file PDDL+ con tutte le fluenti.
+
+### 4. Analizzare le strade OSM
 
 ```bash
 cd files/encoder
 python encoder.py
 ```
 
-Genera tre file `.txt` con nome, tipo, velocità e senso unico per ogni strada delle tre zone.
-
-### 3. Visualizzare la mappa in SUMO
-
-Aprire `sumo-gui` e caricare uno dei file in `files/net_files/`:
-- `piccola.net.xml`
-- `media.net.xml`
-- `grande.net.xml`
+Genera tre file `.txt` con tipo di strada, velocità e senso unico per ogni zona.
 
 ---
 
 ## Modello PDDL+
 
-Il dominio usa tre costrutti di PDDL+: **azione**, **processo** ed **evento**.
+Il dominio usa i tre costrutti tipici di PDDL+:
 
 ```pddl
 ; AZIONE istantanea: il veicolo inizia a percorrere una strada
 (:action start-move
   :parameters (?from ?to - location)
   :precondition (and (at ?from) (road ?from ?to))
-  :effect (and (not (at ?from)) (moving ?from ?to)
+  :effect (and (not (at ?from))
+               (moving ?from ?to)
                (assign (progress ?from ?to) 0)))
 
 ; PROCESSO continuo: la distanza percorsa aumenta nel tempo (#t)
@@ -143,40 +182,107 @@ Il dominio usa tre costrutti di PDDL+: **azione**, **processo** ed **evento**.
   :precondition (moving ?from ?to)
   :effect (increase (progress ?from ?to) (* #t (speed ?from ?to))))
 
-; EVENTO automatico: quando progress >= distanza, il veicolo arriva
+; EVENTO automatico: il veicolo arriva quando progress >= distanza
 (:event arrive
   :parameters (?from ?to - location)
   :precondition (and (moving ?from ?to)
                      (>= (progress ?from ?to) (distance ?from ?to)))
-  :effect (and (not (moving ?from ?to)) (at ?to)
-               (increase (total-dist) (distance ?from ?to))))
+  :effect (and (not (moving ?from ?to))
+               (at ?to)
+               (increase (total-dist) (distance ?from ?to))
+               (assign (progress ?from ?to) 0)))
 ```
 
-`#t` è la variabile temporale continua di PDDL+. Le distanze sono in **metri** reali (Haversine sui dati OSM), le velocità in **m/s** (convertite dai limiti OSM in km/h).
+`#t` è la variabile temporale continua di PDDL+.  
+Le distanze sono in **metri** (calcolate con Haversine dai dati OSM).  
+Le velocità sono in **m/s** (convertite dal limite OSM in km/h: 30 km/h = 8.33 m/s).
 
 ---
 
-## Risultati (zona piccola)
+## Risultati
 
-Piano trovato da ENHSP in **44ms**, 207 nodi esplorati:
+### Zona Piccola ✅
 
-```
-  0s → liffey_st_upper
- 10s → wellington_quay_e
- 12s → aston_quay
- 33s → ormond_quay_w
- 51s → capel_st_n
- 57s → capel_st_quay
- 67s → grattan_bridge_s
-128s → cork_hill
-132s → cork_hill_s
-155s → dame_st_e
-160s → sgeorges_n
-183s → sgeorges_m
-194s → aungier_st  ✅ GOAL
-```
+**Piano trovato da ENHSP** in 44ms, 207 nodi esplorati:
 
-**Tempo totale: 194 secondi** (~3 minuti) su 12 strade reali del centro di Dublino.
+| Tempo (s) | Posizione |
+|-----------|-----------|
+| 0 | Liffey Street Upper ← START |
+| 10 | Wellington Quay Est |
+| 12 | Aston Quay |
+| 33 | Ormond Quay West |
+| 51 | Capel Street Nord |
+| 57 | Capel Street / Quay |
+| 67 | Grattan Bridge Sud |
+| 128 | Cork Hill |
+| 132 | Cork Hill Sud |
+| 155 | Dame Street Est |
+| 160 | South Gt George's St Nord |
+| 183 | South Gt George's St Centro |
+| **194** | **Aungier Street ← GOAL ✅** |
+
+**Distanza totale:** ~1.57 km  
+**Tempo teorico:** 194 s a 30 km/h  
+**Confronto Google Maps:** ~15 min reali — il piano PDDL+ è un lower bound ottimistico (nessun traffico, nessuna frenata)
+
+### Zona Media ✅
+
+**Piano calcolato** (50 nodi, 93 archi, 18 strade percorse):
+
+| Tempo (s) | Posizione |
+|-----------|-----------|
+| 0.0 | Leeson Street Upper ← START |
+| 5.7 | incrocio successivo |
+| 6.0 | → |
+| 19.9 | → |
+| 28.3 | → |
+| 39.5 | → |
+| 46.2 | → |
+| 52.0 | → |
+| 65.1 | → |
+| 91.7 | → |
+| 110.1 | → |
+| 123.9 | → |
+| 130.3 | → |
+| **150** | **Saint Mary's Road ← GOAL ✅** |
+
+**Distanza totale:** 1.62 km  
+**Tempo teorico:** 150 s a velocità media 30 km/h
+
+### Zona Grande ✅
+
+**Piano calcolato** (120 nodi, 206 archi, 15 strade percorse):
+
+| Tempo (s) | Posizione |
+|-----------|-----------|
+| 0.0 | Sherrard Street Lower ← START |
+| 5.6 | → |
+| 22.6 | → |
+| 29.9 | → |
+| 46.3 | → |
+| 53.1 | → |
+| 75.5 | → |
+| 84.6 | → |
+| 94.6 | → |
+| 101.6 | → |
+| 113.7 | → |
+| 121.5 | → |
+| 135.4 | → |
+| **142** | **Botanic Avenue ← GOAL ✅** |
+
+**Distanza totale:** 1.33 km  
+**Tempo teorico:** 142 s a velocità media 30 km/h
+
+### Riepilogo
+
+| Zona | Nodi | Archi | Distanza | Tempo teorico | Confronto reale |
+|------|------|-------|----------|---------------|-----------------|
+| Piccola | 14 | 20 | 1.57 km | 194 s | ~15 min (Google Maps) |
+| Media | 50 | 93 | 1.62 km | 150 s | lower bound ottimistico |
+| Grande | 120 | 206 | 1.33 km | 142 s | lower bound ottimistico |
+
+Il piano PDDL+ è sempre un **lower bound**: non modella semafori, traffico, accelerazioni
+né decelerazioni. Il tempo reale è significativamente maggiore.
 
 ---
 
