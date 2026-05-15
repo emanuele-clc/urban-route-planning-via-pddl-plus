@@ -1,6 +1,6 @@
 # Map Construction in PDDL+
 **Progetto #2 — Automated Planning**  
-Corso tenuto dal Prof. Marco Maratea — UNICAL  
+UNICAL  
 Gruppo: Chiara, Elisa, Emanuele, Pierluigi
 
 ---
@@ -23,7 +23,7 @@ La mappa utilizzata è quella di **Dublino, Irlanda**, scaricata da OpenStreetMa
 
 ```
 progetto_maratea/
-├── projects.pdf                 # Specifiche del progetto (Prof. Maratea)
+├── projects.pdf                 # Specifiche del progetto
 ├── README.md
 │
 └── files/                      # Tutto il lavoro del progetto
