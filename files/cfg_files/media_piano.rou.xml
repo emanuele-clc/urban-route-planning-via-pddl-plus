@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes>
+    <vType id="auto" accel="1.5" decel="3.0" sigma="0.0"
+           length="4.5" maxSpeed="4.0" color="1,0,0"
+           width="2.0" shape="passenger"/>
+    <route id="piano_enhsp" edges="25466631#1 4934444#0 147463637#0 147463637#1 38864102 -22716630#2 -22716630#1 -22716630#0 370154352#1 365945819#0 365945819#1 110407380"/>
+    <vehicle id="veicolo_enhsp" type="auto" route="piano_enhsp"
+             depart="1" departSpeed="0"/>
+</routes>

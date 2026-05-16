@@ -1,17 +1,5 @@
-"""
-sumo_visualize.py
------------------
-Mostra su sumo-gui il percorso trovato da ENHSP per la zona scelta.
-
-Uso:
-    python sumo_visualize.py piccola    (default)
-    python sumo_visualize.py media
-    python sumo_visualize.py grande
-"""
-
 import os, sys, subprocess
 
-# ── Argomento zona ────────────────────────────────────────────
 zona = sys.argv[1] if len(sys.argv) > 1 else "piccola"
 if zona not in ("piccola", "media", "grande"):
     print("Uso: python sumo_visualize.py [piccola|media|grande]")
@@ -21,7 +9,6 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 OUT  = os.path.join(BASE, "cfg_files")
 os.makedirs(OUT, exist_ok=True)
 
-# ── Configurazione per zona ───────────────────────────────────
 CONFIGS = {
     "piccola": {
         "net": os.path.join(BASE, "net_files", "piccola.net.xml"),
