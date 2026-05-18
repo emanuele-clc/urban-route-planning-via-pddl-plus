@@ -406,6 +406,7 @@ def solve():
     plan_text = None
     route = None
     total_dist = None
+    travel_time = None
     plan_time = None
     enhsp_error = None
 
@@ -423,14 +424,18 @@ def solve():
             output = result.stdout + result.stderr
             if "Problem Solved" in output:
                 plan_text, route, plan_time = parse_plan(output)
-                # calcolo distanza totale sommando gli archi del percorso
+                # calcolo distanza e tempo di percorrenza sommando gli archi del percorso
                 if route and len(route) >= 2:
                     total_dist = 0
+                    travel_time = 0.0
                     for i in range(len(route) - 1):
                         a_osm = nm_inv.get(route[i])
                         b_osm = nm_inv.get(route[i + 1])
                         if a_osm and b_osm and (a_osm, b_osm) in edges:
-                            total_dist += edges[(a_osm, b_osm)][0]
+                            d, spd = edges[(a_osm, b_osm)]
+                            total_dist += d
+                            if spd > 0:
+                                travel_time += d / spd
             else:
                 enhsp_error = "ENHSP non ha trovato soluzione (problema forse irrisolvibile con i nodi selezionati)"
         except subprocess.TimeoutExpired:
@@ -446,6 +451,7 @@ def solve():
         'enhsp_error': enhsp_error,
         'stats': {
             'total_dist': total_dist,
+            'travel_time': round(travel_time, 1) if travel_time is not None else None,
             'plan_time': plan_time,
             'start': start_pddl,
             'goal': goal_pddl,

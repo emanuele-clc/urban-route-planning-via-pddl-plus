@@ -594,11 +594,13 @@ function renderStats(data) {
   document.getElementById('stats-sec').style.display = 'block';
 
   const grid = document.getElementById('stats-grid');
-  const dist = s.total_dist != null ? Math.round(s.total_dist) + ' m' : '—';
-  const time = s.plan_time  != null ? s.plan_time + ' s' : '—';
+  const dist    = s.total_dist   != null ? Math.round(s.total_dist) + ' m' : '—';
+  const travel  = s.travel_time  != null ? s.travel_time + ' s' : '—';
+  const compute = s.plan_time    != null ? s.plan_time + ' s' : '—';
   grid.innerHTML = `
-    <div class="stat-card"><div class="val">${dist}</div><div class="lbl">Distanza</div></div>
-    <div class="stat-card"><div class="val">${time}</div><div class="lbl">Tempo piano</div></div>
+    <div class="stat-card"><div class="val">${dist}</div><div class="lbl">Distanza percorso</div></div>
+    <div class="stat-card"><div class="val">${travel}</div><div class="lbl">Tempo di percorrenza</div></div>
+    <div class="stat-card" style="grid-column:1/-1"><div class="val" style="font-size:0.95rem">${compute}</div><div class="lbl">Tempo di calcolo ENHSP</div></div>
   `;
 
   const msg = document.getElementById('enhsp-msg');
