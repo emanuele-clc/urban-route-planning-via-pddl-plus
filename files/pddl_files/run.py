@@ -10,13 +10,14 @@ Uso:
 """
 
 import sys, os, subprocess, glob, sysconfig
+import site
 
 DOMAIN = os.path.join(os.path.dirname(__file__), "domain.pddl")
 
 
 def trova_enhsp():
     """Cerca enhsp.jar in tutte le cartelle Python (Windows, Mac, Linux)."""
-    cartelle = [sysconfig.get_path("purelib"), sysconfig.get_path("platlib")]
+    cartelle = [site.getusersitepackages(), sysconfig.get_path("purelib"), sysconfig.get_path("platlib")]
 
     # Cerca nelle cartelle site-packages
     for base in cartelle:
