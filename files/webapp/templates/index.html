@@ -207,7 +207,7 @@
 <header>
   <h1>Dublin PDDL+ Navigator</h1>
   <span class="badge">PDDL+</span>
-  <span>Automated Planning — UNICAL</span>
+  <span>Automated Planning</span>
 </header>
 
 <div class="main">
@@ -328,6 +328,7 @@ let state = {
   autoGoal: null,
   selectedStart: null,
   selectedGoal: null,
+  reachableFromStart: null,  // Set di id raggiungibili dallo start corrente
   file: null,
 };
 
@@ -393,6 +394,7 @@ document.getElementById('gen-btn').addEventListener('click', async () => {
     state.autoGoal  = data.auto_goal;
     state.selectedStart = data.auto_start;
     state.selectedGoal  = data.auto_goal;
+    state.reachableFromStart = computeReachable(data.auto_start);
 
     renderMap();
     updatePickUI();
@@ -448,6 +450,15 @@ document.getElementById('solve-btn').addEventListener('click', async () => {
 // ── Node selection ────────────────────────────────────────────────────────────
 window.setNodeStart = function(id) {
   state.selectedStart = id;
+  state.reachableFromStart = computeReachable(id);
+  // se il goal corrente non è più raggiungibile, resettalo
+  if (state.selectedGoal && !state.reachableFromStart.has(state.selectedGoal)) {
+    state.selectedGoal = state.autoGoal;
+    if (!state.reachableFromStart.has(state.selectedGoal)) {
+      // cerca il nodo raggiungibile più lontano dallo start
+      state.selectedGoal = findFarthestReachable(id);
+    }
+  }
   updatePickUI();
   redrawMarkers();
   leafletMap.closePopup();
@@ -517,30 +528,37 @@ function redrawMarkers() {
   markerLayer = L.layerGroup();
 
   state.nodes.forEach(n => {
-    const isStart = n.id === state.selectedStart;
-    const isGoal  = n.id === state.selectedGoal;
+    const isStart     = n.id === state.selectedStart;
+    const isGoal      = n.id === state.selectedGoal;
+    const reachable   = !state.reachableFromStart || state.reachableFromStart.has(n.id);
 
-    let color  = '#334155';
-    let radius = 5;
-    let weight = 1;
+    let color   = reachable ? '#334155' : '#1c2030';
+    let opacity = reachable ? 0.95 : 0.35;
+    let radius  = reachable ? 5 : 4;
+    let weight  = 1;
 
-    if (isStart)      { color = '#22c55e'; radius = 11; weight = 2; }
-    else if (isGoal)  { color = '#ef4444'; radius = 11; weight = 2; }
+    if (isStart)     { color = '#22c55e'; radius = 11; weight = 2; opacity = 1; }
+    else if (isGoal) { color = '#ef4444'; radius = 11; weight = 2; opacity = 1; }
 
     const circle = L.circleMarker([n.lat, n.lon], {
-      radius, fillColor: color, color: '#0a0c14', weight, fillOpacity: 0.95,
+      radius, fillColor: color, color: '#0a0c14', weight, fillOpacity: opacity,
     });
 
     const label = n.name || n.id;
     const tag   = isStart ? ' — START 🟢' : isGoal ? ' — GOAL 🔴' : '';
+
+    const goalBtn = reachable
+      ? `<button class="popup-btn popup-btn-goal" onclick="setNodeGoal('${n.id}')">🔴 Goal</button>`
+      : `<button class="popup-btn" style="background:#1f2233;color:#4b5563;cursor:not-allowed" disabled title="Non raggiungibile dallo start">🚫 Non raggiungibile</button>`;
+
     circle.bindPopup(`
       <div class="popup-name">${label}${tag}</div>
       <div class="popup-osm">${n.id}</div>
       <div class="popup-btns">
         <button class="popup-btn popup-btn-start" onclick="setNodeStart('${n.id}')">🟢 Start</button>
-        <button class="popup-btn popup-btn-goal"  onclick="setNodeGoal('${n.id}')">🔴 Goal</button>
+        ${goalBtn}
       </div>
-    `, { maxWidth: 240 });
+    `, { maxWidth: 260 });
 
     markerLayer.addLayer(circle);
   });
@@ -626,6 +644,38 @@ function renderPlan(planText) {
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 function nodeById(id) { return state.nodes.find(n => n.id === id) || null; }
+
+function computeReachable(startId) {
+  // BFS sui sensi unici: restituisce un Set di id raggiungibili da startId
+  const reach = new Set([startId]);
+  const queue = [startId];
+  while (queue.length) {
+    const cur = queue.shift();
+    state.edges.forEach(e => {
+      if (e.from === cur && !reach.has(e.to)) {
+        reach.add(e.to);
+        queue.push(e.to);
+      }
+    });
+  }
+  return reach;
+}
+
+function findFarthestReachable(startId) {
+  // tra i nodi raggiungibili dallo start, trova quello geograficamente più lontano
+  const reach = state.reachableFromStart;
+  const s = nodeById(startId);
+  if (!s) return null;
+  let best = null, bestDist = -1;
+  reach.forEach(id => {
+    if (id === startId) return;
+    const n = nodeById(id);
+    if (!n) return;
+    const d = Math.hypot(n.lat - s.lat, n.lon - s.lon);
+    if (d > bestDist) { bestDist = d; best = id; }
+  });
+  return best;
+}
 
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
