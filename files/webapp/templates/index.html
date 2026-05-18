@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dublin PDDL+ Navigator</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #1a1d2e;
+      border-bottom: 1px solid #2a2d3e;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    header span {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .badge {
+      background: #3b4fd8;
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 600;
+    }
+
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 360px;
+      min-width: 320px;
+      background: #13151f;
+      border-right: 1px solid #1f2233;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      padding: 18px 20px;
+      border-bottom: 1px solid #1f2233;
+    }
+
+    .sidebar-section h2 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-bottom: 14px;
+    }
+
+    /* upload zone */
+    .upload-zone {
+      border: 2px dashed #2a2d3e;
+      border-radius: 10px;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: #3b4fd8;
+      background: #1a1d2e;
+    }
+
+    .upload-zone input { display: none; }
+
+    .upload-zone .icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .upload-zone p {
+      font-size: 0.82rem;
+      color: #9ca3af;
+    }
+
+    .upload-zone .filename {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #3b4fd8;
+      font-weight: 500;
+    }
+
+    /* form controls */
+    label.field-label {
+      display: block;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 6px;
+      margin-top: 14px;
+    }
+
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      background: #1a1d2e;
+      border: 1px solid #2a2d3e;
+      border-radius: 7px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      color: #e0e0e0;
+      outline: none;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #3b4fd8;
+    }
+
+    .range-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    #range-val {
+      color: #3b4fd8;
+      font-weight: 700;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      margin-top: 14px;
+    }
+
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary { background: #3b4fd8; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #4a5de8; }
+
+    /* stats panel */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: #1a1d2e;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .stat-card .val {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .stat-card .lbl {
+      font-size: 0.7rem;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .route-info {
+      margin-top: 12px;
+      background: #1a1d2e;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.8rem;
+    }
+
+    .route-info .row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+
+    .dot-start { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; flex-shrink: 0; margin-top: 3px; }
+    .dot-goal  { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; flex-shrink: 0; margin-top: 3px; }
+
+    .alert {
+      background: #2d1f1f;
+      border: 1px solid #7f1d1d;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.8rem;
+      color: #fca5a5;
+      margin-top: 10px;
+    }
+
+    .alert-warn {
+      background: #2d2510;
+      border-color: #78350f;
+      color: #fcd34d;
+    }
+
+    /* ── Right panel ── */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .tabs {
+      display: flex;
+      background: #13151f;
+      border-bottom: 1px solid #1f2233;
+      padding: 0 20px;
+    }
+
+    .tab {
+      padding: 12px 18px;
+      font-size: 0.83rem;
+      color: #6b7280;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s;
+      user-select: none;
+    }
+
+    .tab.active {
+      color: #fff;
+      border-bottom-color: #3b4fd8;
+    }
+
+    .tab-content { display: none; flex: 1; overflow: hidden; }
+    .tab-content.active { display: flex; flex-direction: column; flex: 1; }
+
+    /* map */
+    #map {
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* code viewer */
+    .code-wrap {
+      flex: 1;
+      overflow: auto;
+      padding: 16px 20px;
+    }
+
+    pre {
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.78rem;
+      line-height: 1.6;
+      color: #d4d4d4;
+      white-space: pre;
+    }
+
+    .copy-btn {
+      position: sticky;
+      top: 0;
+      float: right;
+      background: #1f2233;
+      border: 1px solid #2a2d3e;
+      color: #9ca3af;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    .copy-btn:hover { background: #2a2d3e; color: #fff; }
+
+    /* empty state */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #374151;
+      gap: 10px;
+    }
+
+    .empty-state .icon { font-size: 3rem; }
+    .empty-state p { font-size: 0.85rem; }
+
+    /* spinner */
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid #ffffff44;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* plan steps */
+    .plan-steps {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+
+    .plan-step {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #1f2233;
+      font-size: 0.82rem;
+    }
+
+    .plan-step .time {
+      color: #3b4fd8;
+      font-weight: 700;
+      min-width: 48px;
+      font-family: monospace;
+    }
+
+    .plan-step .action { color: #d4d4d4; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Dublin PDDL+ Navigator</h1>
+  <span class="badge">PDDL+</span>
+  <span>Automated Planning — UNICAL</span>
+</header>
+
+<div class="main">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+
+    <div class="sidebar-section">
+      <h2>File OSM</h2>
+      <div class="upload-zone" id="drop-zone">
+        <input type="file" id="osm-input" accept=".osm,.xml">
+        <span class="icon">🗺️</span>
+        <p>Trascina un file <strong>.osm</strong> qui<br>oppure clicca per selezionarlo</p>
+        <div class="filename" id="filename-label"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h2>Parametri</h2>
+
+      <label class="field-label">Nome zona (opzionale)</label>
+      <input type="text" id="zone-name" placeholder="es. media, grande, custom…">
+
+      <label class="field-label">Numero massimo di nodi: <span id="range-val">50</span></label>
+      <input type="range" id="max-nodes" min="10" max="200" value="50" step="5">
+      <div class="range-row"><span>10</span><span>200</span></div>
+
+      <button class="btn btn-primary" id="run-btn" disabled>
+        <span id="btn-label">Genera PDDL &amp; Risolvi</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+    </div>
+
+    <div class="sidebar-section" id="stats-section" style="display:none">
+      <h2>Risultati</h2>
+      <div class="stats-grid" id="stats-grid"></div>
+      <div class="route-info" id="route-info"></div>
+      <div id="enhsp-msg"></div>
+    </div>
+
+  </div>
+
+  <!-- Right panel -->
+  <div class="right-panel">
+
+    <div class="tabs">
+      <div class="tab active" data-tab="map">🗺 Mappa</div>
+      <div class="tab" data-tab="pddl">📄 PDDL</div>
+      <div class="tab" data-tab="plan">📋 Piano</div>
+    </div>
+
+    <!-- Map tab -->
+    <div class="tab-content active" id="tab-map">
+      <div class="empty-state" id="map-empty">
+        <div class="icon">📂</div>
+        <p>Carica un file OSM e premi "Genera PDDL &amp; Risolvi" per vedere la mappa</p>
+      </div>
+      <div id="map" style="display:none"></div>
+    </div>
+
+    <!-- PDDL tab -->
+    <div class="tab-content" id="tab-pddl">
+      <div class="empty-state" id="pddl-empty">
+        <div class="icon">📄</div>
+        <p>Il file PDDL generato apparirà qui</p>
+      </div>
+      <div class="code-wrap" id="pddl-wrap" style="display:none">
+        <button class="copy-btn" onclick="copyText('pddl-code')">Copia</button>
+        <pre id="pddl-code"></pre>
+      </div>
+    </div>
+
+    <!-- Plan tab -->
+    <div class="tab-content" id="tab-plan">
+      <div class="empty-state" id="plan-empty">
+        <div class="icon">📋</div>
+        <p>Il piano trovato da ENHSP apparirà qui</p>
+      </div>
+      <div class="plan-steps" id="plan-steps" style="display:none"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ── Tab switching ──
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      if (tab.dataset.tab === 'map' && window._map) {
+        setTimeout(() => window._map.invalidateSize(), 50);
+      }
+    });
+  });
+
+  // ── Upload zone ──
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('osm-input');
+  const filenameLabel = document.getElementById('filename-label');
+  const runBtn = document.getElementById('run-btn');
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) setFile(file);
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) setFile(fileInput.files[0]);
+  });
+
+  let selectedFile = null;
+
+  function setFile(file) {
+    selectedFile = file;
+    filenameLabel.textContent = file.name;
+    runBtn.disabled = false;
+  }
+
+  // ── Range slider ──
+  const slider = document.getElementById('max-nodes');
+  const rangeVal = document.getElementById('range-val');
+  slider.addEventListener('input', () => rangeVal.textContent = slider.value);
+
+  // ── Run ──
+  runBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    const label = document.getElementById('btn-label');
+    const spinner = document.getElementById('spinner');
+    label.style.display = 'none';
+    spinner.style.display = 'block';
+    runBtn.disabled = true;
+
+    const form = new FormData();
+    form.append('osm_file', selectedFile);
+    form.append('max_nodes', slider.value);
+    form.append('zone', document.getElementById('zone-name').value || 'custom');
+
+    try {
+      const res = await fetch('/api/process', { method: 'POST', body: form });
+      const data = await res.json();
+
+      if (data.error) {
+        alert('Errore: ' + data.error);
+        return;
+      }
+
+      renderResults(data);
+    } catch (err) {
+      alert('Errore di rete: ' + err.message);
+    } finally {
+      label.style.display = 'block';
+      spinner.style.display = 'none';
+      runBtn.disabled = false;
+    }
+  });
+
+  // ── Render results ──
+  function renderResults(data) {
+    renderStats(data);
+    renderPddl(data.pddl_content);
+    renderPlan(data.plan_text, data.route);
+    renderMap(data.nodes, data.edges, data.route);
+  }
+
+  function renderStats(data) {
+    const s = data.stats;
+    document.getElementById('stats-section').style.display = 'block';
+
+    const grid = document.getElementById('stats-grid');
+    grid.innerHTML = '';
+    const cards = [
+      [s.n_nodes, 'Nodi'],
+      [s.n_edges, 'Archi'],
+      [s.total_dist != null ? Math.round(s.total_dist) + ' m' : '—', 'Distanza'],
+      [s.plan_time != null ? s.plan_time + ' s' : '—', 'Tempo piano'],
+    ];
+    cards.forEach(([val, lbl]) => {
+      grid.innerHTML += `<div class="stat-card"><div class="val">${val}</div><div class="lbl">${lbl}</div></div>`;
+    });
+
+    const routeInfo = document.getElementById('route-info');
+    routeInfo.innerHTML = `
+      <div class="row"><div class="dot-start"></div><span><strong>Start:</strong> ${s.start}</span></div>
+      <div class="row"><div class="dot-goal"></div><span><strong>Goal:</strong> ${s.goal}</span></div>
+    `;
+
+    const msg = document.getElementById('enhsp-msg');
+    if (data.enhsp_error) {
+      msg.innerHTML = `<div class="alert alert-warn">⚠️ ${data.enhsp_error}</div>`;
+    } else if (data.plan_text) {
+      msg.innerHTML = `<div class="alert" style="background:#0f2d1f;border-color:#14532d;color:#86efac">✅ ENHSP ha trovato la soluzione</div>`;
+    } else {
+      msg.innerHTML = '';
+    }
+  }
+
+  function renderPddl(content) {
+    if (!content) return;
+    document.getElementById('pddl-empty').style.display = 'none';
+    const wrap = document.getElementById('pddl-wrap');
+    wrap.style.display = 'block';
+    document.getElementById('pddl-code').textContent = content;
+  }
+
+  function renderPlan(planText, route) {
+    document.getElementById('plan-empty').style.display = 'none';
+    const stepsEl = document.getElementById('plan-steps');
+    stepsEl.style.display = 'block';
+    stepsEl.innerHTML = '';
+
+    if (!planText) {
+      stepsEl.innerHTML = '<div class="alert alert-warn" style="margin:16px">Nessun piano disponibile (ENHSP non ha trovato la soluzione o non è installato)</div>';
+      return;
+    }
+
+    planText.split('\n').forEach(line => {
+      const m = line.match(/^([\d.]+)\s*:\s*\((.+)\)/i);
+      if (m) {
+        const step = document.createElement('div');
+        step.className = 'plan-step';
+        step.innerHTML = `<div class="time">${parseFloat(m[1]).toFixed(1)}s</div><div class="action">${m[2]}</div>`;
+        stepsEl.appendChild(step);
+      } else if (line.trim()) {
+        const step = document.createElement('div');
+        step.className = 'plan-step';
+        step.innerHTML = `<div class="action" style="color:#6b7280">${line}</div>`;
+        stepsEl.appendChild(step);
+      }
+    });
+  }
+
+  // ── Leaflet map ──
+  let leafletMap = null;
+  let mapLayers = { edges: null, route: null, markers: null };
+
+  function renderMap(nodes, edges, route) {
+    document.getElementById('map-empty').style.display = 'none';
+    const mapEl = document.getElementById('map');
+    mapEl.style.display = 'block';
+
+    // build lookup
+    const nodeById = {};
+    nodes.forEach(n => nodeById[n.id] = n);
+
+    if (!leafletMap) {
+      leafletMap = L.map('map');
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap © CARTO',
+        maxZoom: 19,
+      }).addTo(leafletMap);
+      window._map = leafletMap;
+    } else {
+      // clear old layers
+      Object.values(mapLayers).forEach(l => { if (l) leafletMap.removeLayer(l); });
+    }
+
+    // draw all edges (gray)
+    const edgeLines = [];
+    edges.forEach(e => {
+      const a = nodeById[e.from];
+      const b = nodeById[e.to];
+      if (a && b) {
+        edgeLines.push([[a.lat, a.lon], [b.lat, b.lon]]);
+      }
+    });
+    mapLayers.edges = L.polyline(edgeLines, {
+      color: '#334155', weight: 1.5, opacity: 0.6
+    }).addTo(leafletMap);
+
+    // draw route (bright)
+    if (route && route.length >= 2) {
+      const routePoints = route.map(id => {
+        const n = nodeById[id];
+        return n ? [n.lat, n.lon] : null;
+      }).filter(Boolean);
+
+      mapLayers.route = L.polyline(routePoints, {
+        color: '#3b4fd8', weight: 5, opacity: 0.9,
+      }).addTo(leafletMap);
+
+      // animated route with arrows
+      L.polyline(routePoints, {
+        color: '#818cf8', weight: 2, opacity: 0.7, dashArray: '6 8',
+      }).addTo(leafletMap);
+    }
+
+    // draw nodes
+    const markerGroup = L.layerGroup();
+    nodes.forEach(n => {
+      let color = '#475569';
+      let radius = 5;
+
+      if (n.is_start) { color = '#22c55e'; radius = 10; }
+      else if (n.is_goal) { color = '#ef4444'; radius = 10; }
+      else if (route && route.includes(n.id)) { color = '#818cf8'; radius = 7; }
+
+      const circle = L.circleMarker([n.lat, n.lon], {
+        radius,
+        fillColor: color,
+        color: '#0f1117',
+        weight: 1.5,
+        fillOpacity: 0.95,
+      });
+
+      const label = n.name || n.id;
+      const tag = n.is_start ? ' 🟢 START' : n.is_goal ? ' 🔴 GOAL' : '';
+      circle.bindPopup(`<b>${n.id}</b><br>${label}${tag}`);
+      markerGroup.addLayer(circle);
+    });
+
+    mapLayers.markers = markerGroup.addTo(leafletMap);
+
+    // fit view
+    const allPoints = nodes.map(n => [n.lat, n.lon]);
+    if (allPoints.length > 0) {
+      leafletMap.fitBounds(L.latLngBounds(allPoints).pad(0.05));
+    }
+
+    // switch to map tab
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector('[data-tab="map"]').classList.add('active');
+    document.getElementById('tab-map').classList.add('active');
+    setTimeout(() => leafletMap.invalidateSize(), 100);
+  }
+
+  function copyText(id) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      document.querySelector('.copy-btn').textContent = 'Copiato!';
+      setTimeout(() => document.querySelector('.copy-btn').textContent = 'Copia', 1500);
+    });
+  }
+</script>
+
+</body>
+</html>
