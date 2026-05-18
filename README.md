@@ -31,17 +31,75 @@ Il progetto è composto da cinque fasi distinte. PDDL+ e SUMO sono sistemi separ
 
 `download_dublin_map.py` usa la libreria **osmnx** per interrogare OpenStreetMap e scaricare i dati stradali reali di Dublino: coordinate GPS degli incroci, strade con nome, limiti di velocità e sensi unici. Li salva come file `.osm` nella cartella `osm_files/`.
 
-### Fase 2 — Codificare la mappa in PDDL+
+### Fase 2 — Codificare la mappa in PDDL+ (`build_problems.py`)
 
-`build_problems.py` legge il file `.osm` e costruisce il file `problem_*.pddl`:
+Questo script è il cuore del progetto. Prende un file `.osm` grezzo (migliaia di nodi GPS e strade) e produce un file PDDL+ pulito e risolvibile. Lo fa in quattro passi interni:
 
-- ogni incrocio reale diventa un oggetto `location`
-- ogni strada diventa il fatto `(road A B)` (rispettando i sensi unici OSM)
-- la distanza tra due incroci viene calcolata con la formula **Haversine** dalle coordinate GPS e diventa `(= (distance A B) 173)`
-- la velocità viene presa dal tag `maxspeed` di OSM, convertita da km/h a m/s, e diventa `(= (speed A B) 8.33)`
-- ogni tratto ha `(= (progress A B) 0)` inizializzato a zero
+#### Passo A — Lettura del file OSM
 
-Risultato: un file PDDL+ che descrive fedelmente la mappa stradale reale.
+Un file `.osm` è un XML. Contiene due tipi di elementi:
+- **`<node>`**: un punto sulla mappa con latitudine, longitudine e a volte un nome (es. "Dame Street")
+- **`<way>`**: una strada, cioè una sequenza ordinata di nodi, con tag come `highway`, `maxspeed`, `oneway`
+
+Lo script legge tutti i nodi e tutte le strade percorribili in auto (esclude ciclabili, sentieri, ecc.).
+
+#### Passo B — Costruzione del grafo contratto
+
+Un file OSM ha migliaia di nodi, ma la maggior parte sono punti intermedi di una curva — non hanno senso come "fermate" del percorso. Quello che conta sono gli **incroci**, cioè i punti dove il conducente può scegliere una direzione.
+
+Lo script identifica come incroci:
+- il primo e l'ultimo nodo di ogni strada (le estremità)
+- i nodi che compaiono in 2 o più strade diverse (punti di scelta)
+
+Poi costruisce un **grafo contratto**: collega direttamente un incrocio al successivo, saltando tutti i nodi intermedi, e accumula la distanza percorsa lungo il tratto. Questa distanza viene calcolata con la formula **Haversine**, che calcola la distanza reale in metri tra due coordinate GPS tenendo conto della curvatura della Terra:
+
+```python
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371000  # raggio della Terra in metri
+    # ... formula trigonometrica ...
+    return round(R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a)))
+```
+
+Per la velocità, lo script legge il tag `maxspeed` della strada in OSM (es. `"30"` km/h) e lo converte in m/s:
+
+```python
+spd = float(tags.get("maxspeed", "30").split()[0])
+speed_ms = round(spd * 1000 / 3600, 2)  # → 8.33 m/s
+```
+
+Se la strada non ha `maxspeed`, assume 30 km/h come default.
+
+#### Passo C — Selezione del sottografo
+
+Il grafo contratto ha ancora centinaia di nodi — troppi per un problema PDDL risolvibile in tempi ragionevoli. Lo script seleziona un sottoinsieme di N nodi (50 per la zona media, 120 per la grande) con questo criterio:
+
+1. Parte dal nodo con più connessioni in uscita (il "hub" principale)
+2. Ad ogni passo aggiunge il nodo nella frontiera più lontano dal centroide geografico del gruppo già selezionato
+
+Questo garantisce che i nodi scelti siano **geograficamente distribuiti** su tutta la zona, non ammucchiati in un quartiere.
+
+Lo **START** viene scelto come il nodo con più archi uscenti nel sottografo finale (massimo hub). Il **GOAL** viene scelto come il nodo raggiungibile più lontano dallo start in linea d'aria.
+
+#### Passo D — Scrittura del file PDDL e nomi dei nodi
+
+Per ogni nodo selezionato, lo script gli assegna un nome PDDL. Il criterio è:
+
+```python
+base = slugify(node_data[n]["name"]) or f"n{n[-7:]}"
+```
+
+- Se il nodo OSM **ha un nome** (es. "Dame Street") → lo converte in un identificatore PDDL valido: `dame_st`
+- Se il nodo OSM **non ha un nome** (è un incrocio anonimo) → usa le ultime 7 cifre del suo ID OSM numerico, con una `n` davanti: `n4005414`
+
+Quindi un nome come `n4005414` nel PDDL non è inventato: è un vero incrocio di Dublino che su OpenStreetMap esiste ma non ha un cartello con il nome.
+
+Il file PDDL risultante contiene, per ogni coppia di nodi collegati:
+- `(road A B)` — la strada esiste e si può percorrere in quella direzione (rispettando i sensi unici OSM)
+- `(= (distance A B) 173)` — la distanza in metri, calcolata con Haversine dai dati GPS reali
+- `(= (speed A B) 8.33)` — la velocità in m/s, convertita dal `maxspeed` OSM
+- `(= (progress A B) 0)` — lo stato iniziale: il veicolo non ha ancora percorso nulla su quel tratto
+
+Risultato: un file PDDL+ che descrive fedelmente la mappa stradale reale, con tutti i numeri derivati direttamente dai dati geografici di OpenStreetMap.
 
 ### Fase 3 — ENHSP risolve il problema PDDL+
 
