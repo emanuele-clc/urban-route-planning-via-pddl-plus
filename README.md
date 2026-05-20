@@ -19,7 +19,7 @@ Sono state create tre istanze della mappa a diversa scala:
 |------|------|--------|-----------|-------|--------------|----------|---------------|
 | **Piccola** | Temple Bar / Centro | 400m | 14 | 20 | Liffey St → Aungier St | 1.57 km | 194 s |
 | **Media** | Ranelagh / Residenziale | 1200m | 50 | 93 | Leeson St → Saint Mary's Rd | 1.62 km | 150 s |
-| **Grande** | Phibsborough / Nord | 3000m | 120 | 206 | Sherrard St → Botanic Ave | 1.33 km | 142 s |
+| **Grande** | Phibsborough / Nord | 3000m | 120 | 206 | St Patrick's Rd → Botanic Ave | 1.33 km | 147 s |
 
 ---
 
@@ -147,15 +147,21 @@ Il piano viene salvato in `output_piccola.txt`.
 
 ### Fase 4 — Tradurre il piano ENHSP in una rotta SUMO
 
-SUMO e PDDL+ non si parlano direttamente. Il piano ENHSP usa nomi PDDL come `liffey_st_upper`; SUMO usa ID numerici di archi stradali come `39994843`. Il collegamento viene fatto una volta sola con un BFS sul file `net.xml`:
+SUMO e PDDL+ non si parlano direttamente. Il piano ENHSP usa nomi PDDL come `liffey_st_upper`; SUMO usa ID numerici di archi stradali come `4396046#0`. Il collegamento viene fatto con **Dijkstra** sul file `net.xml`:
 
-1. Il piano ENHSP dà la sequenza di nodi PDDL: `liffey_st_upper → wellington_quay_e → aston_quay → ...`
-2. Ogni nome PDDL corrisponde a un nodo OSM con un ID numerico (es. `659788`)
-3. Il file `piccola.net.xml` contiene la rete stradale SUMO generata dallo stesso OSM: ogni junction ha quell'ID incorporato nel nome
-4. Un BFS sul grafo del net.xml trova la sequenza di archi SUMO connessa che attraversa quei junction nell'ordine giusto
-5. Il risultato è una lista di ID archi: `39994843 -1126998263#0 1478689539 ...`
+1. Per ogni zona si conoscono la junction SUMO di partenza e quella di arrivo (ricavate dagli stessi ID OSM usati nel PDDL)
+2. Lo script `sumo_visualize.py` analizza il `net.xml` corrispondente: costruisce un grafo diretto dove i nodi sono le junction SUMO e gli archi sono i segmenti stradali con la loro lunghezza in metri
+3. Dijkstra trova il percorso a distanza minima tra le due junction
+4. Il risultato è una sequenza ordinata di ID archi SUMO — ciascun arco inizia esattamente dove termina il precedente
 
-Questa lista è **fissa per ogni zona** — calcolata una volta e salvata in `sumo_visualize.py`. Non cambia a ogni esecuzione perché il piano ENHSP è deterministico e la traduzione è univoca.
+**Esempio (zona piccola):** da junction `659788` (Liffey Street Upper) alla junction cluster di Aungier Street → 24 archi consecutivi:
+```
+4396046#0 4396046#1 18927706 1478689539 1062391643#0 4396056 ...
+```
+
+Questa sequenza è **salvata in `sumo_visualize.py`** per le tre zone predefinite. Per i percorsi generati dalla webapp, la stessa logica Dijkstra viene eseguita dinamicamente a ogni chiamata (vedi [Modalità dinamica](#modalità-dinamica--percorsi-dalla-webapp)).
+
+> ⚠️ **Nomi PDDL vs ID SUMO**: I nomi PDDL usati dalla webapp seguono il pattern `n` + ultime 7 cifre dell'ID OSM (es. `n1193756` → junction SUMO il cui ID termina con `1193756`). Per i nomi espliciti come `liffey_st_upper` usati nei PDDL predefiniti, la corrispondenza è hardcoded nelle coordinate delle zone. SUMO può unire nodi OSM vicini in junction cluster (es. `cluster_11742165391_...`) — Dijkstra le trova correttamente perché l'ID OSM originale è incorporato nel nome del cluster.
 
 ### Fase 5 — SUMO visualizza il percorso
 
@@ -164,18 +170,43 @@ Questa lista è **fissa per ogni zona** — calcolata una volta e salvata in `su
 **`{zona}_piano.rou.xml`** — dice a SUMO come è fatta l'auto e dove deve andare:
 ```xml
 <vType id="auto" maxSpeed="4.0" color="1,0,0" shape="passenger" accel="1.5" decel="3.0"/>
-<route id="piano_enhsp" edges="39994843 -1126998263#0 1478689539 ..."/>
+<route id="piano_enhsp" edges="4396046#0 4396046#1 18927706 ..."/>
 <vehicle id="veicolo_enhsp" type="auto" route="piano_enhsp" depart="1"/>
 ```
-Il tag `edges` contiene la sequenza esatta di archi — l'auto li percorre in ordine, senza mai deviare. Il percorso non è casuale: è esattamente quello trovato da ENHSP.
+Il tag `edges` contiene la sequenza esatta di archi — l'auto li percorre in ordine, senza mai deviare. Il percorso non è casuale: è esattamente quello trovato da ENHSP (o calcolato da Dijkstra per la modalità dinamica).
 
 **`{zona}.sumocfg`** — dice a SUMO quali file caricare (rete stradale, percorso, grafica).
 
-**`gui_{zona}.xml`** — imposta zoom e posizione iniziale della telecamera centrata sul punto di partenza.
+**`gui_{zona}.xml`** — imposta zoom e posizione iniziale della telecamera. La telecamera è centrata sul **punto di partenza** del veicolo (coordinate SUMO della junction di start), così l'auto è subito visibile all'apertura senza dover fare Ctrl+A.
 
 SUMO applica poi la **fisica realistica**: accelerazione, frenata, rispetto dei semafori. I semafori che si vedono nella simulazione vengono dai dati OSM reali di Dublino — SUMO li applica automaticamente al veicolo. Il piano PDDL+ non li modella, quindi il veicolo nella simulazione si ferma al rosso mentre il piano teorico assume velocità costante. Questo spiega la differenza tra il tempo del piano (194s) e il tempo reale (≈15 min secondo Google Maps): il piano PDDL+ è un **lower bound ottimistico**.
 
 Il veicolo **scompare dalla mappa quando raggiunge la destinazione** — è il comportamento normale di SUMO: rimuove il veicolo al termine del suo itinerario.
+
+---
+
+### Modalità dinamica — percorsi dalla webapp
+
+`sumo_visualize.py` supporta anche una **modalità dinamica** che calcola automaticamente il percorso SUMO a partire da qualsiasi file PDDL generato dalla webapp, senza dover modificare lo script a mano.
+
+**Come funziona:**
+
+1. La webapp genera il PDDL con i nodi scelti dall'utente (es. `n1193756` → `n5832633`) e lo salva automaticamente come `files/pddl_files/problem_custom.pddl`
+2. Lo script legge il file PDDL, estrae i nomi di start e goal, li mappa alle junction SUMO corrispondenti tramite i suffix numerici (es. `n1193756` → junction il cui ID termina con `1193756`)
+3. Dijkstra calcola la rotta ottimale sul `net.xml` della zona scelta
+4. SUMO-gui si apre con il percorso calcolato
+
+**Esecuzione:**
+
+```bash
+cd files
+python sumo_visualize.py pddl pddl_files/problem_custom.pddl piccola
+# oppure: media, grande — deve corrispondere alla zona usata nella webapp
+```
+
+**Auto-salvataggio dalla webapp:** ogni volta che si preme "Risolvi con ENHSP" nella webapp, il file PDDL generato viene salvato automaticamente come `files/pddl_files/problem_custom.pddl`. Dopo aver ottenuto il percorso nella webapp, basta eseguire il comando sopra per aprire la stessa rotta in SUMO.
+
+> **Nota:** la corrispondenza PDDL→SUMO funziona con i nomi in formato `n` + cifre generati dalla webapp. I PDDL predefiniti (piccola, media, grande) usano nomi espliciti come `liffey_st_upper` — per quelli si usa il comando senza `pddl` (es. `python sumo_visualize.py piccola`).
 
 ---
 
@@ -184,8 +215,7 @@ Il veicolo **scompare dalla mappa quando raggiunge la destinazione** — è il c
 ```
 progetto_maratea/
 ├── README.md
-├── requirements.txt             # Dipendenze Python (up-enhsp, osmnx)
-├── setup.bat                    # Installazione automatica (Windows)
+├── requirements.txt             # Dipendenze Python (up-enhsp, osmnx, flask)
 ├── projects.pdf                 # Specifiche del progetto
 │
 └── files/
@@ -209,6 +239,7 @@ progetto_maratea/
     │   ├── problem_piccola.pddl # Problema zona piccola (14 nodi)
     │   ├── problem_media.pddl   # Problema zona media (50 nodi)
     │   ├── problem_grande.pddl  # Problema zona grande (120 nodi)
+    │   ├── problem_custom.pddl  # Ultimo problema generato dalla webapp (auto-aggiornato)
     │   └── run.py               # Lancia ENHSP e mostra il piano
     │
     ├── encoder/                 # Analisi strade OSM
@@ -216,6 +247,11 @@ progetto_maratea/
     │   ├── strade_piccola.txt
     │   ├── strade_media.txt
     │   └── strade_grande.txt
+    │
+    ├── webapp/                  # Interfaccia web interattiva
+    │   ├── app.py               # Server Flask (backend)
+    │   └── templates/
+    │       └── index.html       # Frontend con mappa Leaflet
     │
     ├── download_dublin_map.py   # Scarica le mappe OSM via osmnx
     ├── convert_to_osm.py        # Converte OSM → net.xml con netconvert
@@ -229,58 +265,192 @@ progetto_maratea/
 
 | Strumento | Versione | Note |
 |-----------|----------|------|
-| Python | 3.9+ | https://www.python.org |
+| Python | 3.9+ | Vedi istruzioni sotto |
 | Java | 17+ | Necessario per ENHSP |
-| SUMO | 1.x | Per la visualizzazione |
-| up-enhsp | 0.1.0 | Installato via pip |
+| SUMO | 1.x | Solo per la visualizzazione desktop |
+| flask | ≥ 3.0 | Installato via pip |
+| up-enhsp | latest | Installato via pip — include il .jar di ENHSP |
 | osmnx | ≥ 1.9 | Installato via pip |
 
 ---
 
-## Setup (una volta sola)
+## Installazione completa (prima volta)
+
+### 1. Python 3.9+
+
+**Windows** — opzione A, da terminale con winget:
+```powershell
+winget install Python.Python.3.12
+```
+oppure scarica l'installer da https://www.python.org/downloads/ e durante l'installazione spunta **"Add Python to PATH"**.
+
+**Mac:**
+```bash
+brew install python
+```
+Se non hai Homebrew: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt update && sudo apt install python3 python3-pip -y
+```
+
+Verifica:
+```bash
+python --version        # Windows
+python3 --version       # Mac / Linux
+```
+
+---
+
+### 2. Java 17+
+
+ENHSP è un programma Java — senza Java non parte.
+
+**Windows** — da terminale con winget:
+```powershell
+winget install EclipseAdoptium.Temurin.17.JDK
+```
+oppure scarica l'installer da https://adoptium.net
+
+**Mac:**
+```bash
+brew install temurin@17
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt install openjdk-17-jdk -y
+```
+
+Verifica:
+```bash
+java -version
+```
+Deve rispondere con una versione ≥ 17. Se il comando non viene riconosciuto su Windows, riapri il terminale dopo l'installazione.
+
+---
+
+### 3. SUMO (solo per la visualizzazione desktop)
+
+SUMO serve solo per lo script `sumo_visualize.py`. Per la webapp non è necessario.
+
+**Windows:** scarica e installa da https://sumo.dlr.de/docs/Downloads.php
+
+**Mac:**
+```bash
+brew install sumo
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt install sumo sumo-tools -y
+```
+
+Verifica:
+```bash
+sumo --version
+```
+
+---
+
+### 4. Dipendenze Python (flask, osmnx, up-enhsp)
+
+Entra nella cartella della webapp e installa tutto:
 
 **Windows:**
-```bat
-setup.bat
+```powershell
+cd files\webapp
+python -m pip install flask osmnx up-enhsp
 ```
 
 **Mac / Linux:**
 ```bash
-pip install -r requirements.txt
+cd files/webapp
+pip install flask osmnx up-enhsp
 ```
+
+**Con uv** (se preferisci ambienti virtuali isolati, qualsiasi sistema):
+```bash
+cd files/webapp
+uv venv
+uv pip install flask osmnx up-enhsp
+```
+
+> `up-enhsp` è il pacchetto che scarica e installa il file `.jar` di ENHSP dentro Python. Dopo l'installazione, la webapp lo trova automaticamente senza configurazioni aggiuntive.
 
 ---
 
 ## Come eseguire
 
-### 1. Risolvere il problema PDDL+ con ENHSP
+### Interfaccia web (modo consigliato)
+
+L'interfaccia web permette di caricare un file `.osm`, visualizzare la mappa, scegliere start e goal cliccando sui nodi, e risolvere con ENHSP — tutto dal browser.
+
+**Con pip:**
+```bash
+cd files/webapp
+python app.py
+```
+
+**Con uv:**
+```bash
+cd files/webapp
+uv run python app.py
+```
+
+Poi apri il browser su **http://localhost:5000**.
+
+Flusso d'uso:
+1. Trascina un file `.osm` nella zona di upload (o usa uno di quelli in `osm_files/`)
+2. Imposta il numero massimo di nodi con lo slider
+3. Premi **"Visualizza Mappa"** — appare la rete stradale
+4. Clicca un nodo verde per impostarlo come **Start**, uno rosso come **Goal** (oppure lascia quelli automatici)
+5. Premi **"Risolvi con ENHSP"** — il percorso ottimale viene tracciato in blu sulla mappa
+
+---
+
+### Da riga di comando
+
+#### Risolvere un problema PDDL+ con ENHSP
 
 ```bash
 cd files/pddl_files
 python run.py piccola   # oppure: media, grande
 ```
 
-### 2. Visualizzare il percorso in SUMO
+#### Visualizzare il percorso in SUMO
 
+**Zona predefinita** (piccola, media o grande):
 ```bash
 cd files
 python sumo_visualize.py piccola   # oppure: media, grande
 ```
 
+**Percorso generato dalla webapp** (modalità dinamica):
+```bash
+cd files
+python sumo_visualize.py pddl pddl_files/problem_custom.pddl piccola
+# 'piccola' indica la zona della mappa — deve corrispondere a quella usata nella webapp
+```
+
+In modalità dinamica, lo script legge il PDDL, identifica start e goal, calcola il percorso SUMO con Dijkstra sul `net.xml` e apre sumo-gui. Il file `problem_custom.pddl` viene aggiornato automaticamente dalla webapp a ogni risoluzione.
+
 Si apre sumo-gui con la rete di Dublino e il veicolo rosso pronto a partire:
 - **▶ Play** per avviare la simulazione
+- La telecamera è già centrata sul punto di partenza — il veicolo è visibile immediatamente
 - **Ctrl+A** per adattare la vista all'intera rete
 - Click destro sull'auto → **Track** per seguirla lungo il percorso
 - Il veicolo sparisce quando raggiunge la destinazione (comportamento normale di SUMO)
 
-### 3. (Opzionale) Rigenerare i problemi media e grande
+#### (Opzionale) Rigenerare i problemi media e grande
 
 ```bash
 cd files
 python build_problems.py
 ```
 
-### 4. (Opzionale) Analizzare le strade OSM
+#### (Opzionale) Analizzare le strade OSM
 
 ```bash
 cd files/encoder
@@ -332,11 +502,11 @@ python encoder.py
 
 | Tempo (s) | Azione |
 |-----------|--------|
-| 0.0 | Sherrard Street Lower ← START |
+| 0.0 | St Patrick's Road ← START |
 | 5.6 – 138.8 | 14 tratti intermedi |
-| **142** | **Botanic Avenue ← GOAL ✅** |
+| **147** | **Botanic Avenue ← GOAL ✅** |
 
-**Distanza:** 1.33 km — **Tempo teorico:** 142 s
+**Distanza:** 1.33 km — **Tempo teorico:** 147 s
 
 ### Riepilogo
 
@@ -344,7 +514,7 @@ python encoder.py
 |------|------|-------|----------|-------------|------|
 | Piccola | 14 | 20 | 1.57 km | 194 s | Risolto da ENHSP in 44ms |
 | Media | 50 | 93 | 1.62 km | 150 s | Lower bound ottimistico |
-| Grande | 120 | 206 | 1.33 km | 142 s | Lower bound ottimistico |
+| Grande | 120 | 206 | 1.33 km | 147 s | Lower bound ottimistico |
 
 Il piano PDDL+ modella velocità costante senza semafori né traffico. SUMO applica invece i semafori reali di Dublino da OSM: il veicolo si ferma al rosso, rendendo la simulazione più realistica del piano teorico.
 

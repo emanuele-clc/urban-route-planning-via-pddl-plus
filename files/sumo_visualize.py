@@ -1,8 +1,106 @@
-import os, sys, subprocess
+import os, sys, subprocess, re, xml.etree.ElementTree as ET
+from collections import defaultdict
+import heapq
 
+# ── Dijkstra su net.xml ───────────────────────────────────────
+def build_sumo_graph(net_path):
+    root = ET.parse(net_path).getroot()
+    jpos = {}
+    for j in root.findall('junction'):
+        jpos[j.get('id')] = (float(j.get('x', 0)), float(j.get('y', 0)))
+    graph = defaultdict(list)
+    for e in root.findall('edge'):
+        eid = e.get('id')
+        if eid.startswith(':'): continue
+        fr, to = e.get('from'), e.get('to')
+        if not fr or not to: continue
+        lanes = e.findall('lane')
+        length = float(lanes[0].get('length', 1)) if lanes else 1.0
+        graph[fr].append((to, eid, length))
+    return graph, jpos
+
+def dijkstra(graph, start, goal):
+    dist = {start: 0}; prev = {}; heap = [(0, start)]
+    while heap:
+        d, u = heapq.heappop(heap)
+        if d > dist.get(u, float('inf')): continue
+        if u == goal: break
+        for v, eid, length in graph[u]:
+            nd = d + length
+            if nd < dist.get(v, float('inf')):
+                dist[v] = nd; prev[v] = (u, eid)
+                heapq.heappush(heap, (nd, v))
+    if goal not in prev: return None
+    edges = []
+    cur = goal
+    while cur in prev:
+        p, eid = prev[cur]; edges.append(eid); cur = p
+    return list(reversed(edges))
+
+def pddl_name_to_junction(pname, junc_ids):
+    """Mappa un nome PDDL (es. n1193756) alla junction SUMO corrispondente."""
+    suffix = pname.lstrip('n')
+    if suffix in junc_ids: return suffix
+    matches = [j for j in junc_ids if j.endswith(suffix) and not j.startswith(':')]
+    if matches: return min(matches, key=len)
+    return None
+
+def compute_edges_from_pddl(pddl_path, net_path):
+    """Legge start/goal dal PDDL, fa Dijkstra sul net.xml, ritorna (edges_str, cfg)."""
+    text = open(pddl_path).read()
+    # estrai start: (at <nome>)
+    m_start = re.search(r'\(at\s+([A-Za-z0-9_]+)\)', text)
+    # estrai goal: (:goal (at <nome>))
+    m_goal  = re.search(r':goal\s+\(at\s+([A-Za-z0-9_]+)\)', text)
+    if not m_start or not m_goal:
+        print("[ERRORE] Impossibile trovare start/goal nel PDDL.")
+        sys.exit(1)
+    start_name = m_start.group(1)
+    goal_name  = m_goal.group(1)
+
+    graph, jpos = build_sumo_graph(net_path)
+    junc_ids = set(jpos.keys())
+
+    start_j = pddl_name_to_junction(start_name, junc_ids)
+    goal_j  = pddl_name_to_junction(goal_name,  junc_ids)
+    if not start_j:
+        print(f"[ERRORE] Junction per '{start_name}' non trovata in {net_path}")
+        sys.exit(1)
+    if not goal_j:
+        print(f"[ERRORE] Junction per '{goal_name}' non trovata in {net_path}")
+        sys.exit(1)
+
+    print(f"  START: {start_name} → {start_j}")
+    print(f"  GOAL : {goal_name} → {goal_j}")
+
+    edges = dijkstra(graph, start_j, goal_j)
+    if not edges:
+        print(f"[ERRORE] Nessun percorso SUMO da {start_j} a {goal_j}")
+        sys.exit(1)
+
+    sp = jpos[start_j]; gp = jpos[goal_j]
+    return ' '.join(edges), {
+        'start': start_name, 'goal': goal_name,
+        'x': sp[0], 'y': sp[1],
+    }
+
+# ── Argomenti ────────────────────────────────────────────────
+# Uso standard:  python sumo_visualize.py [piccola|media|grande]
+# Uso dinamico:  python sumo_visualize.py pddl <percorso_pddl> [piccola|media|grande]
 zona = sys.argv[1] if len(sys.argv) > 1 else "piccola"
+dynamic_pddl = None
+
+if zona == "pddl":
+    # modalità dinamica: legge il PDDL e calcola il percorso
+    if len(sys.argv) < 3:
+        print("Uso dinamico: python sumo_visualize.py pddl <file.pddl> [piccola|media|grande]")
+        sys.exit(1)
+    dynamic_pddl = sys.argv[2]
+    zona = sys.argv[3] if len(sys.argv) > 3 else "piccola"
+
 if zona not in ("piccola", "media", "grande"):
     print("Uso: python sumo_visualize.py [piccola|media|grande]")
+    print("     python sumo_visualize.py pddl <file.pddl> [piccola|media|grande]")
     sys.exit(1)
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -12,32 +110,37 @@ os.makedirs(OUT, exist_ok=True)
 CONFIGS = {
     "piccola": {
         "net": os.path.join(BASE, "net_files", "piccola.net.xml"),
-        # Percorso connesso BFS — START: Liffey St Upper → GOAL: Aungier St
+        # Dijkstra da 659788 (Liffey St Upper) a cluster Aungier St
+        # Percorso: Liffey St → Great Strand St → Capel St → Grattan Bridge
+        #           → Essex Quay → Fishamble St → Lord Edward St → Cork Hill
+        #           → Dame St → South Great George's St → Aungier St
         "edges": (
-            "39994843 -1126998263#0 1478689539 1062391643#0 "
-            "4396056 1288830596 1179644329 1179644328 1254511872 1254511870 1254511871 125864859 5976028#2 5976028#3 "
-            "16247623#1 4396059#0 4396059#2 846644599 668344588 "
-            "-317003249#3 -317003249#2 -369564011"
+            "4396046#0 4396046#1 18927706 1478689539 1062391643#0 "
+            "4396056 1288830596 1179644329 1179644328 "
+            "1254511872 1254511870 1254511871 125864859 "
+            "5976028#2 5976028#3 16247623#1 "
+            "4396059#0 4396059#2 846644599 668344588 "
+            "-317003249#3 -317003249#2 -369564011 -5826896"
         ),
-        "zoom": 3000, "x": 663, "y": 749,
+        "zoom": 3000, "x": 663, "y": 750,
         "dist_m": 1570, "time_s": 194,
         "start": "Liffey Street Upper", "goal": "Aungier Street",
     },
     "media": {
         "net": os.path.join(BASE, "net_files", "media.net.xml"),
-        # Percorso connesso BFS — START: Leeson St Upper → GOAL: Saint Mary's Road
+        # Dijkstra da 2876012509 (Leeson St Upper) a 8752842641 (Saint Mary's Road)
         "edges": (
-            "25466631#1 4934444#0 147463637#0 147463637#1 38864102 "
-            "-22716630#2 -22716630#1 -22716630#0 "
-            "370154352#1 365945819#0 365945819#1 110407380"
+            "119860706 612719563#1 283771398#1 14041596#1 8111025#0 "
+            "48520199#1 -370154357 -370154355 -128521564 20834536 110407380"
         ),
-        "zoom": 2000, "x": 1800, "y": 2200,
+        "zoom": 3000, "x": 1144, "y": 2131,
         "dist_m": 1623, "time_s": 150,
         "start": "Leeson Street Upper", "goal": "Saint Mary's Road",
     },
     "grande": {
         "net": os.path.join(BASE, "net_files", "grande.net.xml"),
-        # Percorso connesso BFS — START: Sherrard St → GOAL: Botanic Avenue
+        # Dijkstra da 28244374 (St Patrick's Road) a 11822804242 (Botanic Avenue)
+        # Segmento per segmento seguendo il piano ENHSP
         "edges": (
             "1159857185 1159857184 "
             "-130294072#2 -130294072#1 -130294072#0 "
@@ -45,14 +148,28 @@ CONFIGS = {
             "378882695#1 378882694 4539231 -130776836 "
             "-56007691#4 -56007691#3 -56007691#2 -56007691#0"
         ),
-        "zoom": 1500, "x": 246, "y": 4860,
-        "dist_m": 1335, "time_s": 142,
-        "start": "Sherrard Street Lower", "goal": "Botanic Avenue",
+        "zoom": 3000, "x": 246, "y": 4860,
+        "dist_m": 1335, "time_s": 147,
+        "start": "St Patrick's Road", "goal": "Botanic Avenue",
     },
 }
 
 cfg = CONFIGS[zona]
 NET  = cfg["net"]
+
+# ── Modalità dinamica: sovrascrive edges/x/y dal PDDL ────────
+if dynamic_pddl:
+    print(f"[DINAMICO] Calcolo percorso da: {dynamic_pddl}")
+    edges_str, dyn = compute_edges_from_pddl(dynamic_pddl, NET)
+    cfg = dict(cfg)  # copia per non modificare l'originale
+    cfg['edges'] = edges_str
+    cfg['x']     = dyn['x']
+    cfg['y']     = dyn['y']
+    cfg['start'] = dyn['start']
+    cfg['goal']  = dyn['goal']
+    cfg['dist_m'] = '?'
+    cfg['time_s'] = '?'
+    zona = zona + "_custom"
 
 # ── File di route ─────────────────────────────────────────────
 ROU_PATH = os.path.join(OUT, f"{zona}_piano.rou.xml")
@@ -129,8 +246,13 @@ if not sumo_gui:
 # ── Avvio ─────────────────────────────────────────────────────
 print(f"Zona: {zona.upper()}")
 print(f"  Percorso : {cfg['start']} → {cfg['goal']}")
-print(f"  Distanza : {cfg['dist_m']} m")
-print(f"  Tempo    : {cfg['time_s']} s (a 30 km/h, senza traffico)")
+dist_val = cfg['dist_m']
+time_val = cfg['time_s']
+if dist_val != '?':
+    print(f"  Distanza : {dist_val} m")
+    print(f"  Tempo    : {time_val} s (a 30 km/h, senza traffico)")
+else:
+    print(f"  (distanza/tempo calcolati da ENHSP)")
 print()
 print(f"File generati:")
 print(f"  Route : {ROU_PATH}")

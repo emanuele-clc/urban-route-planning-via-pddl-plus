@@ -398,6 +398,16 @@ def solve():
 
     pddl_content = write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm)
 
+    # salva sempre una copia accessibile per sumo_visualize.py
+    PDDL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'pddl_files')
+    custom_pddl_path = os.path.join(PDDL_DIR, 'problem_custom.pddl')
+    try:
+        os.makedirs(PDDL_DIR, exist_ok=True)
+        with open(custom_pddl_path, 'w', encoding='utf-8') as f:
+            f.write(pddl_content)
+    except Exception:
+        pass  # non bloccare la risoluzione se il salvataggio fallisce
+
     tmp_dir = tempfile.mkdtemp()
     pddl_path = os.path.join(tmp_dir, 'problem.pddl')
     with open(pddl_path, 'w', encoding='utf-8') as f:
