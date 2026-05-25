@@ -1,0 +1,78 @@
+Domain parsed
+Problem parsed
+Grounding..
+Grounding Time: 308
+Aibr Preprocessing
+UFX:false
+|F|:84
+|X|:56
+Heuristic Problem Creation
+Aibr Preprocessing
+|A|:56
+|P|:56
+|E|:56
+Delta time heuristic model:1.0
+Delta time planning model:1.0
+Delta time search-execution model:1.0
+Delta time validation model:1
+H1 Setup Time (msec): 61
+h(I):2451007.0
+ g(n)= 1.0 h(n)=1680959.0
+ g(n)= 2.0 h(n)=525887.0
+ g(n)= 3.0 h(n)=276031.0
+ g(n)= 4.0 h(n)=198207.0
+ g(n)= 5.0 h(n)=96831.0
+ g(n)= 6.0 h(n)=68159.0
+ g(n)= 7.0 h(n)=20287.0
+ g(n)= 8.0 h(n)=10559.0
+ g(n)= 9.0 h(n)=5247.0
+ g(n)= 10.0 h(n)=3391.0
+ g(n)= 11.0 h(n)=1775.0
+ g(n)= 12.0 h(n)=903.0
+ g(n)= 13.0 h(n)=135.0
+ g(n)= 14.0 h(n)=39.0
+Extracting plan with execution delta: 1.0
+Problem Solved
+
+Found Plan:
+0: (start-move n8244374 n8243505)
+0: -----waiting---- [6.0]
+6.0: (start-move n8243505 n6472878)
+6.0: -----waiting---- [23.0]
+23.0: (start-move n6472878 n5361615)
+23.0: -----waiting---- [31.0]
+31.0: (start-move n5361615 n8243122)
+31.0: -----waiting---- [36.0]
+36.0: (start-move n8243122 n6472877)
+36.0: -----waiting---- [48.0]
+48.0: (start-move n6472877 n6496118)
+48.0: -----waiting---- [55.0]
+55.0: (start-move n6496118 n6496121)
+55.0: -----waiting---- [78.0]
+78.0: (start-move n6496121 n6496122)
+78.0: -----waiting---- [88.0]
+88.0: (start-move n6496122 n8231035)
+88.0: -----waiting---- [98.0]
+98.0: (start-move n8231035 n8230911)
+98.0: -----waiting---- [105.0]
+105.0: (start-move n8230911 n8230676)
+105.0: -----waiting---- [118.0]
+118.0: (start-move n8230676 n1012211)
+118.0: -----waiting---- [126.0]
+126.0: (start-move n1012211 n9160924)
+126.0: -----waiting---- [140.0]
+140.0: (start-move n9160924 n1012197)
+140.0: -----waiting---- [144.0]
+144.0: (start-move n1012197 n2804242)
+144.0: -----waiting---- [147.0]
+
+Plan-Length:177
+Elapsed Time: 15.0
+Metric (Search):15.0
+Planning Time (msec): 243
+Heuristic Time (msec): 151
+Search Time (msec): 208
+Expanded Nodes:163
+States Evaluated:330
+Number of Dead-Ends detected:0
+Number of Duplicates detected:0

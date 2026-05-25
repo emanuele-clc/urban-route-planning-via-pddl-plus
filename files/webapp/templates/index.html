@@ -229,8 +229,6 @@
     <!-- Params -->
     <div class="sec">
       <h2>Parametri</h2>
-      <label class="lbl">Nome zona (opzionale)</label>
-      <input type="text" id="zone-name" placeholder="es. media, grande…">
       <label class="lbl">Nodi massimi: <span id="range-val">50</span></label>
       <input type="range" id="max-nodes" min="10" max="200" value="50" step="5">
       <div class="range-row"><span>10</span><span>200</span></div>
@@ -382,7 +380,7 @@ document.getElementById('gen-btn').addEventListener('click', async () => {
   const form = new FormData();
   form.append('osm_file', state.file);
   form.append('max_nodes', slider.value);
-  form.append('zone', document.getElementById('zone-name').value || 'custom');
+  form.append('zone', 'custom');
 
   try {
     const res = await fetch('/api/generate', { method: 'POST', body: form });
