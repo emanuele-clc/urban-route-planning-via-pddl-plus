@@ -30,8 +30,9 @@
     ; --- Posizione iniziale del veicolo ---
     (at liffey_st_upper)
 
-    ; --- Distanza totale percorsa (parte da 0) ---
+    ; --- Contatori globali ---
     (= (total-dist) 0)
+    (= (total-time) 0)
 
     ; --- Progress iniziale su ogni tratto = 0 ---
     (= (progress liffey_st_upper   wellington_quay_e) 0)
@@ -105,6 +106,25 @@
     (= (distance aungier_st        sgeorges_m)           89)
 
     ; -------------------------------------------------------
+    ; RITARDO SEMAFORICO in secondi (30 = semaforo OSM, 0 = nessun semaforo)
+    ; Fonte: OSM dublin_piccola_centro.osm, highway=traffic_signals
+    ; -------------------------------------------------------
+    (= (signal-delay liffey_st_upper)   0)
+    (= (signal-delay wellington_quay_e) 30)  ; 44m da semaforo OSM
+    (= (signal-delay aston_quay)         0)
+    (= (signal-delay ormond_quay_w)      0)
+    (= (signal-delay capel_st_n)         0)
+    (= (signal-delay capel_st_quay)      0)
+    (= (signal-delay grattan_bridge_s)   0)
+    (= (signal-delay cork_hill)         30)  ; 68m da semaforo OSM
+    (= (signal-delay cork_hill_s)       30)  ; 33m da semaforo OSM
+    (= (signal-delay dame_st_e)          0)
+    (= (signal-delay college_green_w)    0)
+    (= (signal-delay sgeorges_n)         0)
+    (= (signal-delay sgeorges_m)         0)
+    (= (signal-delay aungier_st)        30)  ; 14m da semaforo OSM (nodo 26165126)
+
+    ; -------------------------------------------------------
     ; VELOCITA' in m/s (30 km/h = 8.33 m/s per tutte le strade)
     ; Formula: km/h * 1000 / 3600
     ; -------------------------------------------------------
@@ -134,7 +154,7 @@
   ; --- Obiettivo: raggiungere Aungier Street ---
   (:goal (at aungier_st))
 
-  ; --- Minimizza il tempo totale di percorrenza ---
-  (:metric minimize (total-dist))
+  ; --- Minimizza il tempo totale (guida + attese ai semafori) ---
+  (:metric minimize (total-time))
 
 )

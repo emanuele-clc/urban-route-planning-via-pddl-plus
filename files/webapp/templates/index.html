@@ -323,7 +323,7 @@
 // ── State ─────────────────────────────────────────────────────────────────────
 let state = {
   token: null,
-  nodes: [],        // array di {id, lat, lon, name, is_start, is_goal}
+  nodes: [],        // array di {id, lat, lon, name, is_start, is_goal, is_signal}
   edges: [],
   autoStart: null,
   autoGoal: null,
@@ -331,6 +331,7 @@ let state = {
   selectedGoal: null,
   reachableFromStart: null,  // Set di id raggiungibili dallo start corrente
   file: null,
+  routeSignals: new Set(),   // id dei nodi semaforo sul percorso trovato
 };
 
 let leafletMap = null;
@@ -436,6 +437,12 @@ document.getElementById('solve-btn').addEventListener('click', async () => {
       return;
     }
 
+    // aggiorna i semafori sul percorso per evidenziarli nella mappa
+    state.routeSignals = new Set(
+      (data.route || []).filter(id => {
+        const n = nodeById(id); return n && n.is_signal;
+      })
+    );
     renderStats(data);
     renderPddl(data.pddl_content);
     renderPlan(data.plan_text);
@@ -531,22 +538,37 @@ function redrawMarkers() {
   state.nodes.forEach(n => {
     const isStart     = n.id === state.selectedStart;
     const isGoal      = n.id === state.selectedGoal;
+    const isSignal    = !!n.is_signal;
+    const onRoute     = state.routeSignals && state.routeSignals.has(n.id);
     const reachable   = !state.reachableFromStart || state.reachableFromStart.has(n.id);
 
     let color   = reachable ? '#334155' : '#1c2030';
+    let border  = '#0a0c14';
     let opacity = reachable ? 0.95 : 0.35;
     let radius  = reachable ? 5 : 4;
     let weight  = 1;
 
-    if (isStart)     { color = '#22c55e'; radius = 11; weight = 2; opacity = 1; }
-    else if (isGoal) { color = '#ef4444'; radius = 11; weight = 2; opacity = 1; }
+    // semafori: cerchio giallo-ambra, più grande
+    if (isSignal && !isStart && !isGoal) {
+      color   = onRoute ? '#f59e0b' : '#78450a';
+      border  = onRoute ? '#fbbf24' : '#92400e';
+      radius  = onRoute ? 9 : 7;
+      weight  = 2;
+      opacity = reachable ? 1 : 0.3;
+    }
+
+    if (isStart)     { color = '#22c55e'; border = '#0a0c14'; radius = 11; weight = 2; opacity = 1; }
+    else if (isGoal) { color = '#ef4444'; border = '#0a0c14'; radius = 11; weight = 2; opacity = 1; }
 
     const circle = L.circleMarker([n.lat, n.lon], {
-      radius, fillColor: color, color: '#0a0c14', weight, fillOpacity: opacity,
+      radius, fillColor: color, color: border, weight, fillOpacity: opacity,
     });
 
     const label = n.name || n.id;
     const tag   = isStart ? ' — START 🟢' : isGoal ? ' — GOAL 🔴' : '';
+    const signalBadge = isSignal
+      ? `<div style="margin:4px 0;font-size:0.75rem;color:#fbbf24">🚦 Semaforo OSM — +30s attesa media</div>`
+      : '';
 
     const goalBtn = reachable
       ? `<button class="popup-btn popup-btn-goal" onclick="setNodeGoal('${n.id}')">🔴 Goal</button>`
@@ -555,6 +577,7 @@ function redrawMarkers() {
     circle.bindPopup(`
       <div class="popup-name">${label}${tag}</div>
       <div class="popup-osm">${n.id}</div>
+      ${signalBadge}
       <div class="popup-btns">
         <button class="popup-btn popup-btn-start" onclick="setNodeStart('${n.id}')">🟢 Start</button>
         ${goalBtn}
@@ -595,12 +618,17 @@ function renderStats(data) {
   document.getElementById('stats-sec').style.display = 'block';
 
   const grid = document.getElementById('stats-grid');
-  const dist    = s.total_dist   != null ? Math.round(s.total_dist) + ' m' : '—';
-  const travel  = s.travel_time  != null ? s.travel_time + ' s' : '—';
-  const compute = s.plan_time    != null ? s.plan_time + ' s' : '—';
+  const dist    = s.total_dist        != null ? Math.round(s.total_dist) + ' m' : '—';
+  const travel  = s.travel_time       != null ? s.travel_time + ' s' : '—';
+  const compute = s.plan_time         != null ? s.plan_time + ' s' : '—';
+  const sigCount = s.signals_crossed  != null ? s.signals_crossed : '—';
+  const sigDelay = s.signal_delay_total != null ? '+' + s.signal_delay_total + ' s' : '—';
+  const sigColor = s.signals_crossed > 0 ? '#f59e0b' : '#4b5563';
   grid.innerHTML = `
     <div class="stat-card"><div class="val">${dist}</div><div class="lbl">Distanza percorso</div></div>
-    <div class="stat-card"><div class="val">${travel}</div><div class="lbl">Tempo di percorrenza</div></div>
+    <div class="stat-card"><div class="val">${travel}</div><div class="lbl">Tempo totale (con semafori)</div></div>
+    <div class="stat-card"><div class="val" style="color:${sigColor}">${sigCount}</div><div class="lbl">🚦 Semafori sul percorso</div></div>
+    <div class="stat-card"><div class="val" style="color:${sigColor}">${sigDelay}</div><div class="lbl">Ritardo semafori</div></div>
     <div class="stat-card" style="grid-column:1/-1"><div class="val" style="font-size:0.95rem">${compute}</div><div class="lbl">Tempo di calcolo ENHSP</div></div>
   `;
 

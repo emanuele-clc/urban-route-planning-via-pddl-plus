@@ -50,6 +50,7 @@ def build_contracted_graph(osm_path):
         root = ET.parse(f).getroot()
 
     node_data = {}
+    signal_node_ids = set()
     for n in root.findall("node"):
         nid = n.get("id")
         tags = {t.get("k"): t.get("v") for t in n.findall("tag")}
@@ -58,6 +59,8 @@ def build_contracted_graph(osm_path):
             "lon": float(n.get("lon")),
             "name": tags.get("name", ""),
         }
+        if tags.get("highway") == "traffic_signals":
+            signal_node_ids.add(nid)
 
     membership = Counter()
     good_ways = []
@@ -109,7 +112,7 @@ def build_contracted_graph(osm_path):
                 seg_start = nid
                 seg_dist = 0
 
-    return node_data, adj
+    return node_data, adj, signal_node_ids
 
 
 def select_connected_subgraph(node_data, adj, max_nodes):
@@ -172,7 +175,9 @@ def auto_start_goal(selected, edges, node_data):
     return start, goal
 
 
-def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm):
+def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm, signal_nodes=None):
+    if signal_nodes is None:
+        signal_nodes = set()
     def n(x): return nm[x]
     se = sorted(edges.keys(), key=lambda e: (n(e[0]), n(e[1])))
     lines = []
@@ -195,6 +200,7 @@ def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm):
     lines.append("  (:init")
     lines.append(f"    (at {n(start_osm)})")
     lines.append("    (= (total-dist) 0)")
+    lines.append("    (= (total-time) 0)")
     lines.append("")
     lines.append("    ; Progress = 0 per ogni tratto")
     for a, b in se:
@@ -214,11 +220,16 @@ def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm):
         d, spd = edges[(a, b)]
         lines.append(f"    (= (speed {n(a):<28} {n(b)}) {spd})")
     lines.append("")
+    lines.append("    ; Ritardo semaforico in secondi (30 = semaforo OSM, 0 = nessun semaforo)")
+    for nd in selected:
+        delay = 30 if nd in signal_nodes else 0
+        lines.append(f"    (= (signal-delay {n(nd):<28}) {delay})")
+    lines.append("")
     lines.append("  )")
     lines.append("")
     lines.append(f"  (:goal (at {n(goal_osm)}))")
     lines.append("")
-    lines.append("  (:metric minimize (total-dist))")
+    lines.append("  (:metric minimize (total-time))")
     lines.append(")")
     return "\n".join(lines)
 
@@ -300,7 +311,7 @@ def generate():
     osm_file.save(osm_path)
 
     try:
-        node_data, adj = build_contracted_graph(osm_path)
+        node_data, adj, signal_node_ids = build_contracted_graph(osm_path)
         if not adj:
             return jsonify({'error': 'Nessuna strada percorribile trovata nel file OSM'}), 400
 
@@ -316,6 +327,7 @@ def generate():
         start_osm, goal_osm = auto_start_goal(selected, edges, node_data)
         nm = name_map_for(selected, node_data)
         nm_inv = {v: k for k, v in nm.items()}
+        signal_nodes_in_subgraph = signal_node_ids & sel_set
 
         token = str(uuid.uuid4())
         graph_store[token] = {
@@ -325,6 +337,7 @@ def generate():
             'nm': nm,
             'nm_inv': nm_inv,
             'zone': zone,
+            'signal_nodes': signal_nodes_in_subgraph,
         }
 
         nodes_out = [{
@@ -334,6 +347,7 @@ def generate():
             'name': node_data[nd]['name'],
             'is_start': nd == start_osm,
             'is_goal': nd == goal_osm,
+            'is_signal': nd in signal_nodes_in_subgraph,
         } for nd in selected]
 
         edges_out = [{
@@ -381,6 +395,7 @@ def solve():
     edges = store['edges']
     selected = store['selected']
     zone = store['zone']
+    signal_nodes = store.get('signal_nodes', set())
 
     start_osm = nm_inv.get(start_pddl)
     goal_osm = nm_inv.get(goal_pddl)
@@ -396,7 +411,8 @@ def solve():
     if goal_osm not in reach:
         return jsonify({'error': f'Il goal "{goal_pddl}" non è raggiungibile da "{start_pddl}" con i sensi unici attuali'}), 400
 
-    pddl_content = write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm)
+    pddl_content = write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm,
+                              signal_nodes=signal_nodes)
 
     # salva sempre una copia accessibile per sumo_visualize.py
     PDDL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'pddl_files')
@@ -417,6 +433,8 @@ def solve():
     route = None
     total_dist = None
     travel_time = None
+    signals_crossed = None
+    signal_delay_total = None
     plan_time = None
     enhsp_error = None
 
@@ -434,10 +452,12 @@ def solve():
             output = result.stdout + result.stderr
             if "Problem Solved" in output:
                 plan_text, route, plan_time = parse_plan(output)
-                # calcolo distanza e tempo di percorrenza sommando gli archi del percorso
+                # calcolo distanza, tempo e semafori sommando gli archi del percorso
                 if route and len(route) >= 2:
                     total_dist = 0
                     travel_time = 0.0
+                    signals_crossed = 0
+                    signal_delay_total = 0
                     for i in range(len(route) - 1):
                         a_osm = nm_inv.get(route[i])
                         b_osm = nm_inv.get(route[i + 1])
@@ -446,6 +466,13 @@ def solve():
                             total_dist += d
                             if spd > 0:
                                 travel_time += d / spd
+                    # conta i semafori sul percorso (tutti i nodi tranne lo start)
+                    for node_name in route[1:]:
+                        node_osm = nm_inv.get(node_name)
+                        if node_osm and node_osm in signal_nodes:
+                            signals_crossed += 1
+                            signal_delay_total += 30
+                    travel_time += signal_delay_total
             else:
                 enhsp_error = "ENHSP non ha trovato soluzione (problema forse irrisolvibile con i nodi selezionati)"
         except subprocess.TimeoutExpired:
@@ -462,6 +489,8 @@ def solve():
         'stats': {
             'total_dist': total_dist,
             'travel_time': round(travel_time, 1) if travel_time is not None else None,
+            'signals_crossed': signals_crossed if plan_text else None,
+            'signal_delay_total': signal_delay_total if plan_text else None,
             'plan_time': plan_time,
             'start': start_pddl,
             'goal': goal_pddl,

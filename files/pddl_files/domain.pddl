@@ -14,7 +14,9 @@
     (distance ?from ?to - location)   ; distanza in metri
     (speed ?from ?to - location)      ; velocita' in m/s
     (progress ?from ?to - location)   ; metri percorsi su questo tratto
-    (total-dist)                      ; distanza totale percorsa
+    (signal-delay ?l - location)      ; 30 se semaforo OSM, 0 altrimenti
+    (total-dist)                      ; distanza totale percorsa (metri)
+    (total-time)                      ; tempo totale (secondi) — solo aggiornato negli eventi
   )
 
   ;; AZIONE: inizia a percorrere la strada da ?from a ?to
@@ -31,7 +33,7 @@
     )
   )
 
-  ;; PROCESSO: la distanza percorsa su questo tratto aumenta nel tempo
+  ;; PROCESSO: solo progress avanza continuamente — total-time NON e' continuo
   (:process driving
     :parameters (?from ?to - location)
     :precondition (moving ?from ?to)
@@ -40,7 +42,7 @@
     )
   )
 
-  ;; EVENTO: quando si raggiunge la destinazione
+  ;; EVENTO: arrivo — aggiunge tempo di guida (dist/speed) + ritardo semaforo
   (:event arrive
     :parameters (?from ?to - location)
     :precondition (and
@@ -51,6 +53,8 @@
       (not (moving ?from ?to))
       (at ?to)
       (increase (total-dist) (distance ?from ?to))
+      (increase (total-time) (/ (distance ?from ?to) (speed ?from ?to)))
+      (increase (total-time) (signal-delay ?to))
       (assign (progress ?from ?to) 0)
     )
   )

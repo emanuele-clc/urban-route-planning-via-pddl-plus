@@ -40,8 +40,9 @@ def build_contracted_graph(osm_path):
     with open(osm_path) as f:
         root = ET.parse(f).getroot()
 
-    # leggo tutti i nodi con coordinate e nome se ce l'hanno
+    # leggo tutti i nodi con coordinate, nome e flag semaforo
     node_data = {}
+    signal_node_ids = set()
     for n in root.findall("node"):
         nid = n.get("id")
         tags = {t.get("k"): t.get("v") for t in n.findall("tag")}
@@ -50,6 +51,8 @@ def build_contracted_graph(osm_path):
             "lon": float(n.get("lon")),
             "name": tags.get("name", ""),
         }
+        if tags.get("highway") == "traffic_signals":
+            signal_node_ids.add(nid)
 
     # scorro le way e tengo solo quelle percorribili in auto
     membership = Counter()
@@ -107,7 +110,7 @@ def build_contracted_graph(osm_path):
                 seg_start = nid
                 seg_dist = 0
 
-    return node_data, adj
+    return node_data, adj, signal_node_ids
 
 
 def select_connected_subgraph(node_data, adj, max_nodes):
@@ -156,13 +159,17 @@ def name_map_for(selected, node_data):
     return name_map
 
 
-def write_pddl(zone, selected, node_data, edges, start, goal, out_path):
+def write_pddl(zone, selected, node_data, edges, start, goal, out_path, signal_nodes=None):
     sname = name_map_for(selected, node_data)
+    if signal_nodes is None:
+        signal_nodes = set()
 
     def nm(n):
         return sname[n]
 
     se = sorted(edges.keys(), key=lambda e: (nm(e[0]), nm(e[1])))
+    # nodi selezionati che hanno un semaforo
+    selected_signals = [n for n in selected if n in signal_nodes]
 
     lines = []
     lines.append(f"(define (problem dublin-{zone})")
@@ -185,6 +192,7 @@ def write_pddl(zone, selected, node_data, edges, start, goal, out_path):
     lines.append("  (:init")
     lines.append(f"    (at {nm(start)})")
     lines.append("    (= (total-dist) 0)")
+    lines.append("    (= (total-time) 0)")
     lines.append("")
     lines.append("    ; Progress = 0 per ogni tratto")
     for a, b in se:
@@ -204,11 +212,17 @@ def write_pddl(zone, selected, node_data, edges, start, goal, out_path):
         d, spd = edges[(a, b)]
         lines.append(f"    (= (speed {nm(a):<28} {nm(b)}) {spd})")
     lines.append("")
+    lines.append(f"    ; Ritardo semaforico in secondi (30 = semaforo OSM, 0 = nessun semaforo)")
+    lines.append(f"    ; {len(selected_signals)}/{len(selected)} nodi con semaforo")
+    for n in selected:
+        delay = 30 if n in signal_nodes else 0
+        lines.append(f"    (= (signal-delay {nm(n):<28}) {delay})")
+    lines.append("")
     lines.append("  )")
     lines.append("")
     lines.append(f"  (:goal (at {nm(goal)}))")
     lines.append("")
-    lines.append("  (:metric minimize (total-dist))")
+    lines.append("  (:metric minimize (total-time))")
     lines.append(")")
 
     with open(out_path, "w", encoding="utf-8") as f:
@@ -217,8 +231,9 @@ def write_pddl(zone, selected, node_data, edges, start, goal, out_path):
 
 def generate(zone, osm_path, max_nodes):
     print(f"\n[{zone.upper()}] Parsing {os.path.basename(osm_path)}...")
-    node_data, adj = build_contracted_graph(osm_path)
+    node_data, adj, signal_node_ids = build_contracted_graph(osm_path)
     print(f"  nodi nel grafo contratto: {len(adj)}, archi: {sum(len(v) for v in adj.values())}")
+    print(f"  nodi con traffic_signals nell'OSM: {len(signal_node_ids)}")
 
     selected = select_connected_subgraph(node_data, adj, max_nodes)
     sel_set = set(selected)
@@ -256,8 +271,13 @@ def generate(zone, osm_path, max_nodes):
     print(f"  raggiungibili: {len(reach)}/{len(selected)}")
     print(f"  START: {start} ({nm[start]})  GOAL: {goal} ({nm[goal]})")
 
+    # incroci selezionati che sono anche semafori OSM
+    signal_nodes_in_subgraph = signal_node_ids & set(selected)
+    print(f"  incroci con semaforo nel sottografo: {len(signal_nodes_in_subgraph)}")
+
     out_path = os.path.join(PDDL_DIR, f"problem_{zone}.pddl")
-    write_pddl(zone, selected, node_data, edges, start, goal, out_path)
+    write_pddl(zone, selected, node_data, edges, start, goal, out_path,
+               signal_nodes=signal_nodes_in_subgraph)
     print(f"  salvato: {out_path}")
 
 

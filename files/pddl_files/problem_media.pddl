@@ -3,8 +3,7 @@
 
   ; 50 nodi — zona media di Dublino
   ; Generato automaticamente da OSM via build_problems.py
-  ; START: n9100868  (Leeson Street Upper / Grand Parade)
-  ; GOAL : n2842641  (Saint Mary's Road / Pembroke Gardens)
+  ; START: n9100868   GOAL: n2842641
 
   (:objects
     n9100868
@@ -63,6 +62,7 @@
   (:init
     (at n9100868)
     (= (total-dist) 0)
+    (= (total-time) 0)
 
     ; Progress = 0 per ogni tratto
     (= (progress n0273785                     n1626139) 0)
@@ -444,9 +444,62 @@
     (= (speed n9889588                     n9889589) 8.33)
     (= (speed n9889589                     n9889588) 8.33)
 
+    ; Ritardo semaforico in secondi (30 = semaforo OSM, 0 = nessun semaforo)
+    ; 6/50 nodi con semaforo
+    (= (signal-delay n9100868                    ) 0)
+    (= (signal-delay n4579646                    ) 0)
+    (= (signal-delay n2335902                    ) 0)
+    (= (signal-delay n9702517                    ) 0)
+    (= (signal-delay n9400040                    ) 30)
+    (= (signal-delay n2335992                    ) 0)
+    (= (signal-delay n2335995                    ) 0)
+    (= (signal-delay n9396438                    ) 0)
+    (= (signal-delay n3932406                    ) 0)
+    (= (signal-delay n7796309                    ) 0)
+    (= (signal-delay n9100869                    ) 0)
+    (= (signal-delay n9372896                    ) 0)
+    (= (signal-delay n2335861                    ) 0)
+    (= (signal-delay n2335290                    ) 30)
+    (= (signal-delay n1626137                    ) 0)
+    (= (signal-delay n1626144                    ) 0)
+    (= (signal-delay n1626139                    ) 0)
+    (= (signal-delay n0273785                    ) 0)
+    (= (signal-delay n2311731                    ) 0)
+    (= (signal-delay n2311742                    ) 0)
+    (= (signal-delay n6823804                    ) 0)
+    (= (signal-delay n4987030                    ) 0)
+    (= (signal-delay n3643594                    ) 0)
+    (= (signal-delay n9572093                    ) 0)
+    (= (signal-delay n9195644                    ) 0)
+    (= (signal-delay n6327064                    ) 0)
+    (= (signal-delay n3643593                    ) 0)
+    (= (signal-delay n3643592                    ) 0)
+    (= (signal-delay n2335038                    ) 0)
+    (= (signal-delay n9889581                    ) 0)
+    (= (signal-delay n9889582                    ) 0)
+    (= (signal-delay n9889588                    ) 0)
+    (= (signal-delay n9889589                    ) 0)
+    (= (signal-delay n4014429                    ) 30)
+    (= (signal-delay n4014430                    ) 30)
+    (= (signal-delay n7565854                    ) 0)
+    (= (signal-delay n5181630                    ) 0)
+    (= (signal-delay n5181675                    ) 0)
+    (= (signal-delay n5181707                    ) 0)
+    (= (signal-delay n2490139                    ) 0)
+    (= (signal-delay n1227681                    ) 30)
+    (= (signal-delay n5181821                    ) 0)
+    (= (signal-delay n3146316                    ) 0)
+    (= (signal-delay n2842641                    ) 0)
+    (= (signal-delay n389679                     ) 0)
+    (= (signal-delay n6576692                    ) 0)
+    (= (signal-delay n2335040                    ) 30)
+    (= (signal-delay n7429610                    ) 0)
+    (= (signal-delay n6023489                    ) 0)
+    (= (signal-delay n0277432                    ) 0)
+
   )
 
   (:goal (at n2842641))
 
-  (:metric minimize (total-dist))
+  (:metric minimize (total-time))
 )
