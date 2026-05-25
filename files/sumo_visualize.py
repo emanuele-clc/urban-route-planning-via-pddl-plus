@@ -110,21 +110,22 @@ os.makedirs(OUT, exist_ok=True)
 CONFIGS = {
     "piccola": {
         "net": os.path.join(BASE, "net_files", "piccola.net.xml"),
-        # Dijkstra da 659788 (Liffey St Upper) a cluster Aungier St
-        # Percorso: Liffey St → Great Strand St → Capel St → Grattan Bridge
-        #           → Essex Quay → Fishamble St → Lord Edward St → Cork Hill
-        #           → Dame St → South Great George's St → Aungier St
+        # Dijkstra da 411193756 (Ormond Quay / Capel St, nodo più connesso)
+        #         a 12015832633 (Aungier Street, punto più lontano raggiungibile)
+        # Percorso: Ormond Quay → Capel St → Grattan Bridge → Essex Quay
+        #           → Fishamble St → Lord Edward St → Cork Hill → Dame St
+        #           → South Great George's St → Aungier St
         "edges": (
-            "4396046#0 4396046#1 18927706 1478689539 1062391643#0 "
+            "1293310466 1293310467 12854626#0 12854626#1 "
             "4396056 1288830596 1179644329 1179644328 "
             "1254511872 1254511870 1254511871 125864859 "
             "5976028#2 5976028#3 16247623#1 "
             "4396059#0 4396059#2 846644599 668344588 "
-            "-317003249#3 -317003249#2 -369564011 -5826896"
+            "-317003249#3 -317003249#2 -369564011 -5826896 876578189 4919471"
         ),
-        "zoom": 3000, "x": 663, "y": 750,
-        "dist_m": 1570, "time_s": 194,
-        "start": "Liffey Street Upper", "goal": "Aungier Street",
+        "zoom": 3000, "x": 144, "y": 535,
+        "dist_m": 1520, "time_s": 182,
+        "start": "Ormond Quay / Capel Street", "goal": "Aungier Street",
     },
     "media": {
         "net": os.path.join(BASE, "net_files", "media.net.xml"),
