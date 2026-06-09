@@ -2,8 +2,8 @@
   (:domain dublin-navigation)
 
   ; 14 nodi reali del centro di Dublino (zona Temple Bar)
-  ; START: Liffey Street Upper   (OSM node 659788)
-  ; GOAL : Aungier Street        (OSM node 26165126)
+  ; START: Liffey Street Upper   GOAL: Aungier Street
+  ; Congestione: 10 veicoli random, raggio periferia 600m
 
   (:objects
     liffey_st_upper    ; Liffey Street Upper / Quay
@@ -25,14 +25,13 @@
 
   (:init
 
-    ; Posizione iniziale del veicolo
     (at liffey_st_upper)
-
-    ; Contatori globali
     (= (total-dist) 0)
     (= (total-time) 0)
 
-    ; Progress iniziale su ogni tratto = 0
+    ; Tutti i nodi entro 600m dal centroide: nessun nodo periferico
+
+    ; Progress = 0 per ogni tratto
     (= (progress liffey_st_upper   wellington_quay_e) 0)
     (= (progress wellington_quay_e aston_quay)        0)
     (= (progress aston_quay        ormond_quay_w)     0)
@@ -54,8 +53,7 @@
     (= (progress sgeorges_m        aungier_st)        0)
     (= (progress aungier_st        sgeorges_m)        0)
 
-    ; STRADE (road ?from ?to)
-    ; Solo le direzioni percorribili (rispetta senso unico OSM)
+    ; Strade
     (road liffey_st_upper   wellington_quay_e)
     (road wellington_quay_e aston_quay)
     (road aston_quay        ormond_quay_w)
@@ -77,7 +75,7 @@
     (road sgeorges_m        aungier_st)
     (road aungier_st        sgeorges_m)
 
-    ; DISTANZE in metri (calcolate con Haversine dai dati OSM)
+    ; Distanze (metri)
     (= (distance liffey_st_upper   wellington_quay_e)   82)
     (= (distance wellington_quay_e aston_quay)           9)
     (= (distance aston_quay        ormond_quay_w)       173)
@@ -99,25 +97,7 @@
     (= (distance sgeorges_m        aungier_st)           89)
     (= (distance aungier_st        sgeorges_m)           89)
 
-    ; RITARDO SEMAFORICO in secondi (30 = semaforo OSM, 0 = nessun semaforo)
-    ; Fonte: OSM dublin_piccola_centro.osm, highway=traffic_signals
-    (= (signal-delay liffey_st_upper)   0)
-    (= (signal-delay wellington_quay_e) 30)  ; 44m da semaforo OSM
-    (= (signal-delay aston_quay)         0)
-    (= (signal-delay ormond_quay_w)      0)
-    (= (signal-delay capel_st_n)         0)
-    (= (signal-delay capel_st_quay)      0)
-    (= (signal-delay grattan_bridge_s)   0)
-    (= (signal-delay cork_hill)         30)  ; 68m da semaforo OSM
-    (= (signal-delay cork_hill_s)       30)  ; 33m da semaforo OSM
-    (= (signal-delay dame_st_e)          0)
-    (= (signal-delay college_green_w)    0)
-    (= (signal-delay sgeorges_n)         0)
-    (= (signal-delay sgeorges_m)         0)
-    (= (signal-delay aungier_st)        30)  ; 14m da semaforo OSM (nodo 26165126)
-
-    ; VELOCITA' in m/s (30 km/h = 8.33 m/s per tutte le strade)
-    ; Formula: km/h * 1000 / 3600
+    ; Velocita' base (m/s)
     (= (speed liffey_st_upper   wellington_quay_e)  8.33)
     (= (speed wellington_quay_e aston_quay)         8.33)
     (= (speed aston_quay        ormond_quay_w)      8.33)
@@ -139,12 +119,145 @@
     (= (speed sgeorges_m        aungier_st)         8.33)
     (= (speed aungier_st        sgeorges_m)         8.33)
 
+    ; Ritardo semaforico (s) — 4/14 nodi con semaforo
+    (= (signal-delay liffey_st_upper)    0)
+    (= (signal-delay wellington_quay_e) 30)
+    (= (signal-delay aston_quay)         0)
+    (= (signal-delay ormond_quay_w)      0)
+    (= (signal-delay capel_st_n)         0)
+    (= (signal-delay capel_st_quay)      0)
+    (= (signal-delay grattan_bridge_s)   0)
+    (= (signal-delay cork_hill)         30)
+    (= (signal-delay cork_hill_s)       30)
+    (= (signal-delay dame_st_e)          0)
+    (= (signal-delay college_green_w)    0)
+    (= (signal-delay sgeorges_n)         0)
+    (= (signal-delay sgeorges_m)         0)
+    (= (signal-delay aungier_st)        30)
+
+    ; Ritardo congestione statico (s) — base tipo strada + bonus densita'
+    (= (congestion-delay liffey_st_upper)    2)
+    (= (congestion-delay wellington_quay_e)  9)
+    (= (congestion-delay aston_quay)         7)
+    (= (congestion-delay ormond_quay_w)     14)
+    (= (congestion-delay capel_st_n)         9)
+    (= (congestion-delay capel_st_quay)     11)
+    (= (congestion-delay grattan_bridge_s)  22)
+    (= (congestion-delay cork_hill)         22)
+    (= (congestion-delay cork_hill_s)       22)
+    (= (congestion-delay dame_st_e)         24)
+    (= (congestion-delay college_green_w)   20)
+    (= (congestion-delay sgeorges_n)        14)
+    (= (congestion-delay sgeorges_m)        16)
+    (= (congestion-delay aungier_st)        12)
+
+    ; Densita' incroci (n. nodi entro 200m)
+    (= (intersection-density liffey_st_upper)    1)
+    (= (intersection-density wellington_quay_e)  2)
+    (= (intersection-density aston_quay)         1)
+    (= (intersection-density ormond_quay_w)      2)
+    (= (intersection-density capel_st_n)         2)
+    (= (intersection-density capel_st_quay)      3)
+    (= (intersection-density grattan_bridge_s)   1)
+    (= (intersection-density cork_hill)          1)
+    (= (intersection-density cork_hill_s)        1)
+    (= (intersection-density dame_st_e)          2)
+    (= (intersection-density college_green_w)    0)
+    (= (intersection-density sgeorges_n)         2)
+    (= (intersection-density sgeorges_m)         3)
+    (= (intersection-density aungier_st)         1)
+
+    ; Veicoli per arco — 10 percorsi Dijkstra random (seed=42)
+    (= (vehicle-count liffey_st_upper   wellington_quay_e)  2)
+    (= (vehicle-count wellington_quay_e aston_quay)         2)
+    (= (vehicle-count aston_quay        ormond_quay_w)      2)
+    (= (vehicle-count ormond_quay_w     capel_st_n)         2)
+    (= (vehicle-count capel_st_n        capel_st_quay)      2)
+    (= (vehicle-count capel_st_quay     grattan_bridge_s)   1)
+    (= (vehicle-count capel_st_quay     ormond_quay_w)      1)
+    (= (vehicle-count grattan_bridge_s  cork_hill)          1)
+    (= (vehicle-count cork_hill         cork_hill_s)        1)
+    (= (vehicle-count cork_hill_s       dame_st_e)          1)
+    (= (vehicle-count cork_hill_s       grattan_bridge_s)   1)
+    (= (vehicle-count dame_st_e         sgeorges_n)         2)
+    (= (vehicle-count dame_st_e         cork_hill_s)        1)
+    (= (vehicle-count dame_st_e         college_green_w)    0)
+    (= (vehicle-count college_green_w   dame_st_e)          1)
+    (= (vehicle-count sgeorges_n        dame_st_e)          0)
+    (= (vehicle-count sgeorges_n        sgeorges_m)         2)
+    (= (vehicle-count sgeorges_m        sgeorges_n)         0)
+    (= (vehicle-count sgeorges_m        aungier_st)         0)
+    (= (vehicle-count aungier_st        sgeorges_m)         0)
+
+    ; Fattore congestione = 1 + vehicle-count/10
+    (= (congestion-factor liffey_st_upper   wellington_quay_e)  1.2)
+    (= (congestion-factor wellington_quay_e aston_quay)         1.2)
+    (= (congestion-factor aston_quay        ormond_quay_w)      1.2)
+    (= (congestion-factor ormond_quay_w     capel_st_n)         1.2)
+    (= (congestion-factor capel_st_n        capel_st_quay)      1.2)
+    (= (congestion-factor capel_st_quay     grattan_bridge_s)   1.1)
+    (= (congestion-factor capel_st_quay     ormond_quay_w)      1.1)
+    (= (congestion-factor grattan_bridge_s  cork_hill)          1.1)
+    (= (congestion-factor cork_hill         cork_hill_s)        1.1)
+    (= (congestion-factor cork_hill_s       dame_st_e)          1.1)
+    (= (congestion-factor cork_hill_s       grattan_bridge_s)   1.1)
+    (= (congestion-factor dame_st_e         sgeorges_n)         1.2)
+    (= (congestion-factor dame_st_e         cork_hill_s)        1.1)
+    (= (congestion-factor dame_st_e         college_green_w)    1.0)
+    (= (congestion-factor college_green_w   dame_st_e)          1.1)
+    (= (congestion-factor sgeorges_n        dame_st_e)          1.0)
+    (= (congestion-factor sgeorges_n        sgeorges_m)         1.2)
+    (= (congestion-factor sgeorges_m        sgeorges_n)         1.0)
+    (= (congestion-factor sgeorges_m        aungier_st)         1.0)
+    (= (congestion-factor aungier_st        sgeorges_m)         1.0)
+
+    ; Velocita' effettiva (m/s) = speed / congestion-factor  [usata dal processo driving]
+    (= (effective-speed liffey_st_upper   wellington_quay_e)  6.9417)
+    (= (effective-speed wellington_quay_e aston_quay)         6.9417)
+    (= (effective-speed aston_quay        ormond_quay_w)      6.9417)
+    (= (effective-speed ormond_quay_w     capel_st_n)         6.9417)
+    (= (effective-speed capel_st_n        capel_st_quay)      6.9417)
+    (= (effective-speed capel_st_quay     grattan_bridge_s)   7.573)
+    (= (effective-speed capel_st_quay     ormond_quay_w)      7.573)
+    (= (effective-speed grattan_bridge_s  cork_hill)          7.573)
+    (= (effective-speed cork_hill         cork_hill_s)        7.573)
+    (= (effective-speed cork_hill_s       dame_st_e)          7.573)
+    (= (effective-speed cork_hill_s       grattan_bridge_s)   7.573)
+    (= (effective-speed dame_st_e         sgeorges_n)         6.9417)
+    (= (effective-speed dame_st_e         cork_hill_s)        7.573)
+    (= (effective-speed dame_st_e         college_green_w)    8.33)
+    (= (effective-speed college_green_w   dame_st_e)          7.573)
+    (= (effective-speed sgeorges_n        dame_st_e)          8.33)
+    (= (effective-speed sgeorges_n        sgeorges_m)         6.9417)
+    (= (effective-speed sgeorges_m        sgeorges_n)         8.33)
+    (= (effective-speed sgeorges_m        aungier_st)         8.33)
+    (= (effective-speed aungier_st        sgeorges_m)         8.33)
+
+    ; Tempo di percorrenza (s) = distance / effective-speed  [usato nell'evento]
+    (= (arc-time aston_quay                   ormond_quay_w) 24.922)
+    (= (arc-time aungier_st                   sgeorges_m) 10.6843)
+    (= (arc-time capel_st_n                   capel_st_quay) 6.6267)
+    (= (arc-time capel_st_quay                grattan_bridge_s) 10.9604)
+    (= (arc-time capel_st_quay                ormond_quay_w) 27.599)
+    (= (arc-time college_green_w              dame_st_e) 18.2233)
+    (= (arc-time cork_hill                    cork_hill_s) 3.6975)
+    (= (arc-time cork_hill_s                  dame_st_e) 24.4298)
+    (= (arc-time cork_hill_s                  grattan_bridge_s) 62.0648)
+    (= (arc-time dame_st_e                    college_green_w) 16.5666)
+    (= (arc-time dame_st_e                    cork_hill_s) 24.4298)
+    (= (arc-time dame_st_e                    sgeorges_n) 5.3301)
+    (= (arc-time grattan_bridge_s             cork_hill) 66.1585)
+    (= (arc-time liffey_st_upper              wellington_quay_e) 11.8127)
+    (= (arc-time ormond_quay_w                capel_st_n) 21.1765)
+    (= (arc-time sgeorges_m                   aungier_st) 10.6843)
+    (= (arc-time sgeorges_m                   sgeorges_n) 22.8091)
+    (= (arc-time sgeorges_n                   dame_st_e) 4.4418)
+    (= (arc-time sgeorges_n                   sgeorges_m) 27.3709)
+    (= (arc-time wellington_quay_e            aston_quay) 1.2965)
+
   )
 
-  ; Obiettivo: raggiungere Aungier Street
   (:goal (at aungier_st))
-
-  ; Minimizza il tempo totale (guida + attese ai semafori)
   (:metric minimize (total-time))
 
 )
