@@ -214,7 +214,7 @@ python sumo_visualize.py pddl pddl_files/problem_custom.pddl piccola
 
 **Auto-salvataggio dalla webapp:** ogni volta che si preme "Risolvi con ENHSP" nella webapp, il file PDDL generato viene salvato automaticamente come `files/pddl_files/problem_custom.pddl`. Dopo aver ottenuto il percorso nella webapp, basta eseguire il comando sopra per aprire la stessa rotta in SUMO.
 
-> **Nota:** la corrispondenza PDDL→SUMO funziona con i nomi in formato `n` + cifre generati dalla webapp. I PDDL predefiniti (piccola, media, grande) usano nomi espliciti come `liffey_st_upper` — per quelli si usa il comando senza `pddl` (es. `python sumo_visualize.py piccola`).
+> **Nota:** la corrispondenza PDDL→SUMO funziona con i nomi in formato `n` + cifre generati dalla webapp. Lo script prova automaticamente tutte e tre le reti disponibili e usa quella in cui trova i nodi — non serve specificare la zona corretta. I PDDL predefiniti (piccola, media, grande) usano nomi espliciti come `liffey_st_upper` — per quelli si usa il comando senza `pddl` (es. `python sumo_visualize.py piccola`).
 
 ---
 
@@ -411,10 +411,11 @@ Poi apri il browser su **http://localhost:5000**.
 
 Flusso d'uso:
 1. Trascina un file `.osm` nella zona di upload (o usa uno di quelli in `osm_files/`)
-2. Imposta il numero massimo di nodi con lo slider
+2. Imposta il numero massimo di nodi con lo slider, oppure spunta **"Tutti i nodi"** per caricare l'intera mappa senza limiti
 3. Premi **"Visualizza Mappa"** — appare la rete stradale con i semafori evidenziati in **giallo ambra** 🟡
 4. Clicca un nodo per impostarlo come **Start** 🟢 o **Goal** 🔴; i nodi semaforo mostrano nel popup il badge `🚦 +30s attesa media`
 5. Premi **"Risolvi con ENHSP"** — il percorso ottimale viene tracciato in blu; i semafori sul percorso diventano arancio brillante e le statistiche mostrano quanti semafori vengono attraversati e il ritardo totale accumulato
+6. Se ENHSP trova la soluzione, appare il bottone **"▶ Apri in SUMO"** — cliccandolo si apre automaticamente sumo-gui con il percorso già caricato, senza dover eseguire comandi da terminale
 
 ---
 
@@ -439,10 +440,11 @@ python sumo_visualize.py piccola   # oppure: media, grande
 ```bash
 cd files
 python sumo_visualize.py pddl pddl_files/problem_custom.pddl piccola
-# 'piccola' indica la zona della mappa — deve corrispondere a quella usata nella webapp
 ```
 
-In modalità dinamica, lo script legge il PDDL, identifica start e goal, calcola il percorso SUMO con Dijkstra sul `net.xml` e apre sumo-gui. Il file `problem_custom.pddl` viene aggiornato automaticamente dalla webapp a ogni risoluzione.
+In modalità dinamica, lo script legge il PDDL, identifica start e goal e cerca automaticamente la rete giusta tra `piccola.net.xml`, `media.net.xml` e `grande.net.xml` — non è necessario che la zona passata corrisponda esattamente a quella usata nella webapp. Il file `problem_custom.pddl` viene aggiornato automaticamente dalla webapp a ogni risoluzione.
+
+> **Nota:** dalla webapp è anche possibile usare direttamente il bottone **"▶ Apri in SUMO"** che compare dopo ogni risoluzione riuscita — equivale a eseguire questo comando ma senza aprire il terminale.
 
 Si apre sumo-gui con la rete di Dublino e il veicolo rosso pronto a partire:
 - **▶ Play** per avviare la simulazione

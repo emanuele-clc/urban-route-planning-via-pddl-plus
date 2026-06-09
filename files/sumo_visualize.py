@@ -48,9 +48,7 @@ def pddl_name_to_junction(pname, junc_ids):
 def compute_edges_from_pddl(pddl_path, net_path):
     """Legge start/goal dal PDDL, fa Dijkstra sul net.xml, ritorna (edges_str, cfg)."""
     text = open(pddl_path).read()
-    # estrai start: (at <nome>)
     m_start = re.search(r'\(at\s+([A-Za-z0-9_]+)\)', text)
-    # estrai goal: (:goal (at <nome>))
     m_goal  = re.search(r':goal\s+\(at\s+([A-Za-z0-9_]+)\)', text)
     if not m_start or not m_goal:
         print("[ERRORE] Impossibile trovare start/goal nel PDDL.")
@@ -58,16 +56,29 @@ def compute_edges_from_pddl(pddl_path, net_path):
     start_name = m_start.group(1)
     goal_name  = m_goal.group(1)
 
-    graph, jpos = build_sumo_graph(net_path)
-    junc_ids = set(jpos.keys())
+    # prova prima la net della zona indicata, poi le altre due
+    base = os.path.dirname(os.path.abspath(__file__))
+    net_candidates = [net_path] + [
+        os.path.join(base, "net_files", f"{z}.net.xml")
+        for z in ("piccola", "media", "grande")
+        if os.path.join(base, "net_files", f"{z}.net.xml") != net_path
+    ]
 
-    start_j = pddl_name_to_junction(start_name, junc_ids)
-    goal_j  = pddl_name_to_junction(goal_name,  junc_ids)
-    if not start_j:
-        print(f"[ERRORE] Junction per '{start_name}' non trovata in {net_path}")
-        sys.exit(1)
-    if not goal_j:
-        print(f"[ERRORE] Junction per '{goal_name}' non trovata in {net_path}")
+    used_net = None
+    for candidate in net_candidates:
+        if not os.path.exists(candidate):
+            continue
+        graph, jpos = build_sumo_graph(candidate)
+        junc_ids = set(jpos.keys())
+        start_j = pddl_name_to_junction(start_name, junc_ids)
+        goal_j  = pddl_name_to_junction(goal_name,  junc_ids)
+        if start_j and goal_j:
+            used_net = candidate
+            if candidate != net_path:
+                print(f"  (uso net: {os.path.basename(candidate)})")
+            break
+    else:
+        print(f"[ERRORE] Junction per '{start_name}' o '{goal_name}' non trovata in nessuna net.")
         sys.exit(1)
 
     print(f"  START: {start_name} → {start_j}")
@@ -78,10 +89,11 @@ def compute_edges_from_pddl(pddl_path, net_path):
         print(f"[ERRORE] Nessun percorso SUMO da {start_j} a {goal_j}")
         sys.exit(1)
 
-    sp = jpos[start_j]; gp = jpos[goal_j]
+    sp = jpos[start_j]
     return ' '.join(edges), {
         'start': start_name, 'goal': goal_name,
         'x': sp[0], 'y': sp[1],
+        'net': used_net,
     }
 
 # ── Argomenti ────────────────────────────────────────────────
@@ -170,6 +182,7 @@ if dynamic_pddl:
     cfg['goal']  = dyn['goal']
     cfg['dist_m'] = '?'
     cfg['time_s'] = '?'
+    NET = dyn['net']   # usa la net dove sono stati trovati i nodi
     zona = zona + "_custom"
 
 # ── File di route ─────────────────────────────────────────────

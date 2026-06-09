@@ -1,11 +1,9 @@
 (define (problem dublin-piccola)
   (:domain dublin-navigation)
 
-  ; -------------------------------------------------------
   ; 14 nodi reali del centro di Dublino (zona Temple Bar)
   ; START: Liffey Street Upper   (OSM node 659788)
   ; GOAL : Aungier Street        (OSM node 26165126)
-  ; -------------------------------------------------------
 
   (:objects
     liffey_st_upper    ; Liffey Street Upper / Quay
@@ -27,14 +25,14 @@
 
   (:init
 
-    ; --- Posizione iniziale del veicolo ---
+    ; Posizione iniziale del veicolo
     (at liffey_st_upper)
 
-    ; --- Contatori globali ---
+    ; Contatori globali
     (= (total-dist) 0)
     (= (total-time) 0)
 
-    ; --- Progress iniziale su ogni tratto = 0 ---
+    ; Progress iniziale su ogni tratto = 0
     (= (progress liffey_st_upper   wellington_quay_e) 0)
     (= (progress wellington_quay_e aston_quay)        0)
     (= (progress aston_quay        ormond_quay_w)     0)
@@ -56,10 +54,8 @@
     (= (progress sgeorges_m        aungier_st)        0)
     (= (progress aungier_st        sgeorges_m)        0)
 
-    ; -------------------------------------------------------
     ; STRADE (road ?from ?to)
     ; Solo le direzioni percorribili (rispetta senso unico OSM)
-    ; -------------------------------------------------------
     (road liffey_st_upper   wellington_quay_e)
     (road wellington_quay_e aston_quay)
     (road aston_quay        ormond_quay_w)
@@ -81,9 +77,7 @@
     (road sgeorges_m        aungier_st)
     (road aungier_st        sgeorges_m)
 
-    ; -------------------------------------------------------
     ; DISTANZE in metri (calcolate con Haversine dai dati OSM)
-    ; -------------------------------------------------------
     (= (distance liffey_st_upper   wellington_quay_e)   82)
     (= (distance wellington_quay_e aston_quay)           9)
     (= (distance aston_quay        ormond_quay_w)       173)
@@ -105,10 +99,8 @@
     (= (distance sgeorges_m        aungier_st)           89)
     (= (distance aungier_st        sgeorges_m)           89)
 
-    ; -------------------------------------------------------
     ; RITARDO SEMAFORICO in secondi (30 = semaforo OSM, 0 = nessun semaforo)
     ; Fonte: OSM dublin_piccola_centro.osm, highway=traffic_signals
-    ; -------------------------------------------------------
     (= (signal-delay liffey_st_upper)   0)
     (= (signal-delay wellington_quay_e) 30)  ; 44m da semaforo OSM
     (= (signal-delay aston_quay)         0)
@@ -124,10 +116,8 @@
     (= (signal-delay sgeorges_m)         0)
     (= (signal-delay aungier_st)        30)  ; 14m da semaforo OSM (nodo 26165126)
 
-    ; -------------------------------------------------------
     ; VELOCITA' in m/s (30 km/h = 8.33 m/s per tutte le strade)
     ; Formula: km/h * 1000 / 3600
-    ; -------------------------------------------------------
     (= (speed liffey_st_upper   wellington_quay_e)  8.33)
     (= (speed wellington_quay_e aston_quay)         8.33)
     (= (speed aston_quay        ormond_quay_w)      8.33)
@@ -151,10 +141,10 @@
 
   )
 
-  ; --- Obiettivo: raggiungere Aungier Street ---
+  ; Obiettivo: raggiungere Aungier Street
   (:goal (at aungier_st))
 
-  ; --- Minimizza il tempo totale (guida + attese ai semafori) ---
+  ; Minimizza il tempo totale (guida + attese ai semafori)
   (:metric minimize (total-time))
 
 )

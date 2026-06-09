@@ -279,14 +279,17 @@ def parse_plan(output):
                 route_names.append(frm)
             route_names.append(to)
 
-    plan_time = None
+    # ENHSP stampa esplicitamente "Planning Time (msec)". Manteniamo
+    # l'unita' nel nome per evitare di mostrarla per errore come secondi.
+    plan_time_ms = None
     for line in output.splitlines():
-        if ("Planning Time" in line or "Elapsed Time" in line) and plan_time is None:
-            m = re.search(r'([\d.]+)', line)
+        if "Planning Time (msec)" in line:
+            m = re.search(r':\s*([\d.]+)', line)
             if m:
-                plan_time = float(m.group(1))
+                plan_time_ms = float(m.group(1))
+                break
 
-    return "\n".join(plan_lines), route_names, plan_time
+    return "\n".join(plan_lines), route_names, plan_time_ms
 
 
 # ── routes ───────────────────────────────────────────────────────────────────
@@ -435,7 +438,7 @@ def solve():
     travel_time = None
     signals_crossed = None
     signal_delay_total = None
-    plan_time = None
+    plan_time_ms = None
     enhsp_error = None
 
     jar = trova_enhsp()
@@ -451,7 +454,7 @@ def solve():
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
             output = result.stdout + result.stderr
             if "Problem Solved" in output:
-                plan_text, route, plan_time = parse_plan(output)
+                plan_text, route, plan_time_ms = parse_plan(output)
                 # calcolo distanza, tempo e semafori sommando gli archi del percorso
                 if route and len(route) >= 2:
                     total_dist = 0
@@ -491,11 +494,32 @@ def solve():
             'travel_time': round(travel_time, 1) if travel_time is not None else None,
             'signals_crossed': signals_crossed if plan_text else None,
             'signal_delay_total': signal_delay_total if plan_text else None,
-            'plan_time': plan_time,
+            'plan_time_ms': plan_time_ms,
             'start': start_pddl,
             'goal': goal_pddl,
         }
     })
+
+
+@app.route('/api/sumo', methods=['POST'])
+def launch_sumo():
+    base = os.path.dirname(os.path.abspath(__file__))
+    script = os.path.join(base, '..', 'sumo_visualize.py')
+    pddl   = os.path.join(base, '..', 'pddl_files', 'problem_custom.pddl')
+
+    if not os.path.exists(script):
+        return jsonify({'error': 'sumo_visualize.py non trovato'}), 400
+    if not os.path.exists(pddl):
+        return jsonify({'error': 'problem_custom.pddl non trovato'}), 400
+
+    try:
+        subprocess.Popen(
+            ['python', os.path.abspath(script), 'pddl', os.path.abspath(pddl), 'piccola'],
+            cwd=os.path.dirname(os.path.abspath(script))
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':

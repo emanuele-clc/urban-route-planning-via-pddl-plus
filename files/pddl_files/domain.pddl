@@ -19,7 +19,7 @@
     (total-time)                      ; tempo totale (secondi) — solo aggiornato negli eventi
   )
 
-  ;; AZIONE: inizia a percorrere la strada da ?from a ?to
+  ; AZIONE: inizia a percorrere la strada da ?from a ?to
   (:action start-move
     :parameters (?from ?to - location)
     :precondition (and
@@ -33,7 +33,7 @@
     )
   )
 
-  ;; PROCESSO: solo progress avanza continuamente — total-time NON e' continuo
+  ; PROCESSO: solo progress avanza continuamente — total-time NON e' continuo
   (:process driving
     :parameters (?from ?to - location)
     :precondition (moving ?from ?to)
@@ -42,7 +42,7 @@
     )
   )
 
-  ;; EVENTO: arrivo — aggiunge tempo di guida (dist/speed) + ritardo semaforo
+  ; EVENTO: arrivo — aggiunge tempo di guida (dist/speed) + ritardo semaforo
   (:event arrive
     :parameters (?from ?to - location)
     :precondition (and

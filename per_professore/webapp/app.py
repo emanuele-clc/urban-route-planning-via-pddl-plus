@@ -489,6 +489,27 @@ def solve():
     })
 
 
+@app.route('/api/sumo', methods=['POST'])
+def launch_sumo():
+    base = os.path.dirname(os.path.abspath(__file__))
+    script = os.path.join(base, '..', 'sumo_visualize.py')
+    pddl   = os.path.join(base, '..', 'pddl_files', 'problem_custom.pddl')
+
+    if not os.path.exists(script):
+        return jsonify({'error': 'sumo_visualize.py non trovato'}), 400
+    if not os.path.exists(pddl):
+        return jsonify({'error': 'problem_custom.pddl non trovato'}), 400
+
+    try:
+        subprocess.Popen(
+            ['python', os.path.abspath(script), 'pddl', os.path.abspath(pddl), 'piccola'],
+            cwd=os.path.dirname(os.path.abspath(script))
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     print("Server avviato su http://localhost:5000")
     app.run(debug=True, port=5000)

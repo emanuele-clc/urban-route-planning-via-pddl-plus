@@ -231,7 +231,14 @@
       <h2>Parametri</h2>
       <label class="lbl">Nodi massimi: <span id="range-val">50</span></label>
       <input type="range" id="max-nodes" min="10" max="200" value="50" step="5">
-      <div class="range-row"><span>10</span><span>200</span></div>
+      <div class="range-row">
+        <span>10</span>
+        <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;color:#9ca3af;cursor:pointer">
+          <input type="checkbox" id="all-nodes" style="accent-color:#3b4fd8;cursor:pointer">
+          Tutti i nodi
+        </label>
+        <span>200</span>
+      </div>
       <button class="btn btn-primary" id="gen-btn" disabled>
         <span id="gen-label">Visualizza Mappa</span>
         <div class="spinner" id="gen-spinner"></div>
@@ -276,6 +283,11 @@
       <h2>Risultati</h2>
       <div class="stats-grid" id="stats-grid"></div>
       <div id="enhsp-msg"></div>
+      <button class="btn" id="sumo-btn" style="display:none;background:#7c3aed;color:#fff;margin-top:10px" onclick="launchSumo()">
+        <span id="sumo-label">▶ Apri in SUMO</span>
+        <div class="spinner" id="sumo-spinner"></div>
+      </button>
+      <div id="sumo-msg"></div>
     </div>
 
   </div>
@@ -370,7 +382,13 @@ function setFile(file) {
 
 // ── Slider ────────────────────────────────────────────────────────────────────
 const slider = document.getElementById('max-nodes');
+const allNodesCheck = document.getElementById('all-nodes');
+
 slider.addEventListener('input', () => document.getElementById('range-val').textContent = slider.value);
+allNodesCheck.addEventListener('change', () => {
+  slider.disabled = allNodesCheck.checked;
+  document.getElementById('range-val').textContent = allNodesCheck.checked ? 'tutti' : slider.value;
+});
 
 // ── Phase 1: Generate ─────────────────────────────────────────────────────────
 document.getElementById('gen-btn').addEventListener('click', async () => {
@@ -379,7 +397,7 @@ document.getElementById('gen-btn').addEventListener('click', async () => {
 
   const form = new FormData();
   form.append('osm_file', state.file);
-  form.append('max_nodes', slider.value);
+  form.append('max_nodes', allNodesCheck.checked ? 99999 : slider.value);
   form.append('zone', 'custom');
 
   try {
@@ -631,13 +649,41 @@ function renderStats(data) {
   `;
 
   const msg = document.getElementById('enhsp-msg');
+  const sumoBtn = document.getElementById('sumo-btn');
+  document.getElementById('sumo-msg').innerHTML = '';
   if (data.enhsp_error) {
     msg.innerHTML = `<div class="alert alert-warn">⚠️ ${data.enhsp_error}</div>`;
+    sumoBtn.style.display = 'none';
   } else if (data.plan_text) {
     msg.innerHTML = `<div class="alert alert-ok">✅ ENHSP ha trovato la soluzione</div>`;
+    sumoBtn.style.display = 'block';
   } else {
     msg.innerHTML = '';
+    sumoBtn.style.display = 'none';
   }
+}
+
+async function launchSumo() {
+  document.getElementById('sumo-label').style.display = 'none';
+  document.getElementById('sumo-spinner').style.display = 'block';
+  document.getElementById('sumo-btn').disabled = true;
+  document.getElementById('sumo-msg').innerHTML = '';
+  try {
+    const res = await fetch('/api/sumo', { method: 'POST' });
+    const data = await res.json();
+    if (data.error) {
+      document.getElementById('sumo-msg').innerHTML = `<div class="alert alert-err" style="margin-top:8px">❌ ${data.error}</div>`;
+    } else {
+      document.getElementById('sumo-msg').innerHTML = `<div class="alert alert-ok" style="margin-top:8px">✅ SUMO avviato</div>`;
+    }
+  } catch(e) {
+    document.getElementById('sumo-msg').innerHTML = `<div class="alert alert-err" style="margin-top:8px">Errore: ${e.message}</div>`;
+  } finally {
+    document.getElementById('sumo-label').style.display = 'block';
+    document.getElementById('sumo-spinner').style.display = 'none';
+    document.getElementById('sumo-btn').disabled = false;
+  }
+}
 }
 
 function renderPddl(content) {

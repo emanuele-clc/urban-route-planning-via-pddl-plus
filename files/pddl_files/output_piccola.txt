@@ -1,7 +1,7 @@
 Domain parsed
 Problem parsed
 Grounding..
-Grounding Time: 23
+Grounding Time: 80
 Aibr Preprocessing
 UFX:false
 |F|:34
@@ -15,7 +15,7 @@ Delta time heuristic model:1.0
 Delta time planning model:1.0
 Delta time search-execution model:1.0
 Delta time validation model:1
-H1 Setup Time (msec): 12
+H1 Setup Time (msec): 28
 h(I):102902.44
  g(n)= 1.0 h(n)=21302.055
  g(n)= 2.0 h(n)=20195.69
@@ -60,9 +60,9 @@ Found Plan:
 Plan-Length:218
 Elapsed Time: 12.0
 Metric (Search):12.0
-Planning Time (msec): 49
-Heuristic Time (msec): 25
-Search Time (msec): 43
+Planning Time (msec): 100
+Heuristic Time (msec): 39
+Search Time (msec): 87
 Expanded Nodes:207
 States Evaluated:407
 Number of Dead-Ends detected:0
