@@ -1,4 +1,4 @@
-import os, sys, subprocess, re, xml.etree.ElementTree as ET
+import os, sys, subprocess, re, json, xml.etree.ElementTree as ET
 from collections import defaultdict
 import heapq
 
@@ -45,8 +45,34 @@ def pddl_name_to_junction(pname, junc_ids):
     if matches: return min(matches, key=len)
     return None
 
+def route_to_sumo_edges(route_names, graph, jpos, junc_ids):
+    """Converte l'INTERO piano ENHSP (sequenza di nodi PDDL) in una lista di
+    edge SUMO collegati, cosi' SUMO percorre le stesse strade scelte dal
+    planner invece di un Dijkstra generico start->goal sulla rete SUMO.
+
+    Molti nodi PDDL "intermedi" sono punti OSM di passaggio che SUMO ha
+    semplificato (non sono junction separate): vengono saltati mantenendo
+    l'ordine. Tra le junction SUMO realmente mappate che restano si fa
+    Dijkstra segmento per segmento e si concatenano i risultati: il percorso
+    finale e' sempre una sequenza di edge collegati."""
+    junctions = []
+    for name in route_names:
+        j = pddl_name_to_junction(name, junc_ids)
+        if j and (not junctions or j != junctions[-1]):
+            junctions.append(j)
+    if len(junctions) < 2:
+        return None
+    all_edges = []
+    for i in range(len(junctions) - 1):
+        seg = dijkstra(graph, junctions[i], junctions[i+1])
+        if not seg:
+            return None
+        all_edges.extend(seg)
+    return all_edges if all_edges else None
+
 def compute_edges_from_pddl(pddl_path, net_path):
-    """Legge start/goal dal PDDL, fa Dijkstra sul net.xml, ritorna (edges_str, cfg)."""
+    """Legge start/goal (e il piano completo, se disponibile) dal PDDL,
+    calcola gli edge SUMO corrispondenti, ritorna (edges_str, cfg)."""
     text = open(pddl_path).read()
     m_start = re.search(r'\(at\s+([A-Za-z0-9_]+)\)', text)
     m_goal  = re.search(r':goal\s+\(at\s+([A-Za-z0-9_]+)\)', text)
@@ -55,6 +81,19 @@ def compute_edges_from_pddl(pddl_path, net_path):
         sys.exit(1)
     start_name = m_start.group(1)
     goal_name  = m_goal.group(1)
+
+    # piano completo calcolato da ENHSP (sequenza di nodi), se la webapp
+    # lo ha salvato accanto al problem.pddl
+    route_names = None
+    route_path = os.path.join(os.path.dirname(os.path.abspath(pddl_path)), "route_custom.json")
+    if os.path.exists(route_path):
+        try:
+            with open(route_path) as f:
+                r = (json.load(f).get('route')) or []
+            if len(r) >= 2:
+                route_names = r
+        except Exception:
+            route_names = None
 
     # prova prima la net della zona indicata, poi le altre due
     base = os.path.dirname(os.path.abspath(__file__))
@@ -84,7 +123,16 @@ def compute_edges_from_pddl(pddl_path, net_path):
     print(f"  START: {start_name} → {start_j}")
     print(f"  GOAL : {goal_name} → {goal_j}")
 
-    edges = dijkstra(graph, start_j, goal_j)
+    edges = None
+    if route_names:
+        edges = route_to_sumo_edges(route_names, graph, jpos, junc_ids)
+        if edges:
+            print(f"  (percorso SUMO = piano ENHSP, {len(route_names)} nodi)")
+        else:
+            print("  (piano non mappabile passo-passo, uso Dijkstra start→goal)")
+
+    if not edges:
+        edges = dijkstra(graph, start_j, goal_j)
     if not edges:
         print(f"[ERRORE] Nessun percorso SUMO da {start_j} a {goal_j}")
         sys.exit(1)

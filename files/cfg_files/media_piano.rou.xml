@@ -3,7 +3,22 @@
     <vType id="auto" accel="1.5" decel="3.0" sigma="0.0"
            length="4.5" maxSpeed="4.0" color="1,0,0"
            width="2.0" shape="passenger"/>
-    <route id="piano_enhsp" edges="25466631#1 4934444#0 147463637#0 147463637#1 38864102 -22716630#2 -22716630#1 -22716630#0 370154352#1 365945819#0 365945819#1 110407380"/>
+    <vType id="traffico" accel="1.2" decel="3.0" sigma="0.5"
+           length="4.5" maxSpeed="3.5" color="1,0.85,0"
+           width="2.0" shape="passenger"/>
+    <route id="traffico_0" edges="-4934444#3 -4934444#2 147463637#0"/>
+    <route id="traffico_1" edges="-4934444#0 -25466631#1"/>
+    <route id="traffico_2" edges="-1017655141#0"/>
+    <route id="traffico_3" edges="-36819763"/>
+    <route id="traffico_4" edges="-234244114#0 -1017655141#0 -36819763 -4926209 -4926189#1 25466631#1 4934444#0 147463637#0 147463637#1 -22716630#2 -22716630#1"/>
+    <route id="traffico_5" edges="-4926209 -4926189#1 25466631#1 4934444#0"/>
+    <vehicle id="traffico_0" type="traffico" route="traffico_0" depart="0" departSpeed="max"/>
+    <vehicle id="traffico_1" type="traffico" route="traffico_1" depart="3" departSpeed="max"/>
+    <vehicle id="traffico_2" type="traffico" route="traffico_2" depart="6" departSpeed="max"/>
+    <vehicle id="traffico_3" type="traffico" route="traffico_3" depart="9" departSpeed="max"/>
+    <vehicle id="traffico_4" type="traffico" route="traffico_4" depart="12" departSpeed="max"/>
+    <vehicle id="traffico_5" type="traffico" route="traffico_5" depart="15" departSpeed="max"/>
+    <route id="piano_enhsp" edges="119860706 612719563#1 283771398#1 14041596#1 8111025#0 48520199#1 -370154357 -370154355 -128521564 20834536 110407380"/>
     <vehicle id="veicolo_enhsp" type="auto" route="piano_enhsp"
              depart="1" departSpeed="0"/>
 </routes>

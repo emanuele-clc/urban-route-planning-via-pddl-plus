@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <input>
-        <net-file value="C:\Users\ecole\Desktop\progetto_maratea\files\net_files\media.net.xml"/>
-        <route-files value="C:\Users\ecole\Desktop\progetto_maratea\files\cfg_files\media_piano.rou.xml"/>
-        <gui-settings-file value="C:\Users\ecole\Desktop\progetto_maratea\files\cfg_files\gui_media.xml"/>
+        <net-file value="/sessions/eager-dazzling-curie/mnt/progetto_maratea/files/net_files/media.net.xml"/>
+        <route-files value="/sessions/eager-dazzling-curie/mnt/progetto_maratea/files/cfg_files/media_piano.rou.xml"/>
+        <gui-settings-file value="/sessions/eager-dazzling-curie/mnt/progetto_maratea/files/cfg_files/gui_media.xml"/>
     </input>
     <time>
         <begin value="0"/>

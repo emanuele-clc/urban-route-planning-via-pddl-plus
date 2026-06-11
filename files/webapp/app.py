@@ -1,6 +1,7 @@
 import os
 import math
 import re
+import json
 import glob
 import site
 import sysconfig
@@ -591,6 +592,17 @@ def solve():
 
             if "Problem Solved" in output:
                 plan_text, route, plan_time_ms = parse_plan(output)
+
+                # salva il percorso pianificato (sequenza di nodi PDDL) cosi'
+                # che SUMO possa seguire ESATTAMENTE le stesse strade del piano,
+                # invece di ricalcolare un proprio Dijkstra start->goal.
+                route_path = os.path.join(PDDL_DIR, 'route_custom.json')
+                try:
+                    with open(route_path, 'w', encoding='utf-8') as f:
+                        json.dump({'route': route or []}, f)
+                except Exception:
+                    pass
+
                 if route and len(route) >= 2:
                     total_dist = 0; travel_time = 0.0
                     signals_crossed = 0; signal_delay_total = 0
