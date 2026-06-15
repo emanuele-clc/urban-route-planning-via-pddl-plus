@@ -12,13 +12,13 @@
     <route id="traffico_3" edges="-36819763"/>
     <route id="traffico_4" edges="-234244114#0 -1017655141#0 -36819763 -4926209 -4926189#1 25466631#1 4934444#0 147463637#0 147463637#1 -22716630#2 -22716630#1"/>
     <route id="traffico_5" edges="-4926209 -4926189#1 25466631#1 4934444#0"/>
+    <route id="piano_enhsp" edges="119860706 612719563#1 283771398#1 14041596#1 8111025#0 48520199#1 -370154357 -370154355 -128521564 20834536 110407380"/>
     <vehicle id="traffico_0" type="traffico" route="traffico_0" depart="0" departSpeed="max"/>
+    <vehicle id="veicolo_enhsp" type="auto" route="piano_enhsp"
+             depart="1" departSpeed="0"/>
     <vehicle id="traffico_1" type="traffico" route="traffico_1" depart="3" departSpeed="max"/>
     <vehicle id="traffico_2" type="traffico" route="traffico_2" depart="6" departSpeed="max"/>
     <vehicle id="traffico_3" type="traffico" route="traffico_3" depart="9" departSpeed="max"/>
     <vehicle id="traffico_4" type="traffico" route="traffico_4" depart="12" departSpeed="max"/>
     <vehicle id="traffico_5" type="traffico" route="traffico_5" depart="15" departSpeed="max"/>
-    <route id="piano_enhsp" edges="119860706 612719563#1 283771398#1 14041596#1 8111025#0 48520199#1 -370154357 -370154355 -128521564 20834536 110407380"/>
-    <vehicle id="veicolo_enhsp" type="auto" route="piano_enhsp"
-             depart="1" departSpeed="0"/>
 </routes>

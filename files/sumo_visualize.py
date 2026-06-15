@@ -1,4 +1,4 @@
-import os, sys, subprocess, re, json, xml.etree.ElementTree as ET
+import os, sys, math, subprocess, re, json, xml.etree.ElementTree as ET
 from collections import defaultdict
 import heapq
 
@@ -9,6 +9,7 @@ def build_sumo_graph(net_path):
     for j in root.findall('junction'):
         jpos[j.get('id')] = (float(j.get('x', 0)), float(j.get('y', 0)))
     graph = defaultdict(list)
+    eid_len = {}
     for e in root.findall('edge'):
         eid = e.get('id')
         if eid.startswith(':'): continue
@@ -17,7 +18,8 @@ def build_sumo_graph(net_path):
         lanes = e.findall('lane')
         length = float(lanes[0].get('length', 1)) if lanes else 1.0
         graph[fr].append((to, eid, length))
-    return graph, jpos
+        eid_len[eid] = length
+    return graph, jpos, eid_len
 
 def dijkstra(graph, start, goal):
     dist = {start: 0}; prev = {}; heap = [(0, start)]
@@ -107,7 +109,7 @@ def compute_edges_from_pddl(pddl_path, net_path):
     for candidate in net_candidates:
         if not os.path.exists(candidate):
             continue
-        graph, jpos = build_sumo_graph(candidate)
+        graph, jpos, eid_len = build_sumo_graph(candidate)
         junc_ids = set(jpos.keys())
         start_j = pddl_name_to_junction(start_name, junc_ids)
         goal_j  = pddl_name_to_junction(goal_name,  junc_ids)
@@ -137,11 +139,14 @@ def compute_edges_from_pddl(pddl_path, net_path):
         print(f"[ERRORE] Nessun percorso SUMO da {start_j} a {goal_j}")
         sys.exit(1)
 
+    total_length = sum(eid_len.get(e, 0.0) for e in edges)
+
     sp = jpos[start_j]
     return ' '.join(edges), {
         'start': start_name, 'goal': goal_name,
         'x': sp[0], 'y': sp[1],
         'net': used_net,
+        'total_length': total_length,
     }
 
 # ── Argomenti ────────────────────────────────────────────────
@@ -233,6 +238,16 @@ if dynamic_pddl:
     NET = dyn['net']   # usa la net dove sono stati trovati i nodi
     zona = zona + "_custom"
 
+    # ── Durata simulazione dinamica ────────────────────────────
+    # Il veicolo "auto" ha maxSpeed=4.0 m/s: con percorsi lunghi gli 800s
+    # di default non bastano e SUMO si ferma a 799 con l'auto ancora in
+    # viaggio. Stimiamo il tempo di percorrenza dal percorso reale e
+    # aggiungiamo un margine generoso per semafori/svolte/code.
+    est_time = dyn['total_length'] / 4.0
+    cfg['end'] = max(800, (math.ceil(est_time * 1.5 / 100.0) + 1) * 100)
+    print(f"  (percorso {dyn['total_length']:.0f} m ~ {est_time:.0f} s a 4 m/s "
+          f"→ fine simulazione impostata a {cfg['end']} s)")
+
 # ── File di route ─────────────────────────────────────────────
 ROU_PATH = os.path.join(OUT, f"{zona}_piano.rou.xml")
 with open(ROU_PATH, "w") as f:
@@ -272,13 +287,14 @@ with open(CFG_PATH, "w") as f:
     </input>
     <time>
         <begin value="0"/>
-        <end value="800"/>
+        <end value="{end}"/>
     </time>
 </configuration>
 """.format(
         net=NET,
         rou=os.path.abspath(ROU_PATH),
         gui=os.path.abspath(GUI_PATH),
+        end=cfg.get('end', 800),
     ))
 
 # ── Trova sumo-gui ────────────────────────────────────────────
