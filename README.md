@@ -2,7 +2,7 @@
 
 **Progetto #2 — Automated Planning**  
 Università della Calabria (UNICAL)  
-Gruppo: Chiara, Elisa, Emanuele, Pierluigi
+Gruppo: Emanuele Colecchia, Chiara Costantino, Elisa Gigliotti, Pierluigi Trocini
 
 ---
 
@@ -111,7 +111,6 @@ Il problema PDDL+ generato dalla webapp viene salvato automaticamente come `pddl
 ## Struttura del repository
 
 ```
-progetto_pddl/
 ├── README.md
 ├── requirements.txt
 ├── setup.bat
@@ -218,13 +217,13 @@ python sumo_visualize.py pddl pddl_files/problem_custom.pddl piccola
 
 Piano trovato da ENHSP — 14 nodi, 20 archi, 4 semafori sul percorso:
 
-| Tempo (s) | Nodo                       | Semaforo |
-|-----------|----------------------------|----------|
-| 0         | Liffey Street Upper (START)|          |
-| 10        | Wellington Quay Est        | +30 s    |
-| 128       | Cork Hill                  | +30 s    |
-| 132       | Cork Hill Sud              | +30 s    |
-| ~314      | Aungier Street (GOAL)      | +30 s    |
+| Tempo (s) | Nodo                        | Semaforo |
+|-----------|-----------------------------|----------|
+| 0         | Liffey Street Upper (START) |          |
+| 10        | Wellington Quay Est         | +30 s    |
+| 128       | Cork Hill                   | +30 s    |
+| 132       | Cork Hill Sud               | +30 s    |
+| ~314      | Aungier Street (GOAL)       | +30 s    |
 
 Distanza percorsa: 1.57 km — Ritardo semaforico totale: 120 s — Tempo totale: ~314 s
 
