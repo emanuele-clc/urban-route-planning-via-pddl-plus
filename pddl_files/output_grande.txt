@@ -1,7 +1,7 @@
 Domain parsed
 Problem parsed
 Grounding..
-Grounding Time: 187
+Grounding Time: 96
 Aibr Preprocessing
 UFX:false
 |F|:84
@@ -15,22 +15,22 @@ Delta time heuristic model:1.0
 Delta time planning model:1.0
 Delta time search-execution model:1.0
 Delta time validation model:1
-H1 Setup Time (msec): 11
-h(I):294153.25
- g(n)= 1.0 h(n)=201710.5
- g(n)= 2.0 h(n)=63046.395
+H1 Setup Time (msec): 10
+h(I):294154.03
+ g(n)= 1.0 h(n)=201710.62
+ g(n)= 2.0 h(n)=63046.277
  g(n)= 3.0 h(n)=33051.68
- g(n)= 4.0 h(n)=23709.062
- g(n)= 5.0 h(n)=11539.076
- g(n)= 6.0 h(n)=8097.057
- g(n)= 7.0 h(n)=2350.1187
- g(n)= 8.0 h(n)=1182.2916
- g(n)= 9.0 h(n)=544.5965
- g(n)= 10.0 h(n)=321.78735
- g(n)= 11.0 h(n)=127.78978
+ g(n)= 4.0 h(n)=23709.115
+ g(n)= 5.0 h(n)=11539.08
+ g(n)= 6.0 h(n)=8097.0566
+ g(n)= 7.0 h(n)=2350.1133
+ g(n)= 8.0 h(n)=1182.2924
+ g(n)= 9.0 h(n)=544.5964
+ g(n)= 10.0 h(n)=321.7868
+ g(n)= 11.0 h(n)=127.79
  g(n)= 12.0 h(n)=65.010796
- g(n)= 13.0 h(n)=9.719222
- g(n)= 14.0 h(n)=2.8077753
+ g(n)= 13.0 h(n)=9.7192
+ g(n)= 14.0 h(n)=2.8078
 Extracting plan with execution delta: 1.0
 Problem Solved
 
@@ -69,9 +69,9 @@ Found Plan:
 Plan-Length:177
 Elapsed Time: 15.0
 Metric (Search):15.0
-Planning Time (msec): 80
-Heuristic Time (msec): 41
-Search Time (msec): 72
+Planning Time (msec): 93
+Heuristic Time (msec): 56
+Search Time (msec): 86
 Expanded Nodes:163
 States Evaluated:330
 Number of Dead-Ends detected:0

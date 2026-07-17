@@ -16,7 +16,7 @@ Il sistema integra tre strumenti distinti:
 - **OSMnx** — libreria Python per il download e la manipolazione di grafi stradali OSM
 - **SUMO** — simulatore microscopico del traffico, utilizzato per la visualizzazione animata del piano trovato
 
-Il dominio modella un veicolo che deve raggiungere un nodo obiettivo a partire da un nodo di partenza, minimizzando il tempo totale di percorrenza. Il tempo include la guida su ciascun arco stradale e i ritardi dovuti ai semafori presenti sulla rete OSM.
+Il dominio modella un veicolo che deve raggiungere un nodo obiettivo a partire da un nodo di partenza, minimizzando il tempo totale di percorrenza. Il tempo include la guida su ciascun arco stradale, i ritardi semaforici **realistici estratti dalla rete SUMO** e il **tempo di svolta** agli incroci (in base all'angolo di sterzata e alla velocità angolare del veicolo).
 
 ---
 
@@ -48,7 +48,7 @@ Questo script costituisce il nucleo del progetto. A partire da un file `.osm` gr
 
 **C. Selezione del sottografo.** Per mantenere il problema PDDL+ risolvibile in tempi computazionali accettabili, viene selezionato un sottoinsieme di N nodi (parametrizzabile). La selezione parte dal nodo con il maggior grado uscente e ad ogni passo aggiunge il nodo della frontiera più distante dal centroide geografico del gruppo già selezionato, garantendo una copertura spazialmente distribuita dell'area.
 
-**D. Scrittura del file PDDL+.** Per ogni arco del sottografo vengono scritti i predicati e le funzioni numeriche necessari: `(road A B)`, `(distance A B)`, `(speed A B)`, `(progress A B)`, `(signal-delay A)`. Il ritardo semaforico è impostato a 30 s per i nodi OSM con `highway=traffic_signals`, e a 0 s per tutti gli altri. La velocità è ricavata dal tag `maxspeed` OSM (default: 30 km/h), convertita in m/s.
+**D. Scrittura del file PDDL+.** Per ogni arco del sottografo vengono scritti i predicati e le funzioni numeriche necessari: `(road A B)`, `(distance A B)`, `(speed A B)`, `(progress A B)`, `(signal-delay A)`, oltre alle funzioni `(turn-time P A B)` per ogni tripla di nodi consecutivi (vedi sezione "Semafori e tempi di svolta"). Il ritardo semaforico **non è più un valore fisso di 30 s**: viene letto dai dati realistici estratti da SUMO (`sumo_extracted/sumo_data_{zona}.json`), con fallback a 30 s solo per i semafori non mappabili. La velocità è ricavata dal tag `maxspeed` OSM (default: 30 km/h), convertita in m/s.
 
 ### Fase 3 — Risoluzione con ENHSP (`pddl_files/run.py`)
 
@@ -64,33 +64,89 @@ Lo script genera i file di configurazione necessari a SUMO (`{zona}.sumocfg`, `{
 
 ---
 
+## Semafori e tempi di svolta (dati estratti da SUMO)
+
+Lo script **`extract_sumo_data.py`** legge le reti SUMO (`net_files/*.net.xml`) e produce, per ogni zona, il file `sumo_extracted/sumo_data_{zona}.json` (più un `report.md` di riepilogo) con i dati usati per arricchire i problemi PDDL+. L'estrazione avviene parsando direttamente l'XML del `net.xml`, senza bisogno di eseguire SUMO.
+
+### Da dove vengono i tempi dei semafori
+
+Ogni incrocio semaforizzato in SUMO è un elemento `<tlLogic>` con le sue fasi:
+
+```xml
+<tlLogic id="12639663" type="static" programID="0" offset="0">
+    <phase duration="42" state="GGrrrr"/>   <!-- verde direzione 1 -->
+    <phase duration="3"  state="yyrrrr"/>   <!-- giallo -->
+    <phase duration="42" state="rrGGGG"/>   <!-- verde direzione 2 -->
+    <phase duration="3"  state="rryyyy"/>   <!-- giallo -->
+</tlLogic>
+```
+
+Questi tempi, però, **non sono i tempi reali di Dublino**: sono i valori *di default* generati da `netconvert` (ciclo fisso di 90 s, verde diviso equamente tra le direzioni, giallo calcolato dalla velocità della strada — fonte: documentazione SUMO). A Dublino gli incroci sono controllati dal sistema adattivo **SCATS**, con cicli tipici fino a **~120 s** (nel Regno Unito/Irlanda il ciclo massimo è 120 s, 90 s dove sono presenti attraversamenti pedonali).
+
+Per ottenere un ritardo realistico procediamo così:
+
+1. **Struttura dal net.xml** — da SUMO prendiamo *quali* movimenti sono verdi insieme e la *proporzione* verde/rosso di ogni movimento. Questa informazione è significativa perché deriva dalla geometria reale dell'incrocio (numero di bracci, corsie, precedenze).
+2. **Ciclo realistico** — riscaliamo il ciclo dai 90 s di SUMO al valore realistico di Dublino (`REAL_CYCLE_S = 120 s`), mantenendo il rapporto verde/rosso.
+3. **Ritardo medio (formula di Webster)** — per un semaforo a tempo fisso con arrivi casuali, il ritardo medio di un veicolo è
+
+   > **d = rosso² / (2 · ciclo)**
+
+   dove *rosso* è il tempo di rosso del movimento sul ciclo realistico. Il `signal-delay` del nodo è la media di *d* sui suoi movimenti.
+
+Esempio (incrocio a 2 fasi): verde ≈ 47 % del ciclo → rosso reale ≈ 64 s su 120 s → **d ≈ 64² / (2·120) ≈ 17 s**. Da qui il valore ~17 s che sostituisce i 30 s fissi usati in precedenza.
+
+Gli ID delle *junction* SUMO coincidono con gli ID-nodo OSM; il JSON contiene quindi una mappa `node_signal_delay` (ID-nodo → ritardo, con i *cluster* espansi) direttamente riutilizzabile da `build_problems.py` e dalla webapp.
+
+### Da dove viene il tempo di svolta (turn time)
+
+Per **turn rate** si intende la velocità angolare con cui un veicolo cambia direzione, misurata in **gradi al secondo**. Usiamo `TURN_RATE_DPS = 20 °/s`, coerente con lo *yaw rate* reale di un'automobile in una svolta urbana stretta (~15–20 °/s; oltre ~30 °/s interviene il controllo di stabilità ESC).
+
+Il **tempo di svolta** a un incrocio dipende dall'angolo di cui il veicolo deve ruotare:
+
+> **turn-time = |angolo di svolta| / turn-rate**
+
+L'*angolo di svolta* è la differenza fra la direzione (rotta) dell'arco in ingresso e quella dell'arco in uscita all'incrocio:
+
+- in `extract_sumo_data.py` è calcolato dalla **geometria delle corsie** del `net.xml` (heading dell'ultimo segmento della corsia entrante vs. primo segmento di quella uscente); la direzione così calcolata coincide con l'attributo `dir` di SUMO nel 94–97 % dei casi (validazione dell'algoritmo);
+- in `build_problems.py` e nella webapp è calcolato dalle **coordinate GPS reali dei nodi** (rotta *prev→from* vs. *from→to*), coerentemente con il grafo contratto usato nel PDDL.
+
+Esempi: svolta a 90° → 90/20 = **4,5 s**; inversione a U (180°) → **9 s**; proseguire dritto (~0°) → **~0 s**.
+
+---
+
 ## Dominio PDDL+
 
-Il dominio definisce un'azione discreta, un processo continuo e un evento automatico:
+Il dominio definisce un'azione discreta, un processo continuo e un evento automatico. Rispetto alla versione base, `start-move` conosce il **nodo di provenienza** (`?prev`) per poter addebitare il tempo di svolta, e un unico fatto `(prev ...)` tiene traccia dell'ultimo arco percorso (cancellato in `start-move`, ristabilito da `arrive`):
 
 ```pddl
 (:action start-move
-  :parameters (?from ?to - location)
-  :precondition (and (at ?from) (road ?from ?to))
-  :effect (and (not (at ?from)) (moving ?from ?to) (assign (progress ?from ?to) 0)))
+  :parameters (?prev ?from ?to - location)
+  :precondition (and (at ?from) (road ?from ?to) (prev ?prev))
+  :effect (and
+    (not (at ?from)) (not (prev ?prev)) (moving ?from ?to)
+    (assign (progress ?from ?to) 0)
+    (increase (total-time) (turn-time ?prev ?from ?to))))   ; costo di svolta
 
 (:process driving
   :parameters (?from ?to - location)
   :precondition (moving ?from ?to)
-  :effect (increase (progress ?from ?to) (* #t (speed ?from ?to))))
+  :effect (increase (progress ?from ?to) (* #t (effective-speed ?from ?to))))
 
 (:event arrive
   :parameters (?from ?to - location)
   :precondition (and (moving ?from ?to) (>= (progress ?from ?to) (distance ?from ?to)))
   :effect (and
-    (not (moving ?from ?to)) (at ?to)
+    (not (moving ?from ?to)) (at ?to) (prev ?from)
     (increase (total-dist) (distance ?from ?to))
-    (increase (total-time) (/ (distance ?from ?to) (speed ?from ?to)))
-    (increase (total-time) (signal-delay ?to))
+    (increase (total-time) (arc-time ?from ?to))          ; tempo di guida
+    (increase (total-time) (signal-delay ?to))            ; ritardo semaforico (SUMO)
+    (increase (total-time) (congestion-delay ?to))        ; ritardo congestione
     (assign (progress ?from ?to) 0)))
 ```
 
-Il processo `driving` fa avanzare `progress` in modo continuo tramite la variabile temporale `#t`; l'evento `arrive` si attiva automaticamente quando `progress >= distance` e aggiorna `total-time` in modo discreto, sommando il tempo di guida (`distanza / velocità`) e il ritardo semaforico del nodo di arrivo. L'aggiornamento di `total-time` avviene esclusivamente negli eventi discreti, e non nel processo continuo, per evitare che ENHSP tratti il tempo accumulato come variabile continua da campionare ad ogni istante, con conseguente aumento del costo computazionale della ricerca.
+Il processo `driving` fa avanzare `progress` in modo continuo tramite la variabile temporale `#t`; l'evento `arrive` si attiva automaticamente quando `progress >= distance` e aggiorna `total-time` in modo discreto, sommando il tempo di guida, il ritardo semaforico e quello di congestione del nodo di arrivo; l'azione `start-move` aggiunge il tempo di svolta. L'aggiornamento di `total-time` avviene esclusivamente negli eventi/azioni discreti, e non nel processo continuo, per evitare che ENHSP tratti il tempo accumulato come variabile continua da campionare ad ogni istante, con conseguente aumento del costo computazionale della ricerca.
+
+> **Nota sulla scomposizione del tempo.** La *timeline* stampata da ENHSP (gli istanti delle azioni) riflette il solo tempo di **guida** simulato dal processo continuo; i ritardi (semaforo, congestione, svolta) sono incrementi *discreti* su `total-time` e non fanno avanzare l'orologio simulato. Il costo effettivo del piano è quindi la somma: **total-time = guida + semafori + congestione + svolte**. Esempio (zona piccola): 242,7 s = 85,6 (guida) + 17,1 (semafori) + 130 (congestione) + 10,0 (svolte).
 
 ---
 
@@ -106,6 +162,8 @@ Il sistema include un'interfaccia web sviluppata con **Flask** e **Leaflet.js** 
 
 Il problema PDDL+ generato dalla webapp viene salvato automaticamente come `pddl_files/problem_custom.pddl` ad ogni risoluzione, consentendo di riesaminarlo o di avviarne la visualizzazione SUMO da riga di comando.
 
+La webapp usa lo **stesso modello** della generazione da riga di comando: emette i fatti `turn-time`, l'init `prev` e i `signal-delay` realistici (mappa unita dei ritardi SUMO delle tre zone; per un incrocio non presente nei dati SUMO usa il valore realistico di default di un incrocio a 2 fasi, ~17 s). Il parser del piano gestisce l'azione `start-move` a tre argomenti per ricostruire il percorso da passare a SUMO.
+
 ---
 
 ## Struttura del repository
@@ -115,11 +173,18 @@ Il problema PDDL+ generato dalla webapp viene salvato automaticamente come `pddl
 ├── requirements.txt
 ├── setup.bat
 ├── build_problems.py          # Genera i file problem_*.pddl da OSM
+├── extract_sumo_data.py       # Estrae semafori/settaggi/turn dai net.xml SUMO
 ├── download_dublin_map.py     # Scarica le mappe OSM tramite osmnx
 ├── convert_to_osm.py          # Converte OSM in net.xml tramite netconvert
 ├── sumo_visualize.py          # Visualizza il piano in sumo-gui
 ├── dublin_map.png             # Mappa di riferimento
 ├── dublin_streets.graphml     # Grafo stradale in formato GraphML
+│
+├── sumo_extracted/            # Dati estratti da SUMO (generati da extract_sumo_data.py)
+│   ├── sumo_data_piccola.json
+│   ├── sumo_data_media.json
+│   ├── sumo_data_grande.json
+│   └── report.md
 │
 ├── osm_files/                 # Dati OSM scaricati
 │   ├── dublin_piccola_centro.osm
@@ -140,6 +205,7 @@ Il problema PDDL+ generato dalla webapp viene salvato automaticamente come `pddl
 ├── pddl_files/                # File PDDL+ del progetto
 │   ├── domain.pddl
 │   ├── problem_piccola.pddl
+│   ├── problem_piccola_manuale.pddl  # Versione precedente (backup, nomi via)
 │   ├── problem_media.pddl
 │   ├── problem_grande.pddl
 │   ├── problem_custom.pddl    # Generato dalla webapp (aggiornato automaticamente)

@@ -17,11 +17,69 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-DOMAIN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           '..', 'pddl_files', 'domain.pddl')
+PROJECT_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+DOMAIN_PATH = os.path.join(PROJECT_ROOT, 'pddl_files', 'domain.pddl')
+SUMO_DIR    = os.path.join(PROJECT_ROOT, 'sumo_extracted')
 
 # store in memoria: token → dati grafo
 graph_store = {}
+
+# ── Turn rate e ritardi realistici (allineati a build_problems.py) ────────────
+TURN_RATE_DPS         = 20.0   # gradi/s: velocita' angolare di svolta veicolo
+DEFAULT_SIGNAL_DELAY  = 17.1   # ritardo realistico incrocio 2 fasi, ciclo 120s
+                               # (usato quando l'incrocio non e' nei dati SUMO)
+
+
+def bearing(lat1, lon1, lat2, lon2):
+    """Rotta (gradi, 0=Nord) dal punto 1 al punto 2."""
+    f1 = math.radians(lat1); f2 = math.radians(lat2)
+    dl = math.radians(lon2 - lon1)
+    y = math.sin(dl) * math.cos(f2)
+    x = math.cos(f1) * math.sin(f2) - math.sin(f1) * math.cos(f2) * math.cos(dl)
+    return (math.degrees(math.atan2(y, x)) + 360) % 360
+
+
+def turn_time_s(prev, mid, nxt, node_data, turn_rate=TURN_RATE_DPS):
+    """Tempo di svolta (s) = angolo_di_svolta / turn_rate."""
+    b_in  = bearing(node_data[prev]["lat"], node_data[prev]["lon"],
+                    node_data[mid]["lat"],  node_data[mid]["lon"])
+    b_out = bearing(node_data[mid]["lat"],  node_data[mid]["lon"],
+                    node_data[nxt]["lat"],  node_data[nxt]["lon"])
+    ang = abs((b_out - b_in + 180) % 360 - 180)
+    return round(ang / turn_rate, 2)
+
+
+def load_all_sumo_delays():
+    """Mappa unita {id_nodo_OSM: ritardo_s} da tutti i sumo_data_*.json.
+    Cosi' un OSM caricato che ricade in una zona nota usa i ritardi reali."""
+    merged = {}
+    for z in ("piccola", "media", "grande"):
+        p = os.path.join(SUMO_DIR, f"sumo_data_{z}.json")
+        if not os.path.exists(p):
+            continue
+        try:
+            with open(p, encoding="utf-8") as f:
+                data = json.load(f)
+            for k, v in data.get("node_signal_delay", {}).items():
+                merged[k] = max(merged.get(k, 0.0), round(float(v), 1))
+        except Exception:
+            continue
+    return merged
+
+
+SUMO_DELAYS = load_all_sumo_delays()
+
+
+def signal_delay_for(osm_id, signal_nodes):
+    """Ritardo semaforico realistico per un nodo:
+    - dai dati SUMO se disponibile,
+    - altrimenti default 2-fasi se e' un semaforo OSM,
+    - altrimenti 0."""
+    if osm_id in SUMO_DELAYS:
+        return SUMO_DELAYS[osm_id]
+    if osm_id in signal_nodes:
+        return DEFAULT_SIGNAL_DELAY
+    return 0
 
 HIGHWAY_TYPES = {
     "motorway", "trunk", "primary", "secondary", "tertiary",
@@ -286,6 +344,7 @@ def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm,
     lines.append("")
     lines.append("  (:init")
     lines.append(f"    (at {n(start_osm)})")
+    lines.append(f"    (prev {n(start_osm)})   ; nessuna svolta prima del primo arco")
     lines.append("    (= (total-dist) 0)")
     lines.append("    (= (total-time) 0)")
 
@@ -315,9 +374,12 @@ def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm,
         d, spd = edges[(a, b)]
         lines.append(f"    (= (speed {n(a):<28} {n(b)}) {spd})")
     lines.append("")
+    n_from_sumo = sum(1 for nd in selected if nd in SUMO_DELAYS)
     lines.append(f"    ; Ritardo semaforico (s) — {len(selected_signals)}/{len(selected)} nodi")
+    lines.append(f"    ; Realistico da SUMO/SCATS ({n_from_sumo} nodi); "
+                 f"default {DEFAULT_SIGNAL_DELAY}s per gli altri semafori")
     for nd in selected:
-        delay = 30 if nd in signal_nodes else 0
+        delay = signal_delay_for(nd, signal_nodes)
         lines.append(f"    (= (signal-delay {n(nd):<28}) {delay})")
     lines.append("")
     lines.append("    ; Ritardo congestione statico (s)")
@@ -357,6 +419,22 @@ def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm,
         eff = spd / cf
         arc_t = round(d / eff, 4) if eff > 0 else 0
         lines.append(f"    (= (arc-time {n(a):<28} {n(b)}) {arc_t})")
+
+    # ── Turn-time: tempo di svolta per ogni tripla di nodi consecutivi ──────
+    out_adj = defaultdict(list); in_adj = defaultdict(list)
+    for (a, b) in edges:
+        out_adj[a].append(b); in_adj[b].append(a)
+    triples = [(a, b, c) for b in selected
+               for a in in_adj.get(b, [])
+               for c in out_adj.get(b, [])]
+    lines.append("")
+    lines.append(f"    ; Tempo di svolta (s) = angolo / {TURN_RATE_DPS:.0f} deg/s  [turn rate]")
+    for c in sorted(out_adj.get(start_osm, []), key=n):
+        lines.append(f"    (= (turn-time {n(start_osm):<20} {n(start_osm):<20} {n(c)}) 0)")
+    for a, b, c in sorted(triples, key=lambda t: (n(t[0]), n(t[1]), n(t[2]))):
+        tt = turn_time_s(a, b, c, node_data)
+        lines.append(f"    (= (turn-time {n(a):<20} {n(b):<20} {n(c)}) {tt})")
+
     lines.append("")
     lines.append("  )")
     lines.append("")
@@ -405,9 +483,10 @@ def parse_plan(output):
 
     route_names = []
     for line in plan_lines:
-        m = re.search(r'\(start-move\s+(\S+)\s+(\S+)\)', line, re.IGNORECASE)
+        # start-move a 3 argomenti: (start-move ?prev ?from ?to)
+        m = re.search(r'\(start-move\s+(\S+)\s+(\S+)\s+(\S+)\)', line, re.IGNORECASE)
         if m:
-            frm = m.group(1).lower(); to = m.group(2).lower()
+            frm = m.group(2).lower(); to = m.group(3).lower()
             if not route_names: route_names.append(frm)
             route_names.append(to)
 
@@ -605,10 +684,11 @@ def solve():
 
                 if route and len(route) >= 2:
                     total_dist = 0; travel_time = 0.0
-                    signals_crossed = 0; signal_delay_total = 0
+                    signals_crossed = 0; signal_delay_total = 0.0
+                    turn_delay_total = 0.0
+                    route_osm = [nm_inv.get(r) for r in route]
                     for i in range(len(route) - 1):
-                        a_osm = nm_inv.get(route[i])
-                        b_osm = nm_inv.get(route[i + 1])
+                        a_osm = route_osm[i]; b_osm = route_osm[i + 1]
                         if a_osm and b_osm and (a_osm, b_osm) in edges:
                             d, spd = edges[(a_osm, b_osm)]
                             total_dist  += d
@@ -617,14 +697,21 @@ def solve():
                             eff_spd      = spd / cf
                             if eff_spd > 0:
                                 travel_time += d / eff_spd
-                    for node_name in route[1:]:
-                        node_osm = nm_inv.get(node_name)
-                        if node_osm and node_osm in signal_nodes:
+                        # tempo di svolta all'incrocio b (tra arco a->b e b->c)
+                        if 0 < i < len(route) - 1 and i + 1 < len(route_osm):
+                            p_osm = route_osm[i - 1]; c_osm = route_osm[i + 1]
+                            if p_osm and a_osm and b_osm:
+                                turn_delay_total += turn_time_s(p_osm, a_osm, b_osm, node_data)
+                    for node_osm in route_osm[1:]:
+                        if not node_osm:
+                            continue
+                        sd = signal_delay_for(node_osm, signal_nodes)
+                        if sd > 0:
                             signals_crossed    += 1
-                            signal_delay_total += 30
-                        if node_osm:
-                            travel_time += cong_delays.get(node_osm, 0)
-                    travel_time += signal_delay_total
+                            signal_delay_total += sd
+                        travel_time += cong_delays.get(node_osm, 0)
+                    travel_time += signal_delay_total + turn_delay_total
+                    signal_delay_total = round(signal_delay_total, 1)
             else:
                 enhsp_error = "ENHSP non ha trovato soluzione (problema forse irrisolvibile con i nodi selezionati)"
         except subprocess.TimeoutExpired:

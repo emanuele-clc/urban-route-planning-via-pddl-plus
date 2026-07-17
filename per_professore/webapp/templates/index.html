@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dublin PDDL+ Navigator</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      background: #1a1d2e;
+      border-bottom: 1px solid #2a2d3e;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 1.05rem; font-weight: 600; color: #fff; }
+    header span { font-size: 0.8rem; color: #6b7280; }
+    .badge { background: #3b4fd8; color: #fff; font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 340px;
+      min-width: 300px;
+      background: #13151f;
+      border-right: 1px solid #1f2233;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sec {
+      padding: 16px 18px;
+      border-bottom: 1px solid #1f2233;
+    }
+
+    .sec h2 {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #4b5563;
+      margin-bottom: 12px;
+    }
+
+    .upload-zone {
+      border: 2px dashed #2a2d3e;
+      border-radius: 10px;
+      padding: 20px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: #3b4fd8; background: #1a1d2e; }
+    .upload-zone input { display: none; }
+    .upload-zone .icon { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+    .upload-zone p { font-size: 0.78rem; color: #9ca3af; }
+    .upload-zone .fname { margin-top: 6px; font-size: 0.78rem; color: #3b4fd8; font-weight: 500; }
+
+    label.lbl { display: block; font-size: 0.78rem; color: #9ca3af; margin-bottom: 5px; margin-top: 12px; }
+    input[type="text"] {
+      width: 100%; background: #1a1d2e; border: 1px solid #2a2d3e;
+      border-radius: 7px; padding: 7px 11px; font-size: 0.82rem; color: #e0e0e0; outline: none;
+    }
+    input[type="range"] { width: 100%; accent-color: #3b4fd8; }
+    .range-row { display: flex; justify-content: space-between; font-size: 0.72rem; color: #4b5563; margin-top: 3px; }
+    #range-val { color: #3b4fd8; font-weight: 700; }
+
+    .btn {
+      width: 100%; padding: 9px; border-radius: 8px; border: none;
+      font-size: 0.85rem; font-weight: 600; cursor: pointer;
+      transition: opacity .15s, background .15s; margin-top: 12px;
+    }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-primary { background: #3b4fd8; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #4a5de8; }
+    .btn-green { background: #16a34a; color: #fff; }
+    .btn-green:hover:not(:disabled) { background: #15803d; }
+    .btn-outline {
+      background: transparent; border: 1px solid #2a2d3e;
+      color: #9ca3af; font-size: 0.75rem; padding: 5px 10px;
+      border-radius: 6px; cursor: pointer; margin-top: 0;
+      width: auto;
+    }
+    .btn-outline:hover { background: #1f2233; color: #fff; }
+
+    /* node selector */
+    .node-pick {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .node-pick-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1a1d2e;
+      border-radius: 8px;
+      padding: 9px 11px;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green { background: #22c55e; }
+    .dot-red   { background: #ef4444; }
+
+    .node-pick-row .node-name {
+      flex: 1;
+      font-size: 0.8rem;
+      color: #e0e0e0;
+      font-family: monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .node-pick-row .node-name.placeholder { color: #4b5563; font-family: inherit; font-size: 0.78rem; }
+    .node-pick-row .node-label { font-size: 0.68rem; color: #4b5563; }
+
+    .hint-box {
+      background: #1a1d2e;
+      border: 1px solid #2a2d3e;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.78rem;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    /* stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .stat-card { background: #1a1d2e; border-radius: 8px; padding: 9px 11px; }
+    .stat-card .val { font-size: 1.15rem; font-weight: 700; color: #fff; }
+    .stat-card .lbl { font-size: 0.68rem; color: #4b5563; margin-top: 1px; }
+
+    .alert {
+      border-radius: 8px; padding: 9px 11px;
+      font-size: 0.78rem; margin-top: 10px; line-height: 1.4;
+    }
+    .alert-err  { background: #2d1f1f; border: 1px solid #7f1d1d; color: #fca5a5; }
+    .alert-warn { background: #2d2510; border: 1px solid #78350f; color: #fcd34d; }
+    .alert-ok   { background: #0f2d1f; border: 1px solid #14532d; color: #86efac; }
+
+    /* ── Right panel ── */
+    .right-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    .tabs { display: flex; background: #13151f; border-bottom: 1px solid #1f2233; padding: 0 18px; flex-shrink: 0; }
+    .tab { padding: 11px 16px; font-size: 0.8rem; color: #6b7280; cursor: pointer; border-bottom: 2px solid transparent; user-select: none; }
+    .tab.active { color: #fff; border-bottom-color: #3b4fd8; }
+
+    .tab-content { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+    .tab-content.active { display: flex; }
+
+    #map { flex: 1; }
+
+    .code-wrap { flex: 1; overflow: auto; padding: 14px 18px; }
+    pre { font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 0.75rem; line-height: 1.6; color: #d4d4d4; white-space: pre; }
+    .copy-btn { float: right; position: sticky; top: 0; background: #1f2233; border: 1px solid #2a2d3e; color: #9ca3af; font-size: 0.72rem; padding: 3px 9px; border-radius: 5px; cursor: pointer; margin-bottom: 6px; }
+    .copy-btn:hover { color: #fff; }
+
+    .plan-steps { flex: 1; overflow-y: auto; padding: 14px 18px; }
+    .plan-step { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid #1f2233; font-size: 0.8rem; }
+    .plan-step .time { color: #3b4fd8; font-weight: 700; min-width: 44px; font-family: monospace; }
+    .plan-step .action { color: #d4d4d4; }
+
+    .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2d3748; gap: 8px; }
+    .empty-state .eicon { font-size: 2.5rem; }
+    .empty-state p { font-size: 0.82rem; text-align: center; max-width: 260px; }
+
+    .spinner { display: none; width: 16px; height: 16px; border: 2px solid #fff4; border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* leaflet popup override */
+    .leaflet-popup-content-wrapper { background: #1a1d2e; border: 1px solid #2a2d3e; border-radius: 10px; box-shadow: 0 4px 20px #0008; }
+    .leaflet-popup-content { color: #e0e0e0; margin: 10px 14px; }
+    .leaflet-popup-tip { background: #1a1d2e; }
+    .popup-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 2px; }
+    .popup-osm { font-size: 0.72rem; color: #6b7280; font-family: monospace; margin-bottom: 8px; }
+    .popup-btns { display: flex; gap: 6px; margin-top: 8px; }
+    .popup-btn {
+      flex: 1; padding: 5px 8px; border: none; border-radius: 6px;
+      font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: opacity .15s;
+    }
+    .popup-btn:hover { opacity: .85; }
+    .popup-btn-start { background: #16a34a; color: #fff; }
+    .popup-btn-goal  { background: #dc2626; color: #fff; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Dublin PDDL+ Navigator</h1>
+  <span class="badge">PDDL+</span>
+  <span>Automated Planning</span>
+</header>
+
+<div class="main">
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar">
+
+    <!-- Upload -->
+    <div class="sec">
+      <h2>File OSM</h2>
+      <div class="upload-zone" id="drop-zone">
+        <input type="file" id="osm-input" accept=".osm,.xml">
+        <span class="icon">🗺️</span>
+        <p>Trascina un file <strong>.osm</strong> qui<br>o clicca per selezionarlo</p>
+        <div class="fname" id="fname"></div>
+      </div>
+    </div>
+
+    <!-- Params -->
+    <div class="sec">
+      <h2>Parametri</h2>
+      <label class="lbl">Nodi massimi: <span id="range-val">50</span></label>
+      <input type="range" id="max-nodes" min="10" max="200" value="50" step="5">
+      <div class="range-row">
+        <span>10</span>
+        <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;color:#9ca3af;cursor:pointer">
+          <input type="checkbox" id="all-nodes" style="accent-color:#3b4fd8;cursor:pointer">
+          Tutti i nodi
+        </label>
+        <span>200</span>
+      </div>
+      <button class="btn btn-primary" id="gen-btn" disabled>
+        <span id="gen-label">Visualizza Mappa</span>
+        <div class="spinner" id="gen-spinner"></div>
+      </button>
+    </div>
+
+    <!-- Node selection (shown after generate) -->
+    <div class="sec" id="pick-sec" style="display:none">
+      <h2>Start &amp; Goal</h2>
+      <div class="node-pick">
+        <div class="node-pick-row">
+          <div class="dot dot-green"></div>
+          <div>
+            <div class="node-label">START</div>
+            <div class="node-name" id="start-label">—</div>
+          </div>
+          <button class="btn-outline" id="reset-start-btn" onclick="resetStart()" style="display:none">Auto</button>
+        </div>
+        <div class="node-pick-row">
+          <div class="dot dot-red"></div>
+          <div>
+            <div class="node-label">GOAL</div>
+            <div class="node-name" id="goal-label">—</div>
+          </div>
+          <button class="btn-outline" id="reset-goal-btn" onclick="resetGoal()" style="display:none">Auto</button>
+        </div>
+      </div>
+      <div class="hint-box" style="margin-top:10px">
+        Clicca un nodo sulla mappa per impostare Start o Goal.<br>
+        Se non selezioni nulla, vengono usati quelli automatici.
+      </div>
+      <button class="btn btn-green" id="solve-btn">
+        <span id="solve-label">Risolvi con ENHSP</span>
+        <div class="spinner" id="solve-spinner"></div>
+      </button>
+      <div id="solve-err"></div>
+
+    </div>
+
+    <!-- Stats (shown after solve) -->
+    <div class="sec" id="stats-sec" style="display:none">
+      <h2>Risultati</h2>
+      <div class="stats-grid" id="stats-grid"></div>
+      <div id="enhsp-msg"></div>
+      <button class="btn" id="sumo-btn" style="display:none;background:#7c3aed;color:#fff;margin-top:10px" onclick="launchSumo()">
+        <span id="sumo-label">▶ Apri in SUMO</span>
+        <div class="spinner" id="sumo-spinner"></div>
+      </button>
+      <div id="sumo-msg"></div>
+    </div>
+
+  </div>
+
+  <!-- ── Right panel ── -->
+  <div class="right-panel">
+    <div class="tabs">
+      <div class="tab active" data-tab="map">🗺 Mappa</div>
+      <div class="tab" data-tab="pddl">📄 PDDL</div>
+      <div class="tab" data-tab="plan">📋 Piano</div>
+    </div>
+
+    <div class="tab-content active" id="tab-map">
+      <div class="empty-state" id="map-empty">
+        <div class="eicon">📂</div>
+        <p>Carica un file OSM e premi "Visualizza Mappa" per iniziare</p>
+      </div>
+      <div id="map" style="display:none"></div>
+    </div>
+
+    <div class="tab-content" id="tab-pddl">
+      <div class="empty-state" id="pddl-empty">
+        <div class="eicon">📄</div>
+        <p>Il file PDDL generato apparirà qui dopo aver risolto</p>
+      </div>
+      <div class="code-wrap" id="pddl-wrap" style="display:none">
+        <button class="copy-btn" onclick="copyCode()">Copia</button>
+        <pre id="pddl-code"></pre>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-plan">
+      <div class="empty-state" id="plan-empty">
+        <div class="eicon">📋</div>
+        <p>Il piano ENHSP apparirà qui dopo aver risolto</p>
+      </div>
+      <div class="plan-steps" id="plan-steps" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let state = {
+  token: null,
+  nodes: [],        // array di {id, lat, lon, name, is_start, is_goal, is_signal}
+  edges: [],
+  autoStart: null,
+  autoGoal: null,
+  selectedStart: null,
+  selectedGoal: null,
+  reachableFromStart: null,  // Set di id raggiungibili dallo start corrente
+  file: null,
+  routeSignals: new Set(),   // id dei nodi semaforo sul percorso trovato
+};
+
+let leafletMap = null;
+let markerLayer = null;
+let edgeLayer = null;
+let routeLayer = null;
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'map' && leafletMap) setTimeout(() => leafletMap.invalidateSize(), 50);
+  });
+});
+
+// ── Upload ────────────────────────────────────────────────────────────────────
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('osm-input');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+
+function setFile(file) {
+  state.file = file;
+  document.getElementById('fname').textContent = file.name;
+  document.getElementById('gen-btn').disabled = false;
+}
+
+// ── Slider ────────────────────────────────────────────────────────────────────
+const slider = document.getElementById('max-nodes');
+const allNodesCheck = document.getElementById('all-nodes');
+
+slider.addEventListener('input', () => document.getElementById('range-val').textContent = slider.value);
+allNodesCheck.addEventListener('change', () => {
+  slider.disabled = allNodesCheck.checked;
+  document.getElementById('range-val').textContent = allNodesCheck.checked ? 'tutti' : slider.value;
+});
+
+// ── Phase 1: Generate ─────────────────────────────────────────────────────────
+document.getElementById('gen-btn').addEventListener('click', async () => {
+  if (!state.file) return;
+  setLoading('gen', true);
+
+  const form = new FormData();
+  form.append('osm_file', state.file);
+  form.append('max_nodes', allNodesCheck.checked ? 99999 : slider.value);
+  form.append('zone', 'custom');
+
+  try {
+    const res = await fetch('/api/generate', { method: 'POST', body: form });
+    const data = await res.json();
+    if (data.error) { alert('Errore: ' + data.error); return; }
+
+    state.token     = data.token;
+    state.nodes     = data.nodes;
+    state.edges     = data.edges;
+    state.autoStart = data.auto_start;
+    state.autoGoal  = data.auto_goal;
+    state.selectedStart = data.auto_start;
+    state.selectedGoal  = data.auto_goal;
+    state.reachableFromStart = computeReachable(data.auto_start);
+
+    renderMap();
+    updatePickUI();
+
+    document.getElementById('pick-sec').style.display = 'block';
+    document.getElementById('stats-sec').style.display = 'none';
+    switchTab('map');
+  } catch (e) {
+    alert('Errore di rete: ' + e.message);
+  } finally {
+    setLoading('gen', false);
+  }
+});
+
+// ── Phase 2: Solve ────────────────────────────────────────────────────────────
+document.getElementById('solve-btn').addEventListener('click', async () => {
+  if (!state.token) return;
+  setLoading('solve', true);
+  document.getElementById('solve-err').innerHTML = '';
+
+  const payload = {
+    token: state.token,
+    start: state.selectedStart,
+    goal:  state.selectedGoal,
+  };
+
+  try {
+    const res = await fetch('/api/solve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      document.getElementById('solve-err').innerHTML =
+        `<div class="alert alert-err" style="margin-top:10px">❌ ${data.error}</div>`;
+      return;
+    }
+
+    // aggiorna i semafori sul percorso per evidenziarli nella mappa
+    state.routeSignals = new Set(
+      (data.route || []).filter(id => {
+        const n = nodeById(id); return n && n.is_signal;
+      })
+    );
+    renderStats(data);
+    renderPddl(data.pddl_content);
+    renderPlan(data.plan_text);
+    if (data.route) drawRoute(data.route);
+  } catch (e) {
+    document.getElementById('solve-err').innerHTML =
+      `<div class="alert alert-err" style="margin-top:10px">Errore di rete: ${e.message}</div>`;
+  } finally {
+    setLoading('solve', false);
+  }
+});
+
+// ── Node selection ────────────────────────────────────────────────────────────
+window.setNodeStart = function(id) {
+  state.selectedStart = id;
+  state.reachableFromStart = computeReachable(id);
+  // se il goal corrente non è più raggiungibile, resettalo
+  if (state.selectedGoal && !state.reachableFromStart.has(state.selectedGoal)) {
+    state.selectedGoal = state.autoGoal;
+    if (!state.reachableFromStart.has(state.selectedGoal)) {
+      // cerca il nodo raggiungibile più lontano dallo start
+      state.selectedGoal = findFarthestReachable(id);
+    }
+  }
+  updatePickUI();
+  redrawMarkers();
+  leafletMap.closePopup();
+};
+
+window.setNodeGoal = function(id) {
+  state.selectedGoal = id;
+  updatePickUI();
+  redrawMarkers();
+  leafletMap.closePopup();
+};
+
+function resetStart() {
+  state.selectedStart = state.autoStart;
+  updatePickUI();
+  redrawMarkers();
+}
+
+function resetGoal() {
+  state.selectedGoal = state.autoGoal;
+  updatePickUI();
+  redrawMarkers();
+}
+
+function updatePickUI() {
+  document.getElementById('start-label').textContent = state.selectedStart || '—';
+  document.getElementById('goal-label').textContent  = state.selectedGoal  || '—';
+  document.getElementById('reset-start-btn').style.display =
+    state.selectedStart !== state.autoStart ? 'block' : 'none';
+  document.getElementById('reset-goal-btn').style.display =
+    state.selectedGoal !== state.autoGoal ? 'block' : 'none';
+}
+
+// ── Map rendering ─────────────────────────────────────────────────────────────
+function renderMap() {
+  document.getElementById('map-empty').style.display = 'none';
+  const mapEl = document.getElementById('map');
+  mapEl.style.display = 'block';
+
+  if (!leafletMap) {
+    leafletMap = L.map('map');
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CARTO', maxZoom: 19,
+    }).addTo(leafletMap);
+  } else {
+    if (edgeLayer)  leafletMap.removeLayer(edgeLayer);
+    if (routeLayer) leafletMap.removeLayer(routeLayer);
+    if (markerLayer) leafletMap.removeLayer(markerLayer);
+    routeLayer = null;
+  }
+
+  // edges
+  const lines = state.edges.map(e => {
+    const a = nodeById(e.from), b = nodeById(e.to);
+    return a && b ? [[a.lat, a.lon], [b.lat, b.lon]] : null;
+  }).filter(Boolean);
+  edgeLayer = L.polyline(lines, { color: '#2d3748', weight: 1.5, opacity: 0.7 }).addTo(leafletMap);
+
+  redrawMarkers();
+
+  const pts = state.nodes.map(n => [n.lat, n.lon]);
+  if (pts.length) leafletMap.fitBounds(L.latLngBounds(pts).pad(0.05));
+}
+
+function redrawMarkers() {
+  if (markerLayer) leafletMap.removeLayer(markerLayer);
+  markerLayer = L.layerGroup();
+
+  state.nodes.forEach(n => {
+    const isStart     = n.id === state.selectedStart;
+    const isGoal      = n.id === state.selectedGoal;
+    const isSignal    = !!n.is_signal;
+    const onRoute     = state.routeSignals && state.routeSignals.has(n.id);
+    const reachable   = !state.reachableFromStart || state.reachableFromStart.has(n.id);
+
+    let color   = reachable ? '#334155' : '#1c2030';
+    let border  = '#0a0c14';
+    let opacity = reachable ? 0.95 : 0.35;
+    let radius  = reachable ? 5 : 4;
+    let weight  = 1;
+
+    // semafori: cerchio giallo-ambra, più grande
+    if (isSignal && !isStart && !isGoal) {
+      color   = onRoute ? '#f59e0b' : '#78450a';
+      border  = onRoute ? '#fbbf24' : '#92400e';
+      radius  = onRoute ? 9 : 7;
+      weight  = 2;
+      opacity = reachable ? 1 : 0.3;
+    }
+
+    if (isStart)     { color = '#22c55e'; border = '#0a0c14'; radius = 11; weight = 2; opacity = 1; }
+    else if (isGoal) { color = '#ef4444'; border = '#0a0c14'; radius = 11; weight = 2; opacity = 1; }
+
+    const circle = L.circleMarker([n.lat, n.lon], {
+      radius, fillColor: color, color: border, weight, fillOpacity: opacity,
+    });
+
+    const label = n.name || n.id;
+    const tag   = isStart ? ' — START 🟢' : isGoal ? ' — GOAL 🔴' : '';
+    const signalBadge = isSignal
+      ? `<div style="margin:4px 0;font-size:0.75rem;color:#fbbf24">🚦 Semaforo OSM — +30s attesa media</div>`
+      : '';
+
+    const goalBtn = reachable
+      ? `<button class="popup-btn popup-btn-goal" onclick="setNodeGoal('${n.id}')">🔴 Goal</button>`
+      : `<button class="popup-btn" style="background:#1f2233;color:#4b5563;cursor:not-allowed" disabled title="Non raggiungibile dallo start">🚫 Non raggiungibile</button>`;
+
+    circle.bindPopup(`
+      <div class="popup-name">${label}${tag}</div>
+      <div class="popup-osm">${n.id}</div>
+      ${signalBadge}
+      <div class="popup-btns">
+        <button class="popup-btn popup-btn-start" onclick="setNodeStart('${n.id}')">🟢 Start</button>
+        ${goalBtn}
+      </div>
+    `, { maxWidth: 260 });
+
+    markerLayer.addLayer(circle);
+  });
+
+  markerLayer.addTo(leafletMap);
+}
+
+function drawRoute(route) {
+  if (routeLayer) leafletMap.removeLayer(routeLayer);
+
+  const pts = route.map(id => {
+    const n = nodeById(id);
+    return n ? [n.lat, n.lon] : null;
+  }).filter(Boolean);
+
+  if (pts.length < 2) return;
+
+  routeLayer = L.layerGroup();
+
+  // linea principale
+  L.polyline(pts, { color: '#3b4fd8', weight: 6, opacity: 0.9 }).addTo(routeLayer);
+  // linea tratteggiata sopra
+  L.polyline(pts, { color: '#818cf8', weight: 2, opacity: 0.8, dashArray: '6 8' }).addTo(routeLayer);
+
+  routeLayer.addTo(leafletMap);
+  redrawMarkers(); // ridisegna i marker con il nuovo start/goal visivo
+  leafletMap.fitBounds(L.latLngBounds(pts).pad(0.1));
+}
+
+// ── Stats / PDDL / Plan ───────────────────────────────────────────────────────
+function renderStats(data) {
+  const s = data.stats;
+  document.getElementById('stats-sec').style.display = 'block';
+
+  const grid = document.getElementById('stats-grid');
+  const dist    = s.total_dist        != null ? Math.round(s.total_dist) + ' m' : '—';
+  const travel  = s.travel_time       != null ? s.travel_time + ' s' : '—';
+  const compute = s.plan_time         != null ? s.plan_time + ' s' : '—';
+  const sigCount = s.signals_crossed  != null ? s.signals_crossed : '—';
+  const sigDelay = s.signal_delay_total != null ? '+' + s.signal_delay_total + ' s' : '—';
+  const sigColor = s.signals_crossed > 0 ? '#f59e0b' : '#4b5563';
+  grid.innerHTML = `
+    <div class="stat-card"><div class="val">${dist}</div><div class="lbl">Distanza percorso</div></div>
+    <div class="stat-card"><div class="val">${travel}</div><div class="lbl">Tempo totale (con semafori)</div></div>
+    <div class="stat-card"><div class="val" style="color:${sigColor}">${sigCount}</div><div class="lbl">🚦 Semafori sul percorso</div></div>
+    <div class="stat-card"><div class="val" style="color:${sigColor}">${sigDelay}</div><div class="lbl">Ritardo semafori</div></div>
+    <div class="stat-card" style="grid-column:1/-1"><div class="val" style="font-size:0.95rem">${compute}</div><div class="lbl">Tempo di calcolo ENHSP</div></div>
+  `;
+
+  const msg = document.getElementById('enhsp-msg');
+  const sumoBtn = document.getElementById('sumo-btn');
+  document.getElementById('sumo-msg').innerHTML = '';
+  if (data.enhsp_error) {
+    msg.innerHTML = `<div class="alert alert-warn">⚠️ ${data.enhsp_error}</div>`;
+    sumoBtn.style.display = 'none';
+  } else if (data.plan_text) {
+    msg.innerHTML = `<div class="alert alert-ok">✅ ENHSP ha trovato la soluzione</div>`;
+    sumoBtn.style.display = 'block';
+  } else {
+    msg.innerHTML = '';
+    sumoBtn.style.display = 'none';
+  }
+}
+
+async function launchSumo() {
+  document.getElementById('sumo-label').style.display = 'none';
+  document.getElementById('sumo-spinner').style.display = 'block';
+  document.getElementById('sumo-btn').disabled = true;
+  document.getElementById('sumo-msg').innerHTML = '';
+  try {
+    const res = await fetch('/api/sumo', { method: 'POST' });
+    const data = await res.json();
+    if (data.error) {
+      document.getElementById('sumo-msg').innerHTML = `<div class="alert alert-err" style="margin-top:8px">❌ ${data.error}</div>`;
+    } else {
+      document.getElementById('sumo-msg').innerHTML = `<div class="alert alert-ok" style="margin-top:8px">✅ SUMO avviato</div>`;
+    }
+  } catch(e) {
+    document.getElementById('sumo-msg').innerHTML = `<div class="alert alert-err" style="margin-top:8px">Errore: ${e.message}</div>`;
+  } finally {
+    document.getElementById('sumo-label').style.display = 'block';
+    document.getElementById('sumo-spinner').style.display = 'none';
+    document.getElementById('sumo-btn').disabled = false;
+  }
+}
+}
+
+function renderPddl(content) {
+  if (!content) return;
+  document.getElementById('pddl-empty').style.display = 'none';
+  document.getElementById('pddl-wrap').style.display = 'block';
+  document.getElementById('pddl-code').textContent = content;
+}
+
+function renderPlan(planText) {
+  document.getElementById('plan-empty').style.display = 'none';
+  const el = document.getElementById('plan-steps');
+  el.style.display = 'block';
+  el.innerHTML = '';
+
+  if (!planText) {
+    el.innerHTML = '<div class="alert alert-warn" style="margin:14px">Nessun piano disponibile</div>';
+    return;
+  }
+
+  planText.split('\n').forEach(line => {
+    const m = line.match(/^([\d.]+)\s*:\s*\((.+)\)/i);
+    const step = document.createElement('div');
+    step.className = 'plan-step';
+    if (m) {
+      step.innerHTML = `<div class="time">${parseFloat(m[1]).toFixed(1)}s</div><div class="action">${m[2]}</div>`;
+    } else if (line.trim()) {
+      step.innerHTML = `<div class="action" style="color:#4b5563">${line}</div>`;
+    }
+    if (line.trim()) el.appendChild(step);
+  });
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function nodeById(id) { return state.nodes.find(n => n.id === id) || null; }
+
+function computeReachable(startId) {
+  // BFS sui sensi unici: restituisce un Set di id raggiungibili da startId
+  const reach = new Set([startId]);
+  const queue = [startId];
+  while (queue.length) {
+    const cur = queue.shift();
+    state.edges.forEach(e => {
+      if (e.from === cur && !reach.has(e.to)) {
+        reach.add(e.to);
+        queue.push(e.to);
+      }
+    });
+  }
+  return reach;
+}
+
+function findFarthestReachable(startId) {
+  // tra i nodi raggiungibili dallo start, trova quello geograficamente più lontano
+  const reach = state.reachableFromStart;
+  const s = nodeById(startId);
+  if (!s) return null;
+  let best = null, bestDist = -1;
+  reach.forEach(id => {
+    if (id === startId) return;
+    const n = nodeById(id);
+    if (!n) return;
+    const d = Math.hypot(n.lat - s.lat, n.lon - s.lon);
+    if (d > bestDist) { bestDist = d; best = id; }
+  });
+  return best;
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'map' && leafletMap) setTimeout(() => leafletMap.invalidateSize(), 50);
+}
+
+function setLoading(which, on) {
+  const label   = document.getElementById(which + '-label');
+  const spinner = document.getElementById(which + '-spinner');
+  const btn     = document.getElementById(which + '-btn');
+  label.style.display   = on ? 'none' : 'block';
+  spinner.style.display = on ? 'block' : 'none';
+  btn.disabled = on;
+}
+
+function copyCode() {
+  const text = document.getElementById('pddl-code').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    document.querySelector('.copy-btn').textContent = 'Copiato!';
+    setTimeout(() => document.querySelector('.copy-btn').textContent = 'Copia', 1500);
+  });
+}
+
+</script>
+
+</body>
+</html>

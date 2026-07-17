@@ -10,6 +10,23 @@ from collections import defaultdict, Counter, deque
 BASE = os.path.dirname(os.path.abspath(__file__))
 OSM_DIR = os.path.join(BASE, "osm_files")
 PDDL_DIR = os.path.join(BASE, "pddl_files")
+SUMO_DIR = os.path.join(BASE, "sumo_extracted")  # JSON da extract_sumo_data.py
+
+# Ritardo semaforico di fallback (s) quando un incrocio non e' mappabile ai
+# dati SUMO (es. membro nascosto di un cluster). Prima era l'unico valore.
+FALLBACK_SIGNAL_DELAY = 30
+
+
+def load_sumo_signal_delays(zone):
+    """Carica {id_nodo_OSM: ritardo_realistico_s} da sumo_extracted/.
+    Ritorna {} se il file non esiste (il generatore usa il fallback 30s)."""
+    import json
+    path = os.path.join(SUMO_DIR, f"sumo_data_{zone}.json")
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    return {k: round(float(v), 1) for k, v in data.get("node_signal_delay", {}).items()}
 
 # tipi di strada che consideriamo percorribili
 HIGHWAY_TYPES = {
@@ -17,6 +34,12 @@ HIGHWAY_TYPES = {
     "residential", "motorway_link", "trunk_link", "primary_link",
     "secondary_link", "tertiary_link", "unclassified", "living_street",
 }
+
+# --- PARAMETRI SVOLTA (turn rate) ---
+# Turn rate = velocita' angolare di cambio direzione di un veicolo.
+# Yaw rate tipico di un'auto in svolta urbana stretta ~15-20 gradi/s
+# (oltre ~30 gradi/s interviene l'ESC). tempo_svolta = angolo / turn_rate.
+TURN_RATE_DPS    = 20.0  # gradi/secondo
 
 # --- PARAMETRI CONGESTIONE ---
 N_VEHICLES       = 10    # veicoli random aggiuntivi da simulare
@@ -51,6 +74,32 @@ def haversine(lat1, lon1, lat2, lon2):
     dl = math.radians(lon2 - lon1)
     a = math.sin(df/2)**2 + math.cos(f1) * math.cos(f2) * math.sin(dl/2)**2
     return round(R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a)))
+
+
+def bearing(lat1, lon1, lat2, lon2):
+    """Rotta (gradi, 0=Nord, senso orario) dal punto 1 al punto 2."""
+    f1 = math.radians(lat1)
+    f2 = math.radians(lat2)
+    dl = math.radians(lon2 - lon1)
+    y = math.sin(dl) * math.cos(f2)
+    x = math.cos(f1) * math.sin(f2) - math.sin(f1) * math.cos(f2) * math.cos(dl)
+    return (math.degrees(math.atan2(y, x)) + 360) % 360
+
+
+def turn_angle(prev, mid, nxt, node_data):
+    """Angolo di svolta (gradi, 0=dritto, 180=inversione) al nodo 'mid'
+    arrivando da 'prev' e proseguendo verso 'nxt'."""
+    b_in = bearing(node_data[prev]["lat"], node_data[prev]["lon"],
+                   node_data[mid]["lat"],  node_data[mid]["lon"])
+    b_out = bearing(node_data[mid]["lat"], node_data[mid]["lon"],
+                    node_data[nxt]["lat"], node_data[nxt]["lon"])
+    a = (b_out - b_in + 180) % 360 - 180   # normalizza in (-180, 180]
+    return abs(a)
+
+
+def turn_time_s(prev, mid, nxt, node_data, turn_rate=TURN_RATE_DPS):
+    """Tempo di svolta (s) = angolo / turn_rate."""
+    return round(turn_angle(prev, mid, nxt, node_data) / turn_rate, 2)
 
 
 def slugify(name):
@@ -342,13 +391,14 @@ def name_map_for(selected, node_data):
 
 def write_pddl(zone, selected, node_data, edges, start, goal, out_path,
                signal_nodes=None, congestion_delays=None, vehicle_counts=None,
-               intersection_density=None, peripheral=None):
+               intersection_density=None, peripheral=None, sumo_delays=None):
     sname = name_map_for(selected, node_data)
     if signal_nodes         is None: signal_nodes         = set()
     if congestion_delays    is None: congestion_delays    = {}
     if vehicle_counts       is None: vehicle_counts       = {}
     if intersection_density is None: intersection_density = {}
     if peripheral           is None: peripheral           = set()
+    if sumo_delays          is None: sumo_delays          = {}
 
     def nm(n):
         return sname[n]
@@ -377,6 +427,7 @@ def write_pddl(zone, selected, node_data, edges, start, goal, out_path,
     lines.append("")
     lines.append("  (:init")
     lines.append(f"    (at {nm(start)})")
+    lines.append(f"    (prev {nm(start)})   ; nessuna svolta prima del primo arco")
     lines.append("    (= (total-dist) 0)")
     lines.append("    (= (total-time) 0)")
 
@@ -411,9 +462,17 @@ def write_pddl(zone, selected, node_data, edges, start, goal, out_path,
         lines.append(f"    (= (speed {nm(a):<28} {nm(b)}) {spd})")
 
     lines.append("")
+    n_from_sumo = sum(1 for n in selected if n in sumo_delays)
     lines.append(f"    ; Ritardo semaforico (s)  — {len(selected_signals)}/{len(selected)} nodi con semaforo")
+    lines.append(f"    ; Valori realistici da SUMO/SCATS ({n_from_sumo} nodi); "
+                 f"fallback {FALLBACK_SIGNAL_DELAY}s dove non mappabile")
     for n in selected:
-        delay = 30 if n in signal_nodes else 0
+        if n in sumo_delays:
+            delay = sumo_delays[n]                       # ritardo realistico SUMO
+        elif n in signal_nodes:
+            delay = FALLBACK_SIGNAL_DELAY                # semaforo OSM non mappato
+        else:
+            delay = 0
         lines.append(f"    (= (signal-delay {nm(n):<28}) {delay})")
 
     # --- COMPONENTE 3: congestion-delay per nodo ---
@@ -464,6 +523,25 @@ def write_pddl(zone, selected, node_data, edges, start, goal, out_path,
         eff = spd / cf
         arc_t = round(d / eff, 4) if eff > 0 else 0
         lines.append(f"    (= (arc-time {nm(a):<28} {nm(b)}) {arc_t})")
+
+    # --- Turn-time: tempo di svolta per ogni tripla di nodi consecutivi ---
+    out_adj = defaultdict(list)
+    in_adj  = defaultdict(list)
+    for (a, b) in edges:
+        out_adj[a].append(b)
+        in_adj[b].append(a)
+    triples = [(a, b, c) for b in selected
+               for a in in_adj.get(b, [])
+               for c in out_adj.get(b, [])]
+
+    lines.append("")
+    lines.append(f"    ; Tempo di svolta (s) = angolo_svolta / {TURN_RATE_DPS:.0f} deg/s  [turn rate]")
+    lines.append(f"    ; prima svolta assente: prev=start, turn-time=0 sul primo arco")
+    for c in sorted(out_adj.get(start, []), key=nm):
+        lines.append(f"    (= (turn-time {nm(start):<20} {nm(start):<20} {nm(c)}) 0)")
+    for a, b, c in sorted(triples, key=lambda t: (nm(t[0]), nm(t[1]), nm(t[2]))):
+        tt = turn_time_s(a, b, c, node_data)
+        lines.append(f"    (= (turn-time {nm(a):<20} {nm(b):<20} {nm(c)}) {tt})")
 
     lines.append("")
     lines.append("  )")
@@ -545,13 +623,23 @@ def generate(zone, osm_path, max_nodes):
     vc = compute_vehicle_counts(selected, edges, start)
     print(f"  archi con vehicle-count > 0: {len(vc)}/{len(edges)}")
 
+    # --- Ritardi semaforici realistici da SUMO ---
+    sumo_delays = load_sumo_signal_delays(zone)
+    matched = sum(1 for n in selected if n in sumo_delays)
+    if sumo_delays:
+        print(f"  ritardi SUMO applicati: {matched}/{len(signal_nodes_in_subgraph)} "
+              f"semafori del sottografo")
+    else:
+        print(f"  [nota] nessun dato SUMO per '{zone}': uso fallback {FALLBACK_SIGNAL_DELAY}s")
+
     out_path = os.path.join(PDDL_DIR, f"problem_{zone}.pddl")
     write_pddl(zone, selected, node_data, edges, start, goal, out_path,
                signal_nodes=signal_nodes_in_subgraph,
                congestion_delays=cong_delays,
                vehicle_counts=vc,
                intersection_density=density,
-               peripheral=peripheral)
+               peripheral=peripheral,
+               sumo_delays=sumo_delays)
     print(f"  salvato: {out_path}")
 
 
@@ -559,6 +647,7 @@ if __name__ == "__main__":
     os.makedirs(PDDL_DIR, exist_ok=True)
 
     configs = [
+        ("piccola", "dublin_piccola_centro.osm", 14),
         ("media",  "dublin_media_residenziale.osm", 50),
         ("grande", "dublin_grande_porto.osm", 120),
     ]
