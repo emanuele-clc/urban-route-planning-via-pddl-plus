@@ -19,7 +19,10 @@ FALLBACK_SIGNAL_DELAY = 30
 
 def load_sumo_signal_delays(zone):
     """Carica {id_nodo_OSM: ritardo_realistico_s} da sumo_extracted/.
-    Ritorna {} se il file non esiste (il generatore usa il fallback 30s)."""
+    Ritorna {} se il file non esiste (il generatore usa il fallback 30s).
+    Media per nodo — mantenuta per retro-compatibilita' e come fallback
+    quando un movimento specifico non e' mappabile (vedi
+    assign_movement_signal_delay)."""
     import json
     path = os.path.join(SUMO_DIR, f"sumo_data_{zone}.json")
     if not os.path.exists(path):
@@ -27,6 +30,89 @@ def load_sumo_signal_delays(zone):
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
     return {k: round(float(v), 1) for k, v in data.get("node_signal_delay", {}).items()}
+
+
+def cluster_member_ids(junction_id):
+    """Da un id junction SUMO ricava gli id-nodo OSM che rappresenta
+    (stessa logica di extract_sumo_data.py::cluster_member_ids)."""
+    if not junction_id.startswith("cluster_"):
+        return [junction_id]
+    body = junction_id[len("cluster_"):]
+    ids = []
+    for tok in body.split("_"):
+        if tok.startswith("#"):
+            continue
+        if tok.isdigit():
+            ids.append(tok)
+    return ids
+
+
+def load_sumo_movements(zone):
+    """Carica {id_nodo_OSM: [movement, ...]} da sumo_extracted/, espandendo
+    i cluster SUMO sui rispettivi nodi OSM membri. Ogni 'movement' e' un
+    dict con delay_s/bearing_in_bucket/bearing_out_bucket/dir_label (vedi
+    extract_sumo_data.py::extract_traffic_lights). Usato da
+    assign_movement_signal_delay per attribuire il ritardo semaforico
+    corretto a ciascuna tripla PDDL (prev,from,to), invece della media
+    per nodo. Ritorna {} se il file non esiste."""
+    import json
+    path = os.path.join(SUMO_DIR, f"sumo_data_{zone}.json")
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    out = defaultdict(list)
+    for tid, tl in data.get("traffic_lights", {}).items():
+        members = cluster_member_ids(tid)
+        for mv in tl.get("movements", []):
+            if mv.get("bearing_in_bucket") is None or mv.get("bearing_out_bucket") is None:
+                continue
+            for nid in members:
+                out[nid].append(mv)
+    return dict(out)
+
+
+def bearing_bucket(angle_deg, n_buckets=8):
+    """Arrotonda un bearing (0=Nord, orario) al settore piu' vicino tra
+    n_buckets equidistanti — stessa convenzione di extract_sumo_data.py."""
+    if angle_deg is None:
+        return None
+    step = 360.0 / n_buckets
+    a = angle_deg % 360.0
+    return int(round(a / step)) % n_buckets * step
+
+
+def circ_dist(a, b):
+    """Distanza angolare minima tra due bearing (0-360)."""
+    d = abs(a - b) % 360.0
+    return min(d, 360.0 - d)
+
+
+def assign_movement_signal_delay(a, b, c, node_data, movements_by_node, is_first=False):
+    """Ritardo semaforico (s) del movimento specifico (a,b,c) attraversando
+    il nodo 'b': calcola i bearing di ingresso (a->b) e uscita (b->c) da
+    lat/lon e li confronta con i bucket direzionali (bearing_in_bucket,
+    bearing_out_bucket) dei movimenti SUMO disponibili per 'b', scegliendo
+    quello con distanza angolare complessiva minima.
+    is_first=True (tripla fittizia iniziale start,start,c): non esiste un
+    arco reale precedente, quindi il match usa solo il bearing di uscita.
+    Ritorna None se 'b' non ha dati di movimento SUMO (nessun match possibile
+    -> il chiamante ricade sul valore scalare esistente)."""
+    mv_list = movements_by_node.get(b)
+    if not mv_list:
+        return None
+    out_bearing = bearing(node_data[b]["lat"], node_data[b]["lon"],
+                          node_data[c]["lat"], node_data[c]["lon"])
+    out_bucket = bearing_bucket(out_bearing)
+    if is_first:
+        best = min(mv_list, key=lambda m: circ_dist(m["bearing_out_bucket"], out_bucket))
+        return best["delay_s"]
+    in_bearing = bearing(node_data[a]["lat"], node_data[a]["lon"],
+                         node_data[b]["lat"], node_data[b]["lon"])
+    in_bucket = bearing_bucket(in_bearing)
+    best = min(mv_list, key=lambda m: circ_dist(m["bearing_in_bucket"], in_bucket)
+                                      + circ_dist(m["bearing_out_bucket"], out_bucket))
+    return best["delay_s"]
 
 # tipi di strada che consideriamo percorribili
 HIGHWAY_TYPES = {
@@ -391,7 +477,8 @@ def name_map_for(selected, node_data):
 
 def write_pddl(zone, selected, node_data, edges, start, goal, out_path,
                signal_nodes=None, congestion_delays=None, vehicle_counts=None,
-               intersection_density=None, peripheral=None, sumo_delays=None):
+               intersection_density=None, peripheral=None, sumo_delays=None,
+               sumo_movements=None):
     sname = name_map_for(selected, node_data)
     if signal_nodes         is None: signal_nodes         = set()
     if congestion_delays    is None: congestion_delays    = {}
@@ -399,6 +486,7 @@ def write_pddl(zone, selected, node_data, edges, start, goal, out_path,
     if intersection_density is None: intersection_density = {}
     if peripheral           is None: peripheral           = set()
     if sumo_delays          is None: sumo_delays          = {}
+    if sumo_movements       is None: sumo_movements       = {}
 
     def nm(n):
         return sname[n]
@@ -461,19 +549,42 @@ def write_pddl(zone, selected, node_data, edges, start, goal, out_path,
         d, spd = edges[(a, b)]
         lines.append(f"    (= (speed {nm(a):<28} {nm(b)}) {spd})")
 
+    # --- out_adj/in_adj/triples: calcolati qui perche' servono sia al
+    # blocco signal-delay (per movimento) sia al blocco turn-time sotto ---
+    out_adj = defaultdict(list)
+    in_adj  = defaultdict(list)
+    for (a, b) in edges:
+        out_adj[a].append(b)
+        in_adj[b].append(a)
+    triples = [(a, b, c) for b in selected
+               for a in in_adj.get(b, [])
+               for c in out_adj.get(b, [])]
+
+    def _signal_delay_fallback(node):
+        if node in sumo_delays:
+            return sumo_delays[node]
+        if node in signal_nodes:
+            return FALLBACK_SIGNAL_DELAY
+        return 0
+
     lines.append("")
     n_from_sumo = sum(1 for n in selected if n in sumo_delays)
-    lines.append(f"    ; Ritardo semaforico (s)  — {len(selected_signals)}/{len(selected)} nodi con semaforo")
-    lines.append(f"    ; Valori realistici da SUMO/SCATS ({n_from_sumo} nodi); "
-                 f"fallback {FALLBACK_SIGNAL_DELAY}s dove non mappabile")
-    for n in selected:
-        if n in sumo_delays:
-            delay = sumo_delays[n]                       # ritardo realistico SUMO
-        elif n in signal_nodes:
-            delay = FALLBACK_SIGNAL_DELAY                # semaforo OSM non mappato
-        else:
-            delay = 0
-        lines.append(f"    (= (signal-delay {nm(n):<28}) {delay})")
+    n_with_movements = sum(1 for n in selected if n in sumo_movements)
+    lines.append(f"    ; Ritardo semaforico (s) per MOVIMENTO (prev,from,to) — "
+                 f"{len(selected_signals)}/{len(selected)} nodi con semaforo")
+    lines.append(f"    ; Valori realistici da SUMO/SCATS per fase/direzione "
+                 f"({n_with_movements} nodi con dati di movimento, {n_from_sumo} "
+                 f"con media per nodo); fallback {FALLBACK_SIGNAL_DELAY}s dove non mappabile")
+    for c in sorted(out_adj.get(start, []), key=nm):
+        delay = assign_movement_signal_delay(start, start, c, node_data, sumo_movements, is_first=True)
+        if delay is None:
+            delay = _signal_delay_fallback(start)
+        lines.append(f"    (= (signal-delay {nm(start):<20} {nm(start):<20} {nm(c)}) {delay})")
+    for a, b, c in sorted(triples, key=lambda t: (nm(t[0]), nm(t[1]), nm(t[2]))):
+        delay = assign_movement_signal_delay(a, b, c, node_data, sumo_movements)
+        if delay is None:
+            delay = _signal_delay_fallback(b)
+        lines.append(f"    (= (signal-delay {nm(a):<20} {nm(b):<20} {nm(c)}) {delay})")
 
     # --- COMPONENTE 3: congestion-delay per nodo ---
     lines.append("")
@@ -525,15 +636,7 @@ def write_pddl(zone, selected, node_data, edges, start, goal, out_path,
         lines.append(f"    (= (arc-time {nm(a):<28} {nm(b)}) {arc_t})")
 
     # --- Turn-time: tempo di svolta per ogni tripla di nodi consecutivi ---
-    out_adj = defaultdict(list)
-    in_adj  = defaultdict(list)
-    for (a, b) in edges:
-        out_adj[a].append(b)
-        in_adj[b].append(a)
-    triples = [(a, b, c) for b in selected
-               for a in in_adj.get(b, [])
-               for c in out_adj.get(b, [])]
-
+    # (out_adj/in_adj/triples gia' calcolati sopra, per il blocco signal-delay)
     lines.append("")
     lines.append(f"    ; Tempo di svolta (s) = angolo_svolta / {TURN_RATE_DPS:.0f} deg/s  [turn rate]")
     lines.append(f"    ; prima svolta assente: prev=start, turn-time=0 sul primo arco")
@@ -623,12 +726,14 @@ def generate(zone, osm_path, max_nodes):
     vc = compute_vehicle_counts(selected, edges, start)
     print(f"  archi con vehicle-count > 0: {len(vc)}/{len(edges)}")
 
-    # --- Ritardi semaforici realistici da SUMO ---
+    # --- Ritardi semaforici realistici da SUMO (per movimento + media/nodo) ---
     sumo_delays = load_sumo_signal_delays(zone)
+    sumo_movements = load_sumo_movements(zone)
     matched = sum(1 for n in selected if n in sumo_delays)
+    matched_mv = sum(1 for n in selected if n in sumo_movements)
     if sumo_delays:
         print(f"  ritardi SUMO applicati: {matched}/{len(signal_nodes_in_subgraph)} "
-              f"semafori del sottografo")
+              f"semafori del sottografo ({matched_mv} con dati per movimento)")
     else:
         print(f"  [nota] nessun dato SUMO per '{zone}': uso fallback {FALLBACK_SIGNAL_DELAY}s")
 
@@ -639,7 +744,8 @@ def generate(zone, osm_path, max_nodes):
                vehicle_counts=vc,
                intersection_density=density,
                peripheral=peripheral,
-               sumo_delays=sumo_delays)
+               sumo_delays=sumo_delays,
+               sumo_movements=sumo_movements)
     print(f"  salvato: {out_path}")
 
 

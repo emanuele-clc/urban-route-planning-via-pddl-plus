@@ -3,3 +3,8 @@ __pycache__/
 *.pyc
 cache/
 .DS_Store
+setup.log
+
+proj_specs.md
+setup_macos.py
+2_traffic_signal_optimization.md

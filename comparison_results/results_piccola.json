@@ -1,0 +1,421 @@
+{
+  "result": {
+    "zone": "piccola",
+    "n_samples_requested": 12,
+    "records": [
+      {
+        "start": "411503255",
+        "goal": "411193756",
+        "start_name": "n1503255",
+        "goal_name": "n1193756",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 1.0,
+        "old_stats": {
+          "n_edges": 1,
+          "total_dist_m": 111.0,
+          "travel_time_s": 17.32,
+          "turn_delay_s": 0.0,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 15.0,
+          "total_time_s": 32.32
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 1.0,
+        "new_stats": {
+          "n_edges": 1,
+          "total_dist_m": 111.0,
+          "travel_time_s": 17.32,
+          "turn_delay_s": 0.0,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 15.0,
+          "total_time_s": 32.32
+        }
+      },
+      {
+        "start": "18940355",
+        "goal": "3125558042",
+        "start_name": "n8940355",
+        "goal_name": "n5558042",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 3.3999999,
+        "old_stats": {
+          "n_edges": 3,
+          "total_dist_m": 285.0,
+          "travel_time_s": 34.21,
+          "turn_delay_s": 0.4,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 46.0,
+          "total_time_s": 80.61
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 3.3999999,
+        "new_stats": {
+          "n_edges": 3,
+          "total_dist_m": 285.0,
+          "travel_time_s": 34.21,
+          "turn_delay_s": 0.4,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 46.0,
+          "total_time_s": 80.61
+        }
+      },
+      {
+        "start": "411503255",
+        "goal": "1442755",
+        "start_name": "n1503255",
+        "goal_name": "n1442755",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 21.6,
+        "old_stats": {
+          "n_edges": 7,
+          "total_dist_m": 668.0,
+          "travel_time_s": 76.27,
+          "turn_delay_s": 14.6,
+          "signal_delay_s": 34.2,
+          "signals_crossed": 2,
+          "congestion_delay_s": 105.0,
+          "total_time_s": 230.07
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 38.670002,
+        "new_stats": {
+          "n_edges": 7,
+          "total_dist_m": 668.0,
+          "travel_time_s": 76.27,
+          "turn_delay_s": 14.6,
+          "signal_delay_s": 17.07,
+          "signals_crossed": 1,
+          "congestion_delay_s": 105.0,
+          "total_time_s": 212.94
+        }
+      },
+      {
+        "start": "659784",
+        "goal": "3125558042",
+        "start_name": "n659784",
+        "goal_name": "n5558042",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 4.7200003,
+        "old_stats": {
+          "n_edges": 4,
+          "total_dist_m": 431.0,
+          "travel_time_s": 51.74,
+          "turn_delay_s": 0.72,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 62.0,
+          "total_time_s": 114.46
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 21.79,
+        "new_stats": {
+          "n_edges": 4,
+          "total_dist_m": 431.0,
+          "travel_time_s": 51.74,
+          "turn_delay_s": 0.72,
+          "signal_delay_s": 17.07,
+          "signals_crossed": 1,
+          "congestion_delay_s": 62.0,
+          "total_time_s": 131.53
+        }
+      },
+      {
+        "start": "411193754",
+        "goal": "26166024",
+        "start_name": "n1193754",
+        "goal_name": "n6166024",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 1.0,
+        "old_stats": {
+          "n_edges": 1,
+          "total_dist_m": 60.0,
+          "travel_time_s": 8.64,
+          "turn_delay_s": 0.0,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 15.0,
+          "total_time_s": 23.64
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 1.0,
+        "new_stats": {
+          "n_edges": 1,
+          "total_dist_m": 60.0,
+          "travel_time_s": 8.64,
+          "turn_delay_s": 0.0,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 15.0,
+          "total_time_s": 23.64
+        }
+      },
+      {
+        "start": "411193756",
+        "goal": "659784",
+        "start_name": "n1193756",
+        "goal_name": "n659784",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 13.070001,
+        "old_stats": {
+          "n_edges": 4,
+          "total_dist_m": 348.0,
+          "travel_time_s": 33.85,
+          "turn_delay_s": 9.07,
+          "signal_delay_s": 17.1,
+          "signals_crossed": 1,
+          "congestion_delay_s": 68.0,
+          "total_time_s": 128.02
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 13.070001,
+        "new_stats": {
+          "n_edges": 4,
+          "total_dist_m": 348.0,
+          "travel_time_s": 33.85,
+          "turn_delay_s": 9.07,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 68.0,
+          "total_time_s": 110.92
+        }
+      },
+      {
+        "start": "411503259",
+        "goal": "411193754",
+        "start_name": "n1503259",
+        "goal_name": "n1193754",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 6.43,
+        "old_stats": {
+          "n_edges": 2,
+          "total_dist_m": 67.0,
+          "travel_time_s": 10.04,
+          "turn_delay_s": 4.43,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 30.0,
+          "total_time_s": 44.47
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 6.43,
+        "new_stats": {
+          "n_edges": 2,
+          "total_dist_m": 67.0,
+          "travel_time_s": 10.04,
+          "turn_delay_s": 4.43,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 30.0,
+          "total_time_s": 44.47
+        }
+      },
+      {
+        "start": "411193756",
+        "goal": "411193754",
+        "start_name": "n1193756",
+        "goal_name": "n1193754",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 1.0,
+        "old_stats": {
+          "n_edges": 1,
+          "total_dist_m": 32.0,
+          "travel_time_s": 4.99,
+          "turn_delay_s": 0.0,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 15.0,
+          "total_time_s": 19.99
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 1.0,
+        "new_stats": {
+          "n_edges": 1,
+          "total_dist_m": 32.0,
+          "travel_time_s": 4.99,
+          "turn_delay_s": 0.0,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 15.0,
+          "total_time_s": 19.99
+        }
+      },
+      {
+        "start": "26166024",
+        "goal": "411193754",
+        "start_name": "n6166024",
+        "goal_name": "n1193754",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 12.94,
+        "old_stats": {
+          "n_edges": 4,
+          "total_dist_m": 307.0,
+          "travel_time_s": 38.79,
+          "turn_delay_s": 8.94,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 65.0,
+          "total_time_s": 112.73
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 12.94,
+        "new_stats": {
+          "n_edges": 4,
+          "total_dist_m": 307.0,
+          "travel_time_s": 38.79,
+          "turn_delay_s": 8.94,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 65.0,
+          "total_time_s": 112.73
+        }
+      },
+      {
+        "start": "411193754",
+        "goal": "1442755",
+        "start_name": "n1193754",
+        "goal_name": "n1442755",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 14.530001,
+        "old_stats": {
+          "n_edges": 5,
+          "total_dist_m": 525.0,
+          "travel_time_s": 53.95,
+          "turn_delay_s": 9.53,
+          "signal_delay_s": 34.2,
+          "signals_crossed": 2,
+          "congestion_delay_s": 75.0,
+          "total_time_s": 172.68
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 31.599998,
+        "new_stats": {
+          "n_edges": 5,
+          "total_dist_m": 525.0,
+          "travel_time_s": 53.95,
+          "turn_delay_s": 9.53,
+          "signal_delay_s": 17.07,
+          "signals_crossed": 1,
+          "congestion_delay_s": 75.0,
+          "total_time_s": 155.55
+        }
+      },
+      {
+        "start": "26166024",
+        "goal": "411503259",
+        "start_name": "n6166024",
+        "goal_name": "n1503259",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 16.43,
+        "old_stats": {
+          "n_edges": 4,
+          "total_dist_m": 310.0,
+          "travel_time_s": 38.42,
+          "turn_delay_s": 12.43,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 65.0,
+          "total_time_s": 115.85
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 16.43,
+        "new_stats": {
+          "n_edges": 4,
+          "total_dist_m": 310.0,
+          "travel_time_s": 38.42,
+          "turn_delay_s": 12.43,
+          "signal_delay_s": 0.0,
+          "signals_crossed": 0,
+          "congestion_delay_s": 65.0,
+          "total_time_s": 115.85
+        }
+      },
+      {
+        "start": "411193756",
+        "goal": "1442759",
+        "start_name": "n1193756",
+        "goal_name": "n1442759",
+        "old_solved": true,
+        "old_metric_enhsp_raw": 15.610001,
+        "old_stats": {
+          "n_edges": 6,
+          "total_dist_m": 666.0,
+          "travel_time_s": 72.03,
+          "turn_delay_s": 9.61,
+          "signal_delay_s": 17.1,
+          "signals_crossed": 1,
+          "congestion_delay_s": 102.0,
+          "total_time_s": 200.74
+        },
+        "new_solved": true,
+        "new_metric_enhsp_raw": 32.68,
+        "new_stats": {
+          "n_edges": 6,
+          "total_dist_m": 666.0,
+          "travel_time_s": 72.03,
+          "turn_delay_s": 9.61,
+          "signal_delay_s": 17.07,
+          "signals_crossed": 1,
+          "congestion_delay_s": 102.0,
+          "total_time_s": 200.71
+        }
+      }
+    ]
+  },
+  "summary": {
+    "zone": "piccola",
+    "n_pairs_both_solved": 12,
+    "n_pairs_total": 12,
+    "total_dist_m": {
+      "old_mean": 317.5,
+      "new_mean": 317.5,
+      "delta": 0.0,
+      "pct_change": 0.0
+    },
+    "n_edges": {
+      "old_mean": 3.5,
+      "new_mean": 3.5,
+      "delta": 0.0,
+      "pct_change": 0.0
+    },
+    "travel_time_s": {
+      "old_mean": 36.69,
+      "new_mean": 36.69,
+      "delta": 0.0,
+      "pct_change": 0.0
+    },
+    "turn_delay_s": {
+      "old_mean": 5.81,
+      "new_mean": 5.81,
+      "delta": 0.0,
+      "pct_change": 0.0
+    },
+    "signal_delay_s": {
+      "old_mean": 8.55,
+      "new_mean": 5.69,
+      "delta": -2.86,
+      "pct_change": -33.5
+    },
+    "signals_crossed": {
+      "old_mean": 0.5,
+      "new_mean": 0.33,
+      "delta": -0.17,
+      "pct_change": -34.0
+    },
+    "congestion_delay_s": {
+      "old_mean": 55.25,
+      "new_mean": 55.25,
+      "delta": 0.0,
+      "pct_change": 0.0
+    },
+    "total_time_s": {
+      "old_mean": 106.3,
+      "new_mean": 103.44,
+      "delta": -2.86,
+      "pct_change": -2.7
+    }
+  }
+}

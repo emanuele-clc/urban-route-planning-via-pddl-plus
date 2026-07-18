@@ -80,6 +80,31 @@ def norm180(a):
     return a
 
 
+def bearing_bucket(angle_deg, n_buckets=8):
+    """Arrotonda un angolo (gradi, qualunque range) al piu' vicino tra
+    n_buckets settori equidistanti (default 8 settori da 45 gradi),
+    usato per confrontare heading SUMO (lane shape) con bearing PDDL
+    (calcolati da lat/lon in build_problems.py/webapp) senza richiedere
+    un match esatto in floating point."""
+    if angle_deg is None:
+        return None
+    step = 360.0 / n_buckets
+    a = angle_deg % 360.0
+    return int(round(a / step)) % n_buckets * step
+
+
+def to_compass(math_deg):
+    """Converte un angolo 'matematico' (atan2(dy,dx), 0=Est, antiorario) in
+    bearing 'compass' (0=Nord, orario) — stessa convenzione della funzione
+    bearing() lat/lon usata in build_problems.py/webapp/app.py, cosi' i
+    bucket direzionali SUMO e PDDL sono confrontabili. Assume che il net.xml
+    sia proiettato con x=est, y=nord in metri (proiezione di default di
+    netconvert per l'import da OSM, es. UTM)."""
+    if math_deg is None:
+        return None
+    return (90.0 - math_deg) % 360.0
+
+
 def dir_label(angle):
     """Classifica l'angolo di svolta in dritto/sinistra/destra/inversione.
     Convenzione SUMO: y cresce verso l'alto, angolo positivo = antiorario =
@@ -202,7 +227,19 @@ def uniform_delay(red_real, cycle_real):
     return round(red_real * red_real / (2.0 * cycle_real), 2)
 
 
-def extract_traffic_lights(net, real_cycle=REAL_CYCLE_S):
+def green_phase_indices(tl, link_idx):
+    """Indici di fase (0-based) in cui il linkIndex e' verde."""
+    return [pi for pi, (_, state) in enumerate(tl["phases"])
+            if link_idx < len(state) and state[link_idx] in GREEN_CHARS]
+
+
+def extract_traffic_lights(net, turns_by_link=None, real_cycle=REAL_CYCLE_S):
+    """turns_by_link: {(tl_id, linkIndex): turn_dict} da extract_turns(),
+    usato per arricchire ogni movimento con bearing/dir_label geometrici
+    (necessari a build_problems.py per associare signal-delay alle triple
+    PDDL (prev,from,to) — vedi 2_traffic_signal_optimization.md, sez. 3.1)."""
+    if turns_by_link is None:
+        turns_by_link = {}
     out = {}
     # mappa (from,to,fromLane) -> connection con tl, per etichettare i link
     conn_by_link = defaultdict(dict)  # tl_id -> {linkIndex: conn}
@@ -224,8 +261,12 @@ def extract_traffic_lights(net, real_cycle=REAL_CYCLE_S):
             d = uniform_delay(red_real, real_cycle)
             delays.append(d)
             c = conn_by_link[tid].get(idx, {})
+            t = turns_by_link.get((tid, idx), {})
+            phase_idxs = green_phase_indices(tl, idx)
             per_move.append({
                 "linkIndex": idx,
+                "phase_idx": phase_idxs[0] if phase_idxs else None,
+                "green_phase_idxs": phase_idxs,
                 "from": c.get("from"),
                 "to": c.get("to"),
                 "dir": c.get("dir"),
@@ -233,9 +274,13 @@ def extract_traffic_lights(net, real_cycle=REAL_CYCLE_S):
                 "green_real_s": round(real_cycle * green_frac, 1),
                 "red_real_s": round(red_real, 1),
                 "delay_s": d,
+                "bearing_in_bucket": t.get("compass_in_bucket"),
+                "bearing_out_bucket": t.get("compass_out_bucket"),
+                "dir_label": t.get("geo_dir_label"),
             })
 
         # ritardo rappresentativo del NODO = media sui movimenti controllati
+        # (mantenuto per retro-compatibilita' col punto 1: node_signal_delay)
         signal_delay = round(sum(delays) / len(delays), 2) if delays else 0.0
 
         out[tid] = {
@@ -292,6 +337,9 @@ def extract_turns(net, turn_rate=TURN_RATE_DPS):
         # incrocio = junction di arrivo dell'edge 'from'
         junc = net["edge_info"].get(c["from"], {}).get("to")
 
+        compass_in = to_compass(h_in)
+        compass_out = to_compass(h_out)
+
         turns.append({
             "junction": junc,
             "from": c["from"],
@@ -304,6 +352,12 @@ def extract_turns(net, turn_rate=TURN_RATE_DPS):
             "angle_deg": round(angle, 1),
             "geo_dir_label": dir_label(angle),
             "turn_time_s": turn_time,
+            # bearing assoluti (compass, 0=Nord orario) e relativo bucket a
+            # 8 settori — usati per il match con le triple PDDL (prev,from,to)
+            "compass_in": round(compass_in, 1) if compass_in is not None else None,
+            "compass_out": round(compass_out, 1) if compass_out is not None else None,
+            "compass_in_bucket": bearing_bucket(compass_in),
+            "compass_out_bucket": bearing_bucket(compass_out),
         })
     return turns
 
@@ -385,8 +439,12 @@ def summarize(zone, tl_data, turns):
 # ---------------------------------------------------------------------------
 def process(zone, net_path, out_dir):
     net = load_net(net_path)
-    tl_data = extract_traffic_lights(net)
     turns = extract_turns(net)
+    turns_by_link = {
+        (t["tl"], t["linkIndex"]): t
+        for t in turns if t["tl"] is not None and t["linkIndex"] is not None
+    }
+    tl_data = extract_traffic_lights(net, turns_by_link)
 
     result = {
         "zone": zone,
