@@ -206,10 +206,30 @@ progetto) su tutti i 577 semafori delle tre reti.
 
 ## Confronto in simulazione: baseline vs ottimizzato (`compare_sumo.py`)
 
-L'ottimizzazione del punto 2 stima il guadagno con la formula analitica di
-Webster **dentro** PDDL+. `compare_sumo.py` lo verifica in modo indipendente
-misurandolo in **simulazione**, dove SUMO riproduce code, accelerazioni e fasi
-reali dei semafori.
+### A cosa serve
+
+L'ottimizzazione semaforica calcola le nuove durate di verde con una **formula
+matematica** (il ritardo uniforme di Webster) applicata dentro PDDL+. Quella
+formula *prevede* un guadagno, ma si basa su ipotesi semplificate: tratta ogni
+incrocio come **isolato**, con arrivi casuali, senza code che si accumulano e
+senza interferenza fra semafori vicini.
+
+`compare_sumo.py` serve a **verificare quella previsione sul campo**: mette
+davvero ~45 veicoli in circolazione dentro il simulatore e misura quanto tempo
+impiegano, prima e dopo. È la differenza fra *affermare* che l'ottimizzazione
+funziona e *dimostrarlo* con una misura indipendente dal modello usato per
+ottimizzare.
+
+Il controllo non è formale: ha effettivamente smentito la previsione su una
+delle tre zone (vedi `grande` più sotto), dove il piano stimato migliore del
+30% risulta invece peggiore del 10%. Senza questa verifica il progetto avrebbe
+riportato un guadagno che nella realtà simulata non si verifica.
+
+### Come funziona
+
+SUMO riproduce il traffico microscopicamente — code, accelerazioni, frenate e
+fasi reali verde/giallo/rosso — quindi cattura proprio gli effetti che la
+formula analitica ignora.
 
 ### Disegno dell'esperimento
 
@@ -313,6 +333,27 @@ Il sistema include un'interfaccia web sviluppata con **Flask** e **Leaflet.js** 
 Il problema PDDL+ generato dalla webapp viene salvato automaticamente come `pddl_files/problem_custom.pddl` ad ogni risoluzione, consentendo di riesaminarlo o di avviarne la visualizzazione SUMO da riga di comando.
 
 La webapp usa lo **stesso modello** della generazione da riga di comando: emette i fatti `turn-time`, l'init `prev` e i `signal-delay` realistici (mappa unita dei ritardi SUMO delle tre zone; per un incrocio non presente nei dati SUMO usa il valore realistico di default di un incrocio a 2 fasi, ~17 s). Il parser del piano gestisce l'azione `start-move` a tre argomenti per ricostruire il percorso da passare a SUMO.
+
+### I controlli SUMO nell'interfaccia
+
+Dopo che ENHSP ha trovato la soluzione compaiono tre controlli, che fanno cose
+diverse fra loro:
+
+| Controllo | Cosa fa | Cosa ottieni |
+|---|---|---|
+| **▶ Apri in SUMO (semafori ottimizzati)** | apre sumo-gui con **il tuo percorso** e i semafori ottimizzati | una verifica **visiva**: guardi la tua auto percorrere la strada |
+| **▶ Apri in SUMO (semafori originali)** | idem, ma con i semafori di default del `net.xml` | il confronto a occhio: aprendo prima uno e poi l'altro si vede se l'auto si ferma di più o di meno ai rossi |
+| **Confronto in SUMO** (selettore zona + *Confronta*) | simula **l'intera zona** con ~45 veicoli, due volte (originali e ottimizzati) | una tabella con i **numeri**: tempo di viaggio, attesa ai semafori e tempo perso, con la variazione percentuale |
+
+La distinzione importante: i due pulsanti mostrano **una singola corsa** (la
+tua), mentre il pannello di confronto misura la qualità del **piano semaforico
+della zona** su una flotta di veicoli — per questo ha un selettore di zona e
+non usa il percorso che hai disegnato. Il calcolo richiede qualche secondo,
+perché esegue due simulazioni complete.
+
+Nella tabella il verde indica un miglioramento e il rosso un peggioramento:
+sulla zona `grande` il risultato è **rosso**, e non è un errore — vedi la
+spiegazione nella sezione sul confronto in simulazione.
 
 ---
 

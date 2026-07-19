@@ -507,6 +507,27 @@ il ritardo uniforme di Webster *dentro* PDDL+, qui il guadagno e' **misurato**
 da SUMO in simulazione microscopica: e' quindi una verifica indipendente dal
 modello usato per ottimizzare.
 
+### 10.0 A cosa serve questo confronto
+
+Il punto 2 produce una **previsione**: applicando la formula di Webster alle
+nuove durate di verde, stima un guadagno. Ma quella formula poggia su ipotesi
+forti — incrocio **isolato**, arrivi casuali, nessuna coda che si propaga,
+nessuna interferenza fra semafori adiacenti. Sono ipotesi ragionevoli per un
+incrocio singolo, non necessariamente valide per una rete urbana reale.
+
+Il punto 4 serve quindi a **falsificare o confermare quella previsione con una
+misura indipendente**: si mette davvero una flotta di veicoli in circolazione
+nel simulatore e si cronometra il risultato. La differenza metodologica e'
+sostanziale, perche' la metrica non proviene piu' dallo stesso modello che ha
+prodotto l'ottimizzazione — non c'e' circolarita' fra criterio di
+ottimizzazione e criterio di valutazione.
+
+Il controllo non e' stato una formalita': su `grande` ha **smentito** la
+previsione (stima -30.5%, misura +10.1%, sez. 10.3). Senza questa verifica il
+progetto avrebbe riportato come acquisito un guadagno che in simulazione non
+si verifica, e la causa (ipotesi di Webster non valide sotto congestione)
+sarebbe rimasta invisibile.
+
 ### 10.1 Disegno dell'esperimento
 
 Due simulazioni per zona, identiche in tutto tranne il programma semaforico:
