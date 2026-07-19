@@ -302,3 +302,333 @@ commit di riferimento resti raggiungibile in `git log`.
 - Le coppie non risolte da ENHSP (sez. 5) sono escluse dalle medie: la
   zona "grande" e' quindi rappresentata da un sotto-campione leggermente
   piu' piccolo (15/20) di quello nominale.
+
+---
+
+## 9. Punto 3 — iniezione del piano semaforico in SUMO
+
+Il confronto delle sezioni precedenti si chiude sul lato PDDL+. Il passo
+successivo della roadmap (punto 3) porta il risultato dell'ottimizzazione
+del punto 2 dentro il simulatore, chiudendo il ciclo PDDL+ -> SUMO.
+Implementato in **`inject_signal_plan.py`**.
+
+### 9.1 Cosa fa
+
+```
+net_files/<zona>.net.xml                 (tlLogic originali: stati, offset, type)
+sumo_extracted/signal_plan_<zona>.json   (durate ottimizzate, output punto 2)
+                 |
+                 v
+cfg_files/tls_<zona>.add.xml             (<additional> con i tlLogic ottimizzati)
+```
+
+Lo script legge il piano nel formato gia' prodotto dal punto 2
+(`{tlLogic_id: {phase_idx: durata_s}}`) e riscrive i `tlLogic` conservando
+dal `net.xml` **tutti** gli attributi originali di ogni fase (`state`,
+`minDur`, `maxDur`, `name`, ...), l'`offset` e il `type` del semaforo:
+viene sovrascritta **solo** la `duration` delle fasi presenti nel piano.
+Le fasi non ottimizzate mantengono quindi la durata originale, coerentemente
+con quanto dichiarato nel campo `format` del file di piano.
+
+### 9.2 Come il programma diventa attivo
+
+Dalla documentazione SUMO (*Simulation/Traffic Lights*, sez. "Defining New
+TLS-Programs"): *"You can load new definitions for traffic lights as a part
+of an additional-file. **When loaded, the last program will be used**"*.
+Non servono quindi ne' WAUT ne' TraCI. I due vincoli imposti dalla stessa
+documentazione sono rispettati dallo script:
+
+- l'`id` del `tlLogic` deve essere un semaforo gia' esistente nel `.net.xml`
+  (gli id del piano non presenti nella rete vengono ignorati con warning);
+- il `programID` deve essere **nuovo** per quel semaforo: si usa
+  `optimized`, distinto dall'originale `0` (`off` e' riservato).
+
+Poiche' il programma originale `0` resta comunque caricato, in `sumo-gui` e'
+possibile passare da un programma all'altro con **tasto destro sul semaforo
+-> Switch TLS program**: baseline e ottimizzato sono confrontabili a occhio
+nella stessa simulazione, senza rigenerare nulla.
+
+### 9.3 Integrazione nella pipeline esistente
+
+`sumo_visualize.py` ricava la zona dal `net.xml` realmente usato (quindi
+funziona anche in modalita' dinamica, dove la rete puo' differire da quella
+richiesta) e aggiunge automaticamente al `.sumocfg`:
+
+```xml
+<additional-files value=".../cfg_files/tls_<zona>.add.xml"/>
+```
+
+**solo se il file esiste**: in assenza del piano la simulazione parte
+esattamente come prima, con i semafori del `net.xml` (nessuna regressione).
+E' stato aggiunto il flag `--baseline` per forzare i semafori originali anche
+quando l'additional-file e' presente.
+
+La **webapp** non ha richiesto modifiche all'endpoint `/api/sumo`: avvia SUMO
+attraverso lo stesso `sumo_visualize.py`, quindi eredita l'iniezione. Verifica
+effettuata generando un problema custom dalla webapp e controllando il
+`.sumocfg` prodotto, che carica correttamente il `tls_<zona>.add.xml`
+corrispondente alla rete realmente usata.
+
+### 9.3.1 Correzione del mapping nodo PDDL -> junction SUMO
+
+Il test del flusso webapp su zone diverse da `piccola` ha fatto emergere un
+bug **preesistente** (indipendente dall'iniezione semaforica) che impediva
+del tutto l'avvio di SUMO: la visualizzazione falliva con
+
+```
+[ERRORE] Junction per 'n9100868' o 'n2842641' non trovata in nessuna net.
+```
+
+Causa: `compute_edges_from_pddl` accettava una rete solo se **sia** lo start
+**sia** il goal esistevano come junction SUMO con quell'id. Ma `netconvert`
+semplifica la rete in modo diverso da come `build_problems.py` costruisce il
+grafo contratto, quindi un nodo PDDL puo' legittimamente non esistere come
+junction pur essendo la rete quella corretta (verificato: il nodo OSM
+`9100868` non e' presente in `media.net.xml`, ne' isolato ne' dentro un
+cluster). Lo stesso errore si riproduceva con il `problem_custom.pddl` gia'
+committato nel repository, a conferma che il difetto precede questo lavoro.
+
+Correzione applicata in `sumo_visualize.py`, su due livelli:
+
+1. **`pddl_name_to_junction`** prova ora anche il match sui **membri dei
+   cluster**: netconvert fonde piu' nodi OSM vicini in una junction
+   `cluster_<id1>_<id2>_...`, e senza questo passo un nodo fuso risultava
+   "non trovato" pur essendo presente nella rete.
+2. **Selezione della rete e ripiego su start/goal**: invece di pretendere il
+   match esatto di start e goal, si sceglie la rete che mappa **piu' nodi**
+   del problema (start, goal e nodi del piano); se start o goal non sono
+   mappabili, si usano il primo e l'ultimo nodo **mappabile del piano ENHSP**.
+   Il messaggio di errore residuo, nel caso limite in cui non esista alcun
+   piano di ripiego, indica esplicitamente come procedere.
+
+Verifica sul flusso webapp per la zona `media` (problema custom risolto da
+ENHSP, 19 nodi di piano):
+
+```
+(uso net: media.net.xml)
+(start 'n9100868' non e' una junction SUMO: uso 9100869, primo nodo mappabile del piano)
+START: n9100868 -> 9100869
+GOAL : n2842641 -> 8752842641
+(percorso SUMO = piano ENHSP, 19 nodi)
+```
+
+Il nodo di ripiego (`9100869`) e' adiacente a quello richiesto, quindi lo
+scostamento geografico e' trascurabile. Il `.sumocfg` prodotto carica
+`tls_media.add.xml`, cioe' i semafori ottimizzati della rete effettivamente
+selezionata: la scelta della rete e quella del programma semaforico restano
+coerenti anche quando la zona passata da riga di comando non corrisponde
+(la webapp passa sempre `piccola`).
+
+Regressioni verificate dopo la modifica: `sumo_visualize.py piccola`,
+`media`, `grande` in modalita' standard caricano ciascuno il proprio
+`tls_<zona>.add.xml`, e `--baseline` continua a non caricare alcun
+additional-file.
+
+### 9.4 Verifica sui file generati (tutte e tre le zone)
+
+Controllo automatico di ogni `add.xml` contro il `net.xml` di origine:
+
+| Controllo | piccola | media | grande |
+|---|---|---|---|
+| XML ben formato, root `<additional>` | ok | ok | ok |
+| `tlLogic` scritti / semafori della rete | 27 / 27 | 97 / 97 | 453 / 453 |
+| fasi con durata modificata | 96 | 399 | 1745 |
+| `programID` diverso dall'originale | ok | ok | ok |
+| numero di fasi invariato per semaforo | ok | ok | ok |
+| `state` di ogni fase identico all'originale | ok | ok | ok |
+| durate nulle o negative | nessuna | nessuna | nessuna |
+| ciclo semaforico | 90 -> **120 s** | 90 -> **120 s** | 90 -> **120 s** |
+
+Nessun errore rilevato su nessuna delle tre zone. Il ciclo risultante coincide
+con i 120 s realistici del sistema SCATS di Dublino gia' assunti nel modello
+PDDL+ (`REAL_CYCLE_S` in `extract_sumo_data.py`): l'ottimizzatore
+redistribuisce il verde **entro** il ciclo realistico, senza allungarlo
+arbitrariamente — proprieta' che vale su tutti i 577 semafori delle tre reti.
+
+### 9.5 Guadagno stimato dall'ottimizzazione (punto 2)
+
+Valori riportati dal report di `optimize.py`, su campione O-D condiviso di 60
+coppie per zona (`total-time` medio PDDL+, baseline vs piano ottimizzato):
+
+| Zona | Semafori candidati | Migliorati | Baseline | Ottimizzato | Δ | Δ% |
+|---|---:|---:|---:|---:|---:|---:|
+| piccola | 1 | 1 | 16.45 s | 10.33 s | -6.11 s | **-37.2%** |
+| media | 4 | 3 | 72.04 s | 47.07 s | -24.98 s | **-34.7%** |
+| grande | 16 | 16 | 97.80 s | 67.94 s | -29.86 s | **-30.5%** |
+
+Da notare che i semafori *candidati* sono molti meno di quelli presenti in
+rete (1, 4 e 16 contro 27, 97 e 453): la ricerca agisce solo sulle giunzioni
+effettivamente attraversate dal campione O-D, mentre le altre restano alla
+temporizzazione baseline. Il piano iniettato in SUMO contiene comunque
+**tutti** i semafori della rete, cosi' il programma `optimized` e' completo e
+autoconsistente.
+
+Tempi di calcolo dell'ottimizzazione: 27.9 s (piccola), 234.4 s (media),
+1145.0 s (grande) — la crescita e' dovuta al numero di giunzioni candidate
+valutate con ENHSP.
+
+### 9.6 Stato per zona
+
+| Zona | `signal_plan_<zona>.json` | `tls_<zona>.add.xml` |
+|---|---|---|
+| piccola | presente | **generato e verificato** |
+| media | presente | **generato e verificato** |
+| grande | presente | **generato e verificato** |
+
+Pipeline completa riproducibile con:
+
+```bash
+python -m signal_optimization.optimize piccola media grande
+python inject_signal_plan.py
+python sumo_visualize.py piccola        # oppure media, grande
+```
+
+Se un piano manca, `inject_signal_plan.py` lo segnala indicando il comando da
+eseguire, senza fallire.
+
+### 9.7 Nota di collegamento con le sezioni 4 e 6 (vedi ora anche sez. 10)
+
+La sez. 4 osserva che, nel campione testato, il ricalcolo del ritardo
+semaforico per movimento cambia la **stima di costo** ma non il **percorso
+scelto**. L'iniezione in SUMO fornisce il banco di prova indipendente per
+questa osservazione: la simulazione microscopica applica le fasi reali
+(verde/giallo/rosso con code e accelerazioni) invece del modello analitico di
+Webster usato nel PDDL+, e permette quindi di verificare se il guadagno
+stimato dal punto 2 (`baseline mean total-time = 16.45 s -> ottimizzato =
+10.33 s` per la zona piccola) si conferma anche in simulazione — misura che
+rientra nel punto 4, ora svolta e riportata nella sezione seguente.
+
+---
+
+## 10. Punto 4 — confronto in SUMO contro la baseline
+
+Implementato in **`compare_sumo.py`**. Mentre il punto 2 stima il guadagno con
+il ritardo uniforme di Webster *dentro* PDDL+, qui il guadagno e' **misurato**
+da SUMO in simulazione microscopica: e' quindi una verifica indipendente dal
+modello usato per ottimizzare.
+
+### 10.1 Disegno dell'esperimento
+
+Due simulazioni per zona, identiche in tutto tranne il programma semaforico:
+
+| | Programma semaforico |
+|---|---|
+| BASELINE | programma `0` del `net.xml` (quello generato da netconvert) |
+| OTTIMIZZATO | programma `optimized` da `cfg_files/tls_<zona>.add.xml` (punto 3) |
+
+Accorgimenti per la validita' del confronto:
+
+- **stessa domanda**: coppie O-D di `sumo_extracted/demand_<zona>.json`, lo
+  stesso campione condiviso con il punto 2;
+- **stesse rotte**: gli itinerari sono calcolati UNA volta con Dijkstra e
+  riusati identici nei due run. Lasciando ricalcolare il percorso a SUMO i
+  veicoli potrebbero scegliere strade diverse fra i due scenari, e il confronto
+  misurerebbe due effetti sovrapposti invece del solo effetto semaforico;
+- **stesso seed e stessi istanti di partenza** (partenze scaglionate ogni 3 s,
+  per evitare un ingorgo artificiale all'istante 0);
+- **teletrasporti disattivati** (`--time-to-teleport -1`): un veicolo bloccato
+  resta in coda invece di essere rimosso dalla simulazione, altrimenti proprio
+  i casi peggiori sparirebbero dalle statistiche e le attese risulterebbero
+  artificialmente piu' basse.
+
+Metriche lette dal `tripinfo-output`: `duration` (tempo di viaggio porta a
+porta), `waitingTime` (tempo a velocita' ~0, la metrica piu' direttamente
+legata ai semafori) e `timeLoss` (ritardo rispetto alla marcia ideale).
+
+### 10.2 Risultati
+
+| Zona | Veicoli | Metrica | Baseline | Ottimizzato | Δ% |
+|---|---:|---|---:|---:|---:|
+| **piccola** | 46 | tempo di viaggio medio (s) | 32.7 | 30.6 | **-6.6%** |
+| | | attesa media ai semafori (s) | 3.2 | 1.0 | **-68.5%** |
+| | | tempo perso medio (s) | 6.0 | 3.8 | **-36.5%** |
+| **media** | 45 | tempo di viaggio medio (s) | 139.7 | 127.8 | **-8.5%** |
+| | | attesa media ai semafori (s) | 44.5 | 34.2 | **-23.1%** |
+| | | tempo perso medio (s) | 53.4 | 41.5 | **-22.3%** |
+| **grande** | 43 | tempo di viaggio medio (s) | 270.7 | 277.3 | **+2.4%** |
+| | | attesa media ai semafori (s) | 99.1 | 109.1 | **+10.1%** |
+| | | tempo perso medio (s) | 117.8 | 124.4 | **+5.6%** |
+
+In tutti gli scenari il numero di veicoli arrivati a destinazione e' identico
+fra baseline e ottimizzato (46/46, 45/45, 43/43): le differenze riguardano il
+tempo impiegato, non la quota di viaggi completati.
+
+### 10.3 Il caso "grande": l'ottimizzazione peggiora le prestazioni
+
+Su `piccola` e `media` la simulazione conferma la direzione prevista dal punto
+2. Su `grande` no: il piano che PDDL+ stimava migliore del 30.5% risulta
+**peggiore del 10.1%** sull'attesa ai semafori. Il risultato e' riportato come
+tale perche' e' informativo, e la spiegazione sta nelle ipotesi del modello
+analitico.
+
+Il ritardo uniforme di Webster descrive un incrocio **isolato** con arrivi
+casuali. In una rete densa questa ipotesi cade per tre motivi concomitanti:
+
+1. **propagazione delle code (spillback)**: dare piu' verde a un movimento
+   scarica piu' veicoli sull'incrocio successivo, che non e' stato
+   ricalibrato e puo' andare in saturazione;
+2. **offset non ottimizzati**: il punto 2 calcola la penalita' di progressione
+   ma non la usa come obiettivo (sez. 3.5 del design doc). Cambiare le durate
+   di verde senza correggere gli sfasamenti puo' rompere le onde verdi
+   implicite nella temporizzazione di partenza;
+3. **ottimizzazione parziale**: su `grande` sono stati ottimizzati 16 semafori
+   su 453 (solo quelli attraversati dal campione O-D), che quindi interagiscono
+   con centinaia di vicini rimasti alla taratura originale.
+
+**Prova a sostegno.** Ripetendo il confronto su `grande` con traffico piu'
+leggero (11 veicoli invece di 43) il segno si inverte e l'ottimizzato torna
+leggermente migliore (**-1.4%** di attesa, -2.2% di tempo perso). Il degrado
+compare quindi **sotto congestione**, cioe' esattamente dove le ipotesi di
+Webster sono meno valide: e' un effetto di interazione fra incroci, non un
+errore nel piano in se'.
+
+**Indicazione operativa.** Su reti dense l'ottimizzazione andrebbe estesa agli
+offset (coordinamento fra incroci) e valutata direttamente in simulazione,
+usando SUMO come funzione obiettivo invece che come sola verifica finale. Il
+risultato su `grande` misura quindi il limite del modello analitico, non
+l'inutilita' dell'ottimizzazione: dove le ipotesi reggono (`piccola`, `media`)
+il guadagno e' reale e consistente.
+
+### 10.4 Coerenza con la stima del punto 2
+
+| Zona | Stima PDDL+ (Webster) | Misura SUMO (attesa) | Concorde? |
+|---|---:|---:|---|
+| piccola | -37.2% | -68.5% | si', anzi sottostimata |
+| media | -34.7% | -23.1% | si', ordine di grandezza simile |
+| grande | -30.5% | +10.1% | **no** |
+
+Le due misure non sono direttamente confrontabili come valori assoluti (la
+prima e' il `total-time` di un piano PDDL+, la seconda il tempo di attesa
+simulato di una flotta), ma il **segno** e' l'informazione rilevante: concorde
+su due zone su tre.
+
+### 10.5 Integrazione nella webapp
+
+- `/api/sumo` accetta ora `variant`: `optimized` (default, carica
+  `tls_<zona>.add.xml`) oppure `baseline` (aggiunge `--baseline` a
+  `sumo_visualize.py`). L'interfaccia espone due pulsanti "Apri in SUMO",
+  che funzionano esattamente come quello precedente.
+- `/api/compare_sumo` esegue il confronto sulla zona scelta e restituisce le
+  metriche, mostrate in tabella con evidenziazione verde/rossa.
+
+Verifica effettuata avviando Flask: `/api/compare_sumo` sulla zona `piccola`
+restituisce gli stessi valori della riga di comando (attesa 3.17 -> 1.0 s,
+-68.5%), e `/api/sumo` produce un `.sumocfg` **con** l'`additional-files` per
+`optimized` e **senza** per `baseline`.
+
+### 10.6 Riproducibilita' e limiti
+
+```bash
+python compare_sumo.py                  # tutte le zone (risultati cumulativi)
+python compare_sumo.py grande --max-vehicles 15
+```
+
+Limiti da tenere presenti:
+
+- il campione e' di ~45 veicoli per zona (le coppie O-D non instradabili sulla
+  rete SUMO vengono scartate: 14, 15 e 17 rispettivamente su 60);
+- si simula un solo livello di domanda per zona, senza repliche con seed
+  diversi: sufficiente a rilevare segno ed entita' dell'effetto, non a
+  stimarne l'intervallo di confidenza;
+- le rotte sono fissate a priori: non si modella la ri-scelta del percorso da
+  parte dei conducenti in risposta alla nuova temporizzazione.

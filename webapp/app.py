@@ -1,4 +1,5 @@
 import os
+import sys
 import math
 import re
 import json
@@ -874,6 +875,16 @@ def solve():
 
 @app.route('/api/sumo', methods=['POST'])
 def launch_sumo():
+    """Apre il percorso in sumo-gui.
+
+    variant = 'optimized' (default) -> semafori ottimizzati (punto 3), cioe'
+                                       carica cfg_files/tls_<zona>.add.xml
+    variant = 'baseline'            -> semafori originali del net.xml
+    In entrambi i casi si usa lo stesso sumo_visualize.py di sempre: cambia
+    solo il flag --baseline."""
+    data    = request.get_json(silent=True) or {}
+    variant = data.get('variant', 'optimized')
+
     base   = os.path.dirname(os.path.abspath(__file__))
     script = os.path.join(base, '..', 'sumo_visualize.py')
     pddl   = os.path.join(base, '..', 'pddl_files', 'problem_custom.pddl')
@@ -883,14 +894,67 @@ def launch_sumo():
     if not os.path.exists(pddl):
         return jsonify({'error': 'problem_custom.pddl non trovato'}), 400
 
+    cmd = [sys.executable or 'python', os.path.abspath(script),
+           'pddl', os.path.abspath(pddl), 'piccola']
+    if variant == 'baseline':
+        cmd.append('--baseline')
+
     try:
-        subprocess.Popen(
-            ['python', os.path.abspath(script), 'pddl', os.path.abspath(pddl), 'piccola'],
-            cwd=os.path.dirname(os.path.abspath(script))
-        )
-        return jsonify({'success': True})
+        subprocess.Popen(cmd, cwd=os.path.dirname(os.path.abspath(script)))
+        return jsonify({'success': True, 'variant': variant})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/compare_sumo', methods=['POST'])
+def compare_sumo_api():
+    """PUNTO 4 — esegue in SUMO il confronto baseline vs semafori ottimizzati
+    per la zona scelta e restituisce le metriche misurate.
+
+    Il confronto usa il campione O-D condiviso della zona
+    (sumo_extracted/demand_<zona>.json), non il singolo percorso disegnato
+    dall'utente: misura la qualita' del PIANO SEMAFORICO, non di una singola
+    corsa."""
+    data = request.get_json(silent=True) or {}
+    zone = data.get('zone', 'piccola')
+    if zone not in ('piccola', 'media', 'grande'):
+        return jsonify({'error': f'zona non valida: {zone}'}), 400
+
+    root   = os.path.abspath(PROJECT_ROOT)
+    script = os.path.join(root, 'compare_sumo.py')
+    if not os.path.exists(script):
+        return jsonify({'error': 'compare_sumo.py non trovato'}), 400
+
+    add_file = os.path.join(root, 'cfg_files', f'tls_{zone}.add.xml')
+    if not os.path.exists(add_file):
+        return jsonify({'error': f"Semafori ottimizzati mancanti per '{zone}'. "
+                                 f"Esegui: python inject_signal_plan.py {zone}"}), 400
+
+    try:
+        r = subprocess.run([sys.executable or 'python', script, zone],
+                           capture_output=True, text=True, timeout=1800, cwd=root)
+    except subprocess.TimeoutExpired:
+        return jsonify({'error': 'Confronto SUMO oltre il timeout (30 min)'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    res_path = os.path.join(root, 'sumo_comparison', 'results.json')
+    if not os.path.exists(res_path):
+        return jsonify({'error': 'Nessun risultato prodotto',
+                        'log': (r.stdout + r.stderr)[-800:]}), 500
+    try:
+        with open(res_path, encoding='utf-8') as f:
+            all_res = json.load(f)
+    except Exception as e:
+        return jsonify({'error': f'results.json illeggibile: {e}'}), 500
+
+    entry = next((x for x in all_res if x.get('zone') == zone), None)
+    if not entry:
+        return jsonify({'error': f"Nessun risultato per la zona '{zone}'",
+                        'log': (r.stdout + r.stderr)[-800:]}), 500
+
+    return jsonify({'success': True, 'zone': zone, 'result': entry,
+                    'log': (r.stdout or '')[-1500:]})
 
 
 if __name__ == '__main__':

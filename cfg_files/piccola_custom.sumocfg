@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <input>
-        <net-file value="/Users/pierluigi/Documents/Università/PDDL/urban-route-planning-via-pddl-plus/net_files/piccola.net.xml"/>
-        <route-files value="/Users/pierluigi/Documents/Università/PDDL/urban-route-planning-via-pddl-plus/cfg_files/piccola_custom_piano.rou.xml"/>
-        <gui-settings-file value="/Users/pierluigi/Documents/Università/PDDL/urban-route-planning-via-pddl-plus/cfg_files/gui_piccola_custom.xml"/>
+        <net-file value="C:\Users\ecole\Desktop\progetto_pddl\net_files\piccola.net.xml"/>
+        <route-files value="C:\Users\ecole\Desktop\progetto_pddl\cfg_files\piccola_custom_piano.rou.xml"/>
+        <gui-settings-file value="C:\Users\ecole\Desktop\progetto_pddl\cfg_files\gui_piccola_custom.xml"/>
+        <additional-files value="C:\Users\ecole\Desktop\progetto_pddl\cfg_files\tls_piccola.add.xml"/>
     </input>
     <time>
         <begin value="0"/>

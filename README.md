@@ -114,6 +114,156 @@ Esempi: svolta a 90° → 90/20 = **4,5 s**; inversione a U (180°) → **9 s**;
 
 ---
 
+## Iniezione del piano semaforico in SUMO (`inject_signal_plan.py`)
+
+L'ottimizzazione semaforica (`signal_optimization/optimize.py`) produce
+`sumo_extracted/signal_plan_<zona>.json` nel formato
+`{tlLogic_id: {phase_idx: durata_s}}`. Lo script **`inject_signal_plan.py`**
+traduce questo piano in un *additional-file* SUMO, chiudendo il ciclo
+PDDL+ → SUMO:
+
+```
+net_files/<zona>.net.xml                 (tlLogic originali: stati, offset, type)
+sumo_extracted/signal_plan_<zona>.json   (durate ottimizzate)
+                 |
+                 v
+cfg_files/tls_<zona>.add.xml             (<additional> con i tlLogic ottimizzati)
+```
+
+Lo script conserva dal `net.xml` le stringhe di stato (`GGrrrr`…), l'`offset`
+e il `type` di ogni semaforo, e sovrascrive **solo** le durate delle fasi
+presenti nel piano: le fasi non ottimizzate mantengono la durata originale.
+
+### Perché il programma diventa attivo
+
+Dalla documentazione SUMO (*Simulation/Traffic Lights → Defining New
+TLS-Programs*): *"You can load new definitions for traffic lights as a part of
+an additional-file. **When loaded, the last program will be used**"*. Non
+servono quindi né WAUT né TraCI. I due vincoli imposti dalla doc sono
+rispettati dallo script:
+
+- l'`id` del `tlLogic` è un semaforo già esistente nel `.net.xml`;
+- il `programID` è **nuovo** (`optimized`), diverso da quello originale `0`
+  (`off` è riservato).
+
+Siccome il programma originale `0` resta comunque caricato, in sumo-gui si può
+passare da un programma all'altro col **tasto destro sul semaforo → Switch TLS
+program**, confrontando a occhio baseline e ottimizzato nella stessa
+simulazione.
+
+### Uso
+
+```bash
+# 1. genera il piano ottimizzato (punto 2) — calcolo pesante, alcuni minuti
+python -m signal_optimization.optimize piccola media grande
+
+# 2. traduci il piano in additional-file SUMO (punto 3)
+python inject_signal_plan.py                 # tutte le zone disponibili
+python inject_signal_plan.py piccola         # una sola zona
+
+# 3. visualizza: i semafori ottimizzati sono caricati automaticamente
+python sumo_visualize.py piccola
+python sumo_visualize.py piccola --baseline  # forza i semafori originali
+```
+
+`sumo_visualize.py` aggiunge da solo la riga
+`<additional-files value=".../tls_<zona>.add.xml"/>` al `.sumocfg` **se il file
+esiste**; se manca, la simulazione parte come prima con i semafori del
+`net.xml`. La zona viene ricavata dalla rete realmente usata, non da quella
+passata da riga di comando: la webapp avvia SUMO attraverso lo stesso script
+passando sempre `piccola`, ma se il problema custom appartiene a un'altra zona
+vengono caricati correttamente la rete e i semafori di quella zona.
+
+### Mapping dei nodi PDDL sulle junction SUMO
+
+I nomi dei nodi PDDL (`n9100868`) vanno ricondotti agli id delle *junction*
+SUMO. La corrispondenza non è sempre diretta, perché `netconvert` semplifica la
+rete in modo diverso da come `build_problems.py` costruisce il grafo contratto.
+`pddl_name_to_junction` prova quindi, in ordine: id esatto → junction il cui id
+termina con quel suffisso (i nomi PDDL conservano solo le ultime 7 cifre) →
+junction **cluster** che contiene quell'id fra i propri membri (netconvert
+fonde nodi vicini in `cluster_<id1>_<id2>_...`).
+
+Se nemmeno così start o goal risultano mappabili, la rete viene scelta come
+quella che mappa **più nodi** del problema, e come start/goal si usano il primo
+e l'ultimo nodo mappabile del piano ENHSP. Senza questo ripiego la
+visualizzazione falliva del tutto per i problemi custom delle zone media e
+grande.
+
+Verifica automatica sui file generati, **nessun errore su nessuna zona**:
+stati di fase identici all'originale, numero di fasi invariato, `programID`
+sempre nuovo, nessuna durata nulla o negativa, e ciclo che passa da 90 s
+(default netconvert) a 120 s (valore realistico SCATS usato in tutto il
+progetto) su tutti i 577 semafori delle tre reti.
+
+| Zona | `tlLogic` scritti | Fasi modificate | `total-time` PDDL+ baseline → ottimizzato |
+|---------|------------------:|----------------:|-------------------------------------------|
+| piccola | 27                | 96              | 16.45 s → 10.33 s (**-37.2%**)            |
+| media   | 97                | 399             | 72.04 s → 47.07 s (**-34.7%**)            |
+| grande  | 453               | 1745            | 97.80 s → 67.94 s (**-30.5%**)            |
+
+---
+
+## Confronto in simulazione: baseline vs ottimizzato (`compare_sumo.py`)
+
+L'ottimizzazione del punto 2 stima il guadagno con la formula analitica di
+Webster **dentro** PDDL+. `compare_sumo.py` lo verifica in modo indipendente
+misurandolo in **simulazione**, dove SUMO riproduce code, accelerazioni e fasi
+reali dei semafori.
+
+### Disegno dell'esperimento
+
+Per ogni zona vengono eseguite due simulazioni identiche, diverse **solo** nel
+programma semaforico (baseline = programma `0` del `net.xml`; ottimizzato =
+programma `optimized` da `tls_<zona>.add.xml`). Per rendere il confronto
+pulito:
+
+- **stessa domanda**: le coppie O-D di `sumo_extracted/demand_<zona>.json`, lo
+  stesso campione usato dal punto 2;
+- **stesse rotte**: gli itinerari sono calcolati una volta con Dijkstra e
+  riusati identici nei due run. Se si lasciasse ricalcolare il percorso a SUMO,
+  i veicoli potrebbero scegliere strade diverse e il confronto misurerebbe due
+  effetti insieme;
+- **stesso seed e stessi istanti di partenza**;
+- **teletrasporti disattivati** (`--time-to-teleport -1`): un veicolo bloccato
+  resta in coda invece di sparire, altrimenti le attese risulterebbero
+  artificialmente più basse.
+
+### Risultati misurati
+
+| Zona | Veicoli | Tempo di viaggio | Attesa ai semafori | Tempo perso |
+|---------|--------:|------------------------|------------------------|------------------------|
+| piccola | 46 | 32.7 → 30.6 s (**-6.6%**) | 3.2 → 1.0 s (**-68.5%**) | 6.0 → 3.8 s (**-36.5%**) |
+| media | 45 | 139.7 → 127.8 s (**-8.5%**) | 44.5 → 34.2 s (**-23.1%**) | 53.4 → 41.5 s (**-22.3%**) |
+| grande | 43 | 270.7 → 277.3 s (**+2.4%**) | 99.1 → 109.1 s (**+10.1%**) | 117.8 → 124.4 s (**+5.6%**) |
+
+Su **piccola** e **media** il guadagno previsto è confermato. Su **grande**
+l'ottimizzazione **peggiora** le prestazioni, pur essendo prevista in
+miglioramento dalla stima analitica: il ritardo di Webster modella ogni
+incrocio come *isolato*, ipotesi che cade in una rete densa dove le code si
+propagano fra incroci adiacenti, gli offset non vengono ricalibrati e solo una
+minoranza di semafori viene ottimizzata. A conferma, ripetendo il confronto su
+`grande` con traffico più leggero (11 veicoli invece di 43) il segno si
+inverte (-1.4% di attesa): il degrado emerge **sotto congestione**, cioè dove
+le ipotesi di Webster sono meno valide.
+
+### Uso
+
+```bash
+python compare_sumo.py                        # tutte le zone
+python compare_sumo.py piccola media grande
+python compare_sumo.py grande --max-vehicles 15
+```
+
+I risultati sono **cumulativi**: eseguire una zona alla volta non cancella
+quelle già calcolate. Output in `sumo_comparison/` (`results.json` + `report.md`,
+con una sezione di interpretazione generata automaticamente).
+
+Il confronto è disponibile anche dalla webapp, insieme ai due pulsanti per
+aprire la simulazione con i semafori ottimizzati o con quelli originali.
+
+---
+
 ## Dominio PDDL+
 
 Il dominio definisce un'azione discreta, un processo continuo e un evento automatico. Rispetto alla versione base, `start-move` conosce il **nodo di provenienza** (`?prev`) per poter addebitare il tempo di svolta, e un unico fatto `(prev ...)` tiene traccia dell'ultimo arco percorso (cancellato in `start-move`, ristabilito da `arrive`):
@@ -174,11 +324,17 @@ La webapp usa lo **stesso modello** della generazione da riga di comando: emette
 ├── setup.bat
 ├── build_problems.py          # Genera i file problem_*.pddl da OSM
 ├── extract_sumo_data.py       # Estrae semafori/settaggi/turn dai net.xml SUMO
+├── inject_signal_plan.py      # Punto 3: inietta il piano ottimizzato in SUMO
+├── compare_sumo.py            # Punto 4: confronto in simulazione baseline vs ottimizzato
 ├── download_dublin_map.py     # Scarica le mappe OSM tramite osmnx
 ├── convert_to_osm.py          # Converte OSM in net.xml tramite netconvert
 ├── sumo_visualize.py          # Visualizza il piano in sumo-gui
 ├── dublin_map.png             # Mappa di riferimento
 ├── dublin_streets.graphml     # Grafo stradale in formato GraphML
+│
+├── sumo_comparison/           # Punto 4: risultati del confronto in simulazione
+│   ├── results.json
+│   └── report.md
 │
 ├── sumo_extracted/            # Dati estratti da SUMO (generati da extract_sumo_data.py)
 │   ├── sumo_data_piccola.json
@@ -200,6 +356,7 @@ La webapp usa lo **stesso modello** della generazione da riga di comando: emette
 ├── cfg_files/                 # File di configurazione SUMO
 │   ├── {zona}.sumocfg
 │   ├── {zona}_piano.rou.xml
+│   ├── tls_{zona}.add.xml     # Semafori ottimizzati (punto 3)
 │   └── gui_{zona}.xml
 │
 ├── pddl_files/                # File PDDL+ del progetto

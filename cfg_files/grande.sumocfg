@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <input>
-        <net-file value="C:\Users\ecole\Desktop\progetto_maratea\files\net_files\grande.net.xml"/>
-        <route-files value="C:\Users\ecole\Desktop\progetto_maratea\files\cfg_files\grande_piano.rou.xml"/>
-        <gui-settings-file value="C:\Users\ecole\Desktop\progetto_maratea\files\cfg_files\gui_grande.xml"/>
+        <net-file value="C:\Users\ecole\Desktop\progetto_pddl\net_files\grande.net.xml"/>
+        <route-files value="C:\Users\ecole\Desktop\progetto_pddl\cfg_files\grande_piano.rou.xml"/>
+        <gui-settings-file value="C:\Users\ecole\Desktop\progetto_pddl\cfg_files\gui_grande.xml"/>
+        <additional-files value="C:\Users\ecole\Desktop\progetto_pddl\cfg_files\tls_grande.add.xml"/>
     </input>
     <time>
         <begin value="0"/>

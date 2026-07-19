@@ -40,11 +40,36 @@ def dijkstra(graph, start, goal):
     return list(reversed(edges))
 
 def pddl_name_to_junction(pname, junc_ids):
-    """Mappa un nome PDDL (es. n1193756) alla junction SUMO corrispondente."""
+    """Mappa un nome PDDL (es. n1193756) alla junction SUMO corrispondente.
+
+    Tre tentativi, dal piu' preciso al piu' permissivo:
+      1. id esatto — il nome PDDL e' 'n' + id del nodo OSM;
+      2. junction il cui id TERMINA con quel suffisso — il nome PDDL conserva
+         solo le ultime 7 cifre dell'id OSM (vedi name_map_for in
+         build_problems.py), quindi l'id completo puo' essere piu' lungo;
+      3. junction CLUSTER che contiene quell'id fra i propri membri —
+         netconvert fonde piu' nodi OSM vicini in un'unica junction chiamata
+         'cluster_<id1>_<id2>_...'. Senza questo passo un nodo PDDL fuso in un
+         cluster risulta "non trovato" pur essendo presente nella rete.
+    """
     suffix = pname.lstrip('n')
-    if suffix in junc_ids: return suffix
+    if not suffix:
+        return None
+    if suffix in junc_ids:
+        return suffix
     matches = [j for j in junc_ids if j.endswith(suffix) and not j.startswith(':')]
-    if matches: return min(matches, key=len)
+    if matches:
+        return min(matches, key=len)
+    cluster_hits = []
+    for j in junc_ids:
+        if not j.startswith('cluster_'):
+            continue
+        for member in j[len('cluster_'):].split('_'):
+            if member == suffix or (member.isdigit() and member.endswith(suffix)):
+                cluster_hits.append(j)
+                break
+    if cluster_hits:
+        return min(cluster_hits, key=len)
     return None
 
 def route_to_sumo_edges(route_names, graph, jpos, junc_ids):
@@ -105,21 +130,67 @@ def compute_edges_from_pddl(pddl_path, net_path):
         if os.path.join(base, "net_files", f"{z}.net.xml") != net_path
     ]
 
-    used_net = None
+    # Scelta della rete: si preferisce quella che mappa piu' nodi del problema.
+    # Non basta pretendere che start E goal esistano come junction: netconvert
+    # semplifica la rete diversamente da come build_problems.py costruisce il
+    # grafo contratto, quindi un nodo PDDL puo' non esistere come junction pur
+    # essendo la rete quella giusta. In quel caso si ripiega sul primo/ultimo
+    # nodo del piano che risulta mappabile.
+    best = None
     for candidate in net_candidates:
         if not os.path.exists(candidate):
             continue
         graph, jpos, eid_len = build_sumo_graph(candidate)
         junc_ids = set(jpos.keys())
         start_j = pddl_name_to_junction(start_name, junc_ids)
-        goal_j  = pddl_name_to_junction(goal_name,  junc_ids)
+        goal_j = pddl_name_to_junction(goal_name, junc_ids)
+
+        # junction del piano, in ordine, saltando i nodi non mappabili
+        route_js = []
+        for nm_ in (route_names or []):
+            j = pddl_name_to_junction(nm_, junc_ids)
+            if j and (not route_js or j != route_js[-1]):
+                route_js.append(j)
+
+        score = (2 if (start_j and goal_j) else 0) + len(route_js)
+        cand = {
+            'net': candidate, 'graph': graph, 'jpos': jpos, 'eid_len': eid_len,
+            'junc_ids': junc_ids, 'start_j': start_j, 'goal_j': goal_j,
+            'route_js': route_js, 'score': score,
+        }
+        if best is None or score > best['score']:
+            best = cand
         if start_j and goal_j:
-            used_net = candidate
-            if candidate != net_path:
-                print(f"  (uso net: {os.path.basename(candidate)})")
-            break
-    else:
+            break  # match perfetto: inutile provare le altre reti
+
+    if best is None or best['score'] == 0:
         print(f"[ERRORE] Junction per '{start_name}' o '{goal_name}' non trovata in nessuna net.")
+        sys.exit(1)
+
+    graph, jpos = best['graph'], best['jpos']
+    eid_len, junc_ids = best['eid_len'], best['junc_ids']
+    used_net = best['net']
+    start_j, goal_j, route_js = best['start_j'], best['goal_j'], best['route_js']
+
+    if used_net != net_path:
+        print(f"  (uso net: {os.path.basename(used_net)})")
+
+    # Fallback: se start/goal non esistono come junction, uso gli estremi
+    # mappabili del piano ENHSP.
+    if not start_j and route_js:
+        start_j = route_js[0]
+        print(f"  (start '{start_name}' non e' una junction SUMO: uso {start_j}, "
+              f"primo nodo mappabile del piano)")
+    if not goal_j and route_js:
+        goal_j = route_js[-1]
+        print(f"  (goal '{goal_name}' non e' una junction SUMO: uso {goal_j}, "
+              f"ultimo nodo mappabile del piano)")
+
+    if not start_j or not goal_j:
+        print(f"[ERRORE] Impossibile mappare start/goal su una junction SUMO "
+              f"(nessun piano disponibile come ripiego).")
+        print(f"         Suggerimento: risolvi prima con la webapp, che salva "
+              f"route_custom.json accanto al problema.")
         sys.exit(1)
 
     print(f"  START: {start_name} → {start_j}")
@@ -152,6 +223,11 @@ def compute_edges_from_pddl(pddl_path, net_path):
 # ── Argomenti ────────────────────────────────────────────────
 # Uso standard:  python sumo_visualize.py [piccola|media|grande]
 # Uso dinamico:  python sumo_visualize.py pddl <percorso_pddl> [piccola|media|grande]
+# Opzione:       --baseline  -> NON carica i semafori ottimizzati (punto 3),
+#                               usa il programma originale "0" del net.xml.
+USE_OPTIMIZED_TLS = "--baseline" not in sys.argv
+sys.argv = [a for a in sys.argv if a != "--baseline"]
+
 zona = sys.argv[1] if len(sys.argv) > 1 else "piccola"
 dynamic_pddl = None
 
@@ -275,6 +351,20 @@ with open(GUI_PATH, "w") as f:
 </viewsettings>
 """.format(**cfg))
 
+# ── Semafori ottimizzati (punto 3) ────────────────────────────
+# Se esiste cfg_files/tls_<zona>.add.xml (generato da inject_signal_plan.py)
+# lo carichiamo come additional-file: SUMO rende attivo il programma
+# "optimized" al posto di quello di default del net.xml.
+# La zona si ricava dal NET realmente usato, cosi' funziona anche in
+# modalita' dinamica (dove NET puo' cambiare rispetto a quello richiesto).
+net_zone = os.path.basename(NET).split(".")[0]
+ADD_PATH = os.path.join(OUT, f"tls_{net_zone}.add.xml")
+use_add = USE_OPTIMIZED_TLS and os.path.exists(ADD_PATH)
+
+additional_line = ""
+if use_add:
+    additional_line = f'\n        <additional-files value="{os.path.abspath(ADD_PATH)}"/>'
+
 # ── Config SUMO ───────────────────────────────────────────────
 CFG_PATH = os.path.join(OUT, f"{zona}.sumocfg")
 with open(CFG_PATH, "w") as f:
@@ -283,7 +373,7 @@ with open(CFG_PATH, "w") as f:
     <input>
         <net-file value="{net}"/>
         <route-files value="{rou}"/>
-        <gui-settings-file value="{gui}"/>
+        <gui-settings-file value="{gui}"/>{additional}
     </input>
     <time>
         <begin value="0"/>
@@ -294,6 +384,7 @@ with open(CFG_PATH, "w") as f:
         net=NET,
         rou=os.path.abspath(ROU_PATH),
         gui=os.path.abspath(GUI_PATH),
+        additional=additional_line,
         end=cfg.get('end', 800),
     ))
 
@@ -331,6 +422,14 @@ if dist_val != '?':
     print(f"  Tempo    : {time_val} s (a 30 km/h, senza traffico)")
 else:
     print(f"  (distanza/tempo calcolati da ENHSP)")
+if use_add:
+    print(f"  Semafori : OTTIMIZZATI (programma 'optimized' da {os.path.basename(ADD_PATH)})")
+    print(f"             tasto destro sul semaforo in GUI -> torni al programma '0'")
+elif USE_OPTIMIZED_TLS:
+    print(f"  Semafori : originali del net.xml "
+          f"(nessun {os.path.basename(ADD_PATH)}: genera con inject_signal_plan.py)")
+else:
+    print(f"  Semafori : originali del net.xml (--baseline)")
 print()
 print(f"File generati:")
 print(f"  Route : {ROU_PATH}")

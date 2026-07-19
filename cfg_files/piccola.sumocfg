@@ -4,6 +4,7 @@
         <net-file value="C:\Users\ecole\Desktop\progetto_pddl\net_files\piccola.net.xml"/>
         <route-files value="C:\Users\ecole\Desktop\progetto_pddl\cfg_files\piccola_piano.rou.xml"/>
         <gui-settings-file value="C:\Users\ecole\Desktop\progetto_pddl\cfg_files\gui_piccola.xml"/>
+        <additional-files value="C:\Users\ecole\Desktop\progetto_pddl\cfg_files\tls_piccola.add.xml"/>
     </input>
     <time>
         <begin value="0"/>

@@ -231,11 +231,36 @@
       </div>
 
       <div id="enhsp-msg"></div>
-      <button class="btn" id="sumo-btn" style="display:none;background:#7c3aed;color:#fff;margin-top:10px" onclick="launchSumo()">
-        <span id="sumo-label">▶ Apri in SUMO</span>
+      <button class="btn" id="sumo-btn" style="display:none;background:#7c3aed;color:#fff;margin-top:10px" onclick="launchSumo('optimized')">
+        <span id="sumo-label">▶ Apri in SUMO (semafori ottimizzati)</span>
         <div class="spinner" id="sumo-spinner"></div>
       </button>
+      <button class="btn" id="sumo-btn-base" style="display:none;background:#475569;color:#fff;margin-top:6px" onclick="launchSumo('baseline')">
+        <span id="sumo-label-base">▶ Apri in SUMO (semafori originali)</span>
+        <div class="spinner" id="sumo-spinner-base"></div>
+      </button>
       <div id="sumo-msg"></div>
+
+      <!-- PUNTO 4: confronto simulativo baseline vs ottimizzato -->
+      <div id="cmp-box" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #e2e8f0">
+        <div class="cong-title" style="margin-bottom:6px">Confronto in SUMO</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:8px">
+          Simula la zona con i semafori originali e con quelli ottimizzati,
+          sulla stessa domanda di traffico, e misura la differenza.
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="cmp-zone" style="flex:1;padding:7px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px">
+            <option value="piccola">piccola</option>
+            <option value="media">media</option>
+            <option value="grande">grande</option>
+          </select>
+          <button class="btn" id="cmp-btn" style="background:#0d9488;color:#fff;margin:0" onclick="compareSumo()">
+            <span id="cmp-label">Confronta</span>
+            <div class="spinner" id="cmp-spinner"></div>
+          </button>
+        </div>
+        <div id="cmp-msg"></div>
+      </div>
     </div>
 
   </div>
@@ -621,16 +646,23 @@ function renderStats(data) {
   }
 
   const msg = document.getElementById('enhsp-msg');
-  const sumoBtn = document.getElementById('sumo-btn');
+  const sumoBtn  = document.getElementById('sumo-btn');
+  const sumoBase = document.getElementById('sumo-btn-base');
+  const cmpBox   = document.getElementById('cmp-box');
   document.getElementById('sumo-msg').innerHTML = '';
+  const setVis = (v) => {
+    sumoBtn.style.display  = v;
+    sumoBase.style.display = v;
+    cmpBox.style.display   = v;
+  };
   if (data.enhsp_error) {
     msg.innerHTML = `<div class="alert alert-warn">⚠️ ${data.enhsp_error}</div>`;
-    sumoBtn.style.display = 'none';
+    setVis('none');
   } else if (data.plan_text) {
     msg.innerHTML = `<div class="alert alert-ok">✅ ENHSP ha trovato la soluzione</div>`;
-    sumoBtn.style.display = 'block';
+    setVis('block');
   } else {
-    msg.innerHTML = ''; sumoBtn.style.display = 'none';
+    msg.innerHTML = ''; setVis('none');
   }
 }
 
@@ -734,23 +766,92 @@ function renderPlan(planText) {
 }
 
 // ── SUMO ──────────────────────────────────────────────────────────────────────
-async function launchSumo() {
-  document.getElementById('sumo-label').style.display = 'none';
-  document.getElementById('sumo-spinner').style.display = 'block';
-  document.getElementById('sumo-btn').disabled = true;
+// variant: 'optimized' (semafori del punto 3) oppure 'baseline' (net.xml)
+async function launchSumo(variant) {
+  variant = variant || 'optimized';
+  const isBase = variant === 'baseline';
+  const btnId   = isBase ? 'sumo-btn-base'   : 'sumo-btn';
+  const labelId = isBase ? 'sumo-label-base' : 'sumo-label';
+  const spinId  = isBase ? 'sumo-spinner-base' : 'sumo-spinner';
+
+  document.getElementById(labelId).style.display = 'none';
+  document.getElementById(spinId).style.display = 'block';
+  document.getElementById(btnId).disabled = true;
   document.getElementById('sumo-msg').innerHTML = '';
   try {
-    const res = await fetch('/api/sumo', { method: 'POST' });
+    const res = await fetch('/api/sumo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ variant: variant })
+    });
     const data = await res.json();
+    const what = isBase ? 'semafori originali' : 'semafori ottimizzati';
     document.getElementById('sumo-msg').innerHTML = data.error
       ? `<div class="alert alert-err" style="margin-top:8px">❌ ${data.error}</div>`
-      : `<div class="alert alert-ok" style="margin-top:8px">✅ SUMO avviato</div>`;
+      : `<div class="alert alert-ok" style="margin-top:8px">✅ SUMO avviato (${what})</div>`;
   } catch(e) {
     document.getElementById('sumo-msg').innerHTML = `<div class="alert alert-err" style="margin-top:8px">Errore: ${e.message}</div>`;
   } finally {
-    document.getElementById('sumo-label').style.display = 'block';
-    document.getElementById('sumo-spinner').style.display = 'none';
-    document.getElementById('sumo-btn').disabled = false;
+    document.getElementById(labelId).style.display = 'block';
+    document.getElementById(spinId).style.display = 'none';
+    document.getElementById(btnId).disabled = false;
+  }
+}
+
+// ── PUNTO 4: confronto simulativo in SUMO ─────────────────────────────────────
+async function compareSumo() {
+  const zone = document.getElementById('cmp-zone').value;
+  document.getElementById('cmp-label').style.display = 'none';
+  document.getElementById('cmp-spinner').style.display = 'block';
+  document.getElementById('cmp-btn').disabled = true;
+  document.getElementById('cmp-msg').innerHTML =
+    `<div style="font-size:12px;color:#64748b;margin-top:8px">Simulazione in corso (due run SUMO)…</div>`;
+  try {
+    const res = await fetch('/api/compare_sumo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zone: zone })
+    });
+    const data = await res.json();
+    if (data.error) {
+      document.getElementById('cmp-msg').innerHTML =
+        `<div class="alert alert-err" style="margin-top:8px">❌ ${data.error}</div>`;
+    } else {
+      const r = data.result, b = r.baseline, o = r.optimized, d = r.delta_pct;
+      const row = (label, bv, ov, dv, unit) => {
+        const better = dv < 0;
+        const color = dv === 0 ? '#64748b' : (better ? '#059669' : '#dc2626');
+        const sign  = dv > 0 ? '+' : '';
+        return `<tr>
+          <td style="padding:3px 6px">${label}</td>
+          <td style="padding:3px 6px;text-align:right">${bv.toFixed(1)}${unit}</td>
+          <td style="padding:3px 6px;text-align:right">${ov.toFixed(1)}${unit}</td>
+          <td style="padding:3px 6px;text-align:right;color:${color};font-weight:600">${sign}${dv.toFixed(1)}%</td>
+        </tr>`;
+      };
+      document.getElementById('cmp-msg').innerHTML = `
+        <table style="width:100%;font-size:12px;margin-top:8px;border-collapse:collapse">
+          <tr style="color:#64748b;border-bottom:1px solid #e2e8f0">
+            <th style="text-align:left;padding:3px 6px">Metrica</th>
+            <th style="text-align:right;padding:3px 6px">Originali</th>
+            <th style="text-align:right;padding:3px 6px">Ottimizzati</th>
+            <th style="text-align:right;padding:3px 6px">Δ</th>
+          </tr>
+          ${row('Tempo di viaggio', b.duration_mean, o.duration_mean, d.duration_mean, 's')}
+          ${row('Attesa ai semafori', b.waiting_mean, o.waiting_mean, d.waiting_mean, 's')}
+          ${row('Tempo perso', b.timeloss_mean, o.timeloss_mean, d.timeloss_mean, 's')}
+        </table>
+        <div style="font-size:11px;color:#64748b;margin-top:6px">
+          ${r.n_vehicles} veicoli, stesse rotte nei due scenari. Verde = miglioramento.
+        </div>`;
+    }
+  } catch(e) {
+    document.getElementById('cmp-msg').innerHTML =
+      `<div class="alert alert-err" style="margin-top:8px">Errore: ${e.message}</div>`;
+  } finally {
+    document.getElementById('cmp-label').style.display = 'block';
+    document.getElementById('cmp-spinner').style.display = 'none';
+    document.getElementById('cmp-btn').disabled = false;
   }
 }
 

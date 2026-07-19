@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Programmi semaforici OTTIMIZZATI per la zona 'piccola'.
+     Generato da inject_signal_plan.py (punto 3) a partire da
+     sumo_extracted/signal_plan_piccola.json (punto 2).
+     programID='optimized': essendo caricato da additional-file,
+     SUMO lo rende il programma attivo. Dal tasto destro sul semaforo
+     in sumo-gui si puo' tornare al programma originale '0'.
+     baseline mean total-time = 16.45 s -> ottimizzato = 10.33 s (-6.11 s)
+-->
+<additional>
+    <tlLogic id="10557367113" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GGG"/>
+        <phase duration="4" state="yyy"/>
+        <phase duration="6.67" state="rrr"/>
+    </tlLogic>
+    <tlLogic id="10780370626" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GGGG"/>
+        <phase duration="4" state="yyyy"/>
+        <phase duration="6.67" state="rrrr"/>
+    </tlLogic>
+    <tlLogic id="10956470825" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GG"/>
+        <phase duration="4" state="yy"/>
+        <phase duration="6.67" state="rr"/>
+    </tlLogic>
+    <tlLogic id="11951122372" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GGG"/>
+        <phase duration="4" state="yyy"/>
+        <phase duration="6.67" state="rrr"/>
+    </tlLogic>
+    <tlLogic id="11951144006" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GG"/>
+        <phase duration="4" state="yy"/>
+        <phase duration="6.67" state="rr"/>
+    </tlLogic>
+    <tlLogic id="12639663" type="static" programID="optimized" offset="0">
+        <phase duration="56" state="GGrrrr"/>
+        <phase duration="4" state="yyrrrr"/>
+        <phase duration="56" state="rrGGGG"/>
+        <phase duration="4" state="rryyyy"/>
+    </tlLogic>
+    <tlLogic id="1442755" type="static" programID="optimized" offset="0">
+        <phase duration="56" state="rrGgGg"/>
+        <phase duration="4" state="rryyyy"/>
+        <phase duration="56" state="GGrrrr"/>
+        <phase duration="4" state="yyrrrr"/>
+    </tlLogic>
+    <tlLogic id="1448436" type="static" programID="optimized" offset="0">
+        <phase duration="50.67" state="GggrrrrGGGg"/>
+        <phase duration="4" state="Gggrrrryyyy"/>
+        <phase duration="8" state="GGGrrrrrrrr"/>
+        <phase duration="4" state="yyyrrrrrrrr"/>
+        <phase duration="49.33" state="rrrGGGgGrrr"/>
+        <phase duration="4" state="rrryyyyGrrr"/>
+    </tlLogic>
+    <tlLogic id="2468942558" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GGG"/>
+        <phase duration="4" state="yyy"/>
+        <phase duration="6.67" state="rrr"/>
+    </tlLogic>
+    <tlLogic id="2468942562" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="G"/>
+        <phase duration="4" state="y"/>
+        <phase duration="6.67" state="r"/>
+    </tlLogic>
+    <tlLogic id="2468942564" type="static" programID="optimized" offset="0">
+        <phase duration="120" state="GG"/>
+    </tlLogic>
+    <tlLogic id="26756133" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GGGg"/>
+        <phase duration="4" state="yyyy"/>
+        <phase duration="6.67" state="rrrr"/>
+    </tlLogic>
+    <tlLogic id="26912394" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GG"/>
+        <phase duration="4" state="yy"/>
+        <phase duration="6.67" state="rr"/>
+    </tlLogic>
+    <tlLogic id="3451120784" type="static" programID="optimized" offset="0">
+        <phase duration="56" state="rrGgGg"/>
+        <phase duration="4" state="rryyyy"/>
+        <phase duration="56" state="GGrrrr"/>
+        <phase duration="4" state="yyrrrr"/>
+    </tlLogic>
+    <tlLogic id="4043189655" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="G"/>
+        <phase duration="4" state="y"/>
+        <phase duration="6.67" state="r"/>
+    </tlLogic>
+    <tlLogic id="7015280843" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GG"/>
+        <phase duration="4" state="yy"/>
+        <phase duration="6.67" state="rr"/>
+    </tlLogic>
+    <tlLogic id="7015280844" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="G"/>
+        <phase duration="4" state="y"/>
+        <phase duration="6.67" state="r"/>
+    </tlLogic>
+    <tlLogic id="cluster_10050840446_10956461380_10956461382_10956461388_#2more" type="static" programID="optimized" offset="0">
+        <phase duration="56" state="GGGGrrrrr"/>
+        <phase duration="4" state="yyyyrrrrr"/>
+        <phase duration="56" state="rrrrGGGGG"/>
+        <phase duration="4" state="rrrryyyyy"/>
+    </tlLogic>
+    <tlLogic id="cluster_10937078681_10937078682_659784" type="static" programID="optimized" offset="0">
+        <phase duration="96" state="GGGGrrrr"/>
+        <phase duration="4" state="yyyyrrrr"/>
+        <phase duration="16" state="rrrrGGGG"/>
+        <phase duration="4" state="rrrryyyy"/>
+    </tlLogic>
+    <tlLogic id="cluster_10956454830_10956454832_11951145290_344982488_#1more" type="static" programID="optimized" offset="0">
+        <phase duration="56" state="GGrr"/>
+        <phase duration="4" state="yyrr"/>
+        <phase duration="56" state="rrGG"/>
+        <phase duration="4" state="rryy"/>
+    </tlLogic>
+    <tlLogic id="cluster_11642373015_434149497" type="static" programID="optimized" offset="0">
+        <phase duration="56" state="GggrrrGGGg"/>
+        <phase duration="4" state="yyyrrrGyyy"/>
+        <phase duration="56" state="rrrGGgGrrr"/>
+        <phase duration="4" state="rrryyyGrrr"/>
+    </tlLogic>
+    <tlLogic id="cluster_11642373017_26912398_305309020" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GGggGGgg"/>
+        <phase duration="4" state="yyyyyyyy"/>
+        <phase duration="6.67" state="rrrrrrrr"/>
+    </tlLogic>
+    <tlLogic id="cluster_11661938741_11661938742_11661938748_1396858833_#1more" type="static" programID="optimized" offset="0">
+        <phase duration="56" state="GGgGgrr"/>
+        <phase duration="4" state="yyyyyrr"/>
+        <phase duration="56" state="rrrrrGG"/>
+        <phase duration="4" state="rrrrryy"/>
+    </tlLogic>
+    <tlLogic id="cluster_11742165391_11742165392_11742165393_11742165399_#1more" type="static" programID="optimized" offset="0">
+        <phase duration="56" state="GGrrr"/>
+        <phase duration="4" state="yyrrr"/>
+        <phase duration="54.67" state="rrGGG"/>
+        <phase duration="4" state="rryyy"/>
+        <phase duration="1.33" state="rrrrr"/>
+    </tlLogic>
+    <tlLogic id="cluster_12717659201_12717659202_1448439" type="static" programID="optimized" offset="0">
+        <phase duration="109.33" state="GGGgGgg"/>
+        <phase duration="4" state="yyyyyyy"/>
+        <phase duration="6.67" state="rrrrrrr"/>
+    </tlLogic>
+    <tlLogic id="cluster_1420455242_2385329737_3585952599_7015280842_#1more" type="static" programID="optimized" offset="0">
+        <phase duration="49.33" state="gGGggrrrrgGGgg"/>
+        <phase duration="4" state="gyyggrrrrgyygg"/>
+        <phase duration="8" state="GrrgGrrrrGrrgG"/>
+        <phase duration="4" state="yrryyrrrryrryy"/>
+        <phase duration="1.33" state="rrrrrrrrrrrrrr"/>
+        <phase duration="49.33" state="rrrrrGGGGrrrrr"/>
+        <phase duration="4" state="rrrrryyyyrrrrr"/>
+    </tlLogic>
+    <tlLogic id="cluster_1430847297_1573119429" type="static" programID="optimized" offset="0">
+        <phase duration="60" state="GGGr"/>
+        <phase duration="56" state="GGGg"/>
+        <phase duration="4" state="GGGy"/>
+    </tlLogic>
+</additional>
