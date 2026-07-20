@@ -466,8 +466,6 @@ spiegazione nella sezione sul confronto in simulazione.
 ├── docs/                      # Materiale di documentazione e presentazione
 │   ├── spiegazione_tecnica.pdf
 │   ├── spiegazione_congestione_sumo.pdf
-│   ├── dublin_map.png             # Mappa di riferimento
-│   ├── dublin_streets.graphml     # Grafo stradale in formato GraphML
 │   ├── screenshots/               # Schermate della webapp
 │   └── slide/                     # Slide di presentazione
 │
@@ -512,7 +510,6 @@ spiegazione nella sezione sul confronto in simulazione.
 ├── pddl_files/                # File PDDL+ del progetto
 │   ├── domain.pddl
 │   ├── problem_piccola.pddl
-│   ├── problem_piccola_manuale.pddl  # Versione precedente (backup, nomi via)
 │   ├── problem_media.pddl
 │   ├── problem_grande.pddl
 │   ├── problem_custom.pddl    # Generato dalla webapp (aggiornato automaticamente)
@@ -520,12 +517,6 @@ spiegazione nella sezione sul confronto in simulazione.
 │   ├── output_media.txt
 │   ├── output_grande.txt
 │   └── run.py
-│
-├── encoder/                   # Analisi delle strade OSM
-│   ├── encoder.py
-│   ├── strade_piccola.txt
-│   ├── strade_media.txt
-│   └── strade_grande.txt
 │
 └── webapp/                    # Interfaccia web (Flask + Leaflet)
     ├── app.py
@@ -553,7 +544,7 @@ spiegazione nella sezione sul confronto in simulazione.
 ### Installazione delle dipendenze Python
 
 ```bash
-pip install flask osmnx up-enhsp
+pip install -r requirements.txt
 ```
 
 ### Avvio dell'interfaccia web

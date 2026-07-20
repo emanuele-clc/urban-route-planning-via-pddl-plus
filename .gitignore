@@ -6,7 +6,6 @@ cache/
 setup.log
 
 proj_specs.md
-setup_macos.py
 2_traffic_signal_optimization.md
 
 # File di configurazione SUMO: contengono percorsi ASSOLUTI della macchina
@@ -17,3 +16,15 @@ cfg_files/gui_*.xml
 cfg_files/*_piano.rou.xml
 cfg_files/*_piano.rou.alt.xml
 cfg_files/*_trip.xml
+cfg_files/sumo_errors.txt
+
+# Artefatti generati a runtime/da script diagnostici: non servono al
+# funzionamento della pipeline (a differenza di sumo_extracted/*.json,
+# che sono input letti da build_problems.py/webapp/inject_signal_plan.py)
+# e venivano ricommittati a ogni uso della webapp o rerun degli script.
+pddl_files/problem_custom.pddl
+pddl_files/route_custom.json
+pddl_files/output_*.txt
+comparison_results/
+diagnostics_out/
+sumo_comparison/results.json

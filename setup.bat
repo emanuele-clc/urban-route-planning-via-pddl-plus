@@ -32,7 +32,7 @@ echo ============================================
 echo   Setup completato!
 echo.
 echo   Per risolvere il problema PDDL+:
-echo     cd files\pddl_files
+echo     cd pddl_files
 echo     python run.py piccola
 echo     python run.py media
 echo     python run.py grande
