@@ -334,6 +334,96 @@ Il problema PDDL+ generato dalla webapp viene salvato automaticamente come `pddl
 
 La webapp usa lo **stesso modello** della generazione da riga di comando: emette i fatti `turn-time`, l'init `prev` e i `signal-delay` realistici (mappa unita dei ritardi SUMO delle tre zone; per un incrocio non presente nei dati SUMO usa il valore realistico di default di un incrocio a 2 fasi, ~17 s). Il parser del piano gestisce l'azione `start-move` a tre argomenti per ricostruire il percorso da passare a SUMO.
 
+### Replanning: strade chiuse e ricalcolo del percorso
+
+L'interfaccia permette di marcare strade e incroci come **non percorribili** e
+di far ricalcolare il percorso. Il replanning non riparte dall'origine: simula
+un veicolo **già in viaggio** che trova la strada chiusa, quindi ripianifica
+dal **nodo immediatamente precedente** alla chiusura, cioè l'ultimo punto
+raggiungibile.
+
+**Come si usa**
+
+1. Risolvi normalmente il problema (compare la sezione *Strade chiuse & ricalcolo*).
+2. Premi **Attiva modalità chiusura**: il cursore diventa un mirino.
+3. Clicca una **strada** per chiuderla o un **incrocio** per bloccarlo
+   (ri-clicca per riaprire). Le chiusure appaiono in rosso tratteggiato con un
+   cartello di lavori in corso.
+4. Premi **Ricalcola percorso**.
+
+Sulla mappa vengono poi disegnati contemporaneamente: il piano originale
+sbiadito, il tratto **già percorso** in verde, il punto di ricalcolo con
+un'icona pulsante e la **deviazione** in ambra con tratteggio animato che scorre
+verso il goal. Un pannello riepiloga distanza, tempo e semafori prima e dopo,
+con il costo della deviazione.
+
+**Dettagli di modellazione**
+
+- Una strada chiusa lo è in **entrambi i sensi** (chiusura reale, non senso unico).
+- Il nodo di provenienza viene passato ad ENHSP come `prev`, così la prima
+  svolta dopo il ricalcolo ha il costo reale: ripartendo da metà percorso il
+  veicolo ha già un orientamento.
+- Chiudere un incrocio equivale a chiudere tutte le strade che vi confluiscono.
+- Se le chiusure non toccano il percorso attuale, il sistema lo rileva e non
+  ricalcola nulla.
+
+**Quali strade si possono chiudere: l'interfaccia lo dice prima del click**
+
+Il sottografo estratto è spesso quasi un *albero*: molte strade sono l'unico
+collegamento verso la destinazione, quindi chiuderle la isola e il ricalcolo
+fallisce legittimamente. Per non lasciare l'utente a tentativi, appena si
+attiva la modalità chiusura il percorso viene colorato in base a una BFS
+calcolata **nel browser**:
+
+- **giallo** — chiudendo quel tratto esiste una deviazione;
+- **rosso scuro punteggiato** — è l'unico collegamento, chiuderlo isolerebbe il goal.
+
+Cliccando un tratto critico l'avviso compare subito, senza attendere il server.
+
+**Quanti nodi servono**
+
+Più nodi = più alternative disponibili, ma anche ENHSP più lento. Tratti
+chiudibili sul percorso, misurati:
+
+| Nodi | Zona media | Zona grande |
+|-----:|------------|-------------|
+| 120  | 5 su 9     | 1 su 15     |
+| 200  | —          | —           |
+| 300  | 14 su 45   | 7 su 32     |
+| 400  | —          | 11 su 29    |
+
+Lo slider arriva a 1000 e parte da 200. Il grafo contratto completo ha 938
+nodi (media) e 3756 (grande), quindi *tutti i nodi* copre per intero la zona
+media.
+
+**Il limite dipende dalla macchina.** `start-move` e `signal-delay` hanno tre
+argomenti (`prev`, `from`, `to`), quindi il numero di istanze generate da
+ENHSP cresce col cubo dei nodi e il consumo di memoria sale in fretta. Su un
+ambiente molto modesto (3 GB di RAM, 1 core) con heap da 2 GB: 300 nodi in 8 s,
+400 in 14 s, 939 in `OutOfMemory`. Su un PC normale il tetto è molto più alto,
+quindi i default sono heap **6 GB** e limite **1200 nodi**, entrambi
+regolabili:
+
+```bash
+set ENHSP_HEAP=8g            # heap della JVM per ENHSP
+set MAX_SOLVABLE_NODES=2000  # tetto di sicurezza sui nodi
+set ENHSP_TIMEOUT=300        # secondi; 0 o assente = nessun limite (default)
+```
+
+ENHSP gira **senza timeout** per impostazione predefinita: sui grafi grandi il
+grounding può richiedere parecchi minuti e interrompere la ricerca a metà
+sprecava lavoro già fatto. Il rovescio della medaglia è che una richiesta molto
+pesante resta in attesa senza possibilità di annullarla dal browser: se serve
+un tetto, si imposta `ENHSP_TIMEOUT`.
+
+Se ENHSP esaurisce la memoria l'interfaccia lo dice esplicitamente (non più un
+generico “problema irrisolvibile”) e suggerisce l'azione corretta.
+
+> **La zona `piccola` non è adatta al replanning.** Il centro storico
+> (Temple Bar) è fatto di vie strette a senso unico e resta quasi ad albero
+> anche usando tutti i suoi 201 nodi: solo **1 tratto su 44** risulta
+> chiudibile. Per provare il replanning usare la zona **media**.
+
 ### I controlli SUMO nell'interfaccia
 
 Dopo che ENHSP ha trovato la soluzione compaiono tre controlli, che fanno cose
@@ -370,8 +460,27 @@ spiegazione nella sezione sul confronto in simulazione.
 ├── download_dublin_map.py     # Scarica le mappe OSM tramite osmnx
 ├── convert_to_osm.py          # Converte OSM in net.xml tramite netconvert
 ├── sumo_visualize.py          # Visualizza il piano in sumo-gui
-├── dublin_map.png             # Mappa di riferimento
-├── dublin_streets.graphml     # Grafo stradale in formato GraphML
+├── compare_versions.py        # Confronto vecchia/nuova versione del dominio
+├── generate_demand.py         # Campione O-D condiviso fra i punti 2 e 4
+│
+├── docs/                      # Materiale di documentazione e presentazione
+│   ├── spiegazione_tecnica.pdf
+│   ├── spiegazione_congestione_sumo.pdf
+│   ├── dublin_map.png             # Mappa di riferimento
+│   ├── dublin_streets.graphml     # Grafo stradale in formato GraphML
+│   ├── screenshots/               # Schermate della webapp
+│   └── slide/                     # Slide di presentazione
+│
+├── signal_optimization/       # Punto 2: ottimizzazione semaforica
+│   ├── optimize.py            # Orchestratore della pipeline
+│   ├── candidates.py          # Generazione candidati vincolati
+│   ├── webster_screen.py      # Screening analitico
+│   ├── enhsp_eval.py          # Valutazione con ENHSP
+│   ├── search.py              # Ricerca locale
+│   └── progression.py         # Penalita' di progressione
+│
+├── comparison_results/        # Output di compare_versions.py
+├── diagnostics_out/           # Report diagnostici
 │
 ├── sumo_comparison/           # Punto 4: risultati del confronto in simulazione
 │   ├── results.json

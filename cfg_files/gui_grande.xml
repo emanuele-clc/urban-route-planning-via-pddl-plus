@@ -1,8 +1,0 @@
-<viewsettings>
-    <scheme name="real world"/>
-    <delay value="200"/>
-    <viewport zoom="3000" x="246" y="4860"/>
-    <vehicles vehicleMode="0" vehicleQuality="2"
-              vehicleExaggeration="15" showBlinker="true"
-              colorScheme="given/assigned vehicle color"/>
-</viewsettings>

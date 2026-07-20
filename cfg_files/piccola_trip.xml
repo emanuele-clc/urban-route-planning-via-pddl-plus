@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<routes>
-    <vType id="auto" accel="1.0" decel="2.0" sigma="0.0"
-           length="4.5" maxSpeed="3.0" color="1,0,0"
-           width="2.0" height="1.5" shape="passenger"/>
-    <trip id="veicolo_enhsp" type="auto" depart="1"
-          fromJunction="659788" toJunction="26165126"/>
-</routes>

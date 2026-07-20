@@ -397,7 +397,12 @@ def auto_start_goal(selected, edges, node_data):
 
 def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm,
                signal_nodes=None, congestion_delays=None, vehicle_counts=None,
-               intersection_density=None, peripheral=None, edge_highway=None):
+               intersection_density=None, peripheral=None, edge_highway=None,
+               prev_osm=None):
+    """prev_osm: nodo da cui si proviene arrivando in start_osm. Serve al
+    REPLANNING: ripartendo da meta' percorso il veicolo ha gia' un
+    orientamento, quindi la prima svolta ha un costo reale. Se None (piano
+    iniziale, veicolo fermo) si usa start_osm stesso e la prima svolta e' 0."""
 
     if signal_nodes         is None: signal_nodes         = set()
     if congestion_delays    is None: congestion_delays    = {}
@@ -425,9 +430,13 @@ def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm,
     lines.append("    - location")
     lines.append("  )")
     lines.append("")
+    prev_node = prev_osm if (prev_osm and prev_osm in nm) else start_osm
     lines.append("  (:init")
     lines.append(f"    (at {n(start_osm)})")
-    lines.append(f"    (prev {n(start_osm)})   ; nessuna svolta prima del primo arco")
+    if prev_node == start_osm:
+        lines.append(f"    (prev {n(start_osm)})   ; nessuna svolta prima del primo arco")
+    else:
+        lines.append(f"    (prev {n(prev_node)})   ; replanning: si proviene da qui")
     lines.append("    (= (total-dist) 0)")
     lines.append("    (= (total-time) 0)")
 
@@ -529,11 +538,27 @@ def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm,
     # (out_adj/in_adj/triples gia' calcolati sopra, per il blocco signal-delay)
     lines.append("")
     lines.append(f"    ; Tempo di svolta (s) = angolo / {TURN_RATE_DPS:.0f} deg/s  [turn rate]")
+    emitted = set()
     for c in sorted(out_adj.get(start_osm, []), key=n):
         lines.append(f"    (= (turn-time {n(start_osm):<20} {n(start_osm):<20} {n(c)}) 0)")
+        emitted.add((start_osm, start_osm, c))
+    # Replanning: il nodo di provenienza puo' non avere piu' un arco verso
+    # start (es. proprio quella strada e' stata chiusa), quindi le triple
+    # (prev, start, *) vanno emesse esplicitamente: senza, ENHSP troverebbe
+    # turn-time non definita sulla prima mossa.
+    if prev_node != start_osm:
+        for c in sorted(out_adj.get(start_osm, []), key=n):
+            if (prev_node, start_osm, c) in emitted:
+                continue
+            tt = turn_time_s(prev_node, start_osm, c, node_data)
+            lines.append(f"    (= (turn-time {n(prev_node):<20} {n(start_osm):<20} {n(c)}) {tt})")
+            emitted.add((prev_node, start_osm, c))
     for a, b, c in sorted(triples, key=lambda t: (n(t[0]), n(t[1]), n(t[2]))):
+        if (a, b, c) in emitted:
+            continue
         tt = turn_time_s(a, b, c, node_data)
         lines.append(f"    (= (turn-time {n(a):<20} {n(b):<20} {n(c)}) {tt})")
+        emitted.add((a, b, c))
 
     lines.append("")
     lines.append("  )")
@@ -728,6 +753,12 @@ def solve():
     if goal_osm not in reach:
         return jsonify({'error': f'Il goal "{goal_pddl}" non è raggiungibile da "{start_pddl}"'}), 400
 
+    if len(selected) > MAX_SOLVABLE_NODES:
+        return jsonify({'error':
+            f'Problema troppo grande per ENHSP: {len(selected)} nodi '
+            f'(massimo {MAX_SOLVABLE_NODES}). Rigenera il grafo con meno nodi, '
+            f'oppure aumenta la heap con ENHSP_HEAP e alza MAX_SOLVABLE_NODES.'}), 400
+
     pddl_content = write_pddl(
         zone, selected, node_data, edges, start_osm, goal_osm, nm,
         signal_nodes=signal_nodes,
@@ -765,8 +796,8 @@ def solve():
         enhsp_error = f"domain.pddl non trovato in: {domain_abs}"
     else:
         try:
-            cmd    = ["java", "-jar", jar, "-o", domain_abs, "-f", pddl_path, "-s", "aibr"]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+            result = subprocess.run(enhsp_cmd(jar, domain_abs, pddl_path),
+                                    capture_output=True, text=True, timeout=ENHSP_TIMEOUT)
             output = result.stdout + result.stderr
 
             if "Problem Solved" in output:
@@ -821,9 +852,10 @@ def solve():
                     travel_time += signal_delay_total + turn_delay_total
                     signal_delay_total = round(signal_delay_total, 1)
             else:
-                enhsp_error = "ENHSP non ha trovato soluzione (problema forse irrisolvibile con i nodi selezionati)"
+                enhsp_error = diagnose_enhsp(output)
         except subprocess.TimeoutExpired:
-            enhsp_error = "ENHSP ha superato il timeout (180s) — prova con meno nodi"
+            enhsp_error = (f"ENHSP ha superato il timeout ({ENHSP_TIMEOUT}s) — "
+                           "riduci i nodi oppure alza ENHSP_TIMEOUT")
         except FileNotFoundError:
             enhsp_error = "Java non trovato — installa Java 17+"
 
@@ -870,6 +902,250 @@ def solve():
             'start':                   start_pddl,
             'goal':                    goal_pddl,
         }
+    })
+
+
+# ── REPLANNING: strade chiuse e ricalcolo del percorso ───────────────────────
+
+# Heap per ENHSP. Il grounding di start-move (3 argomenti: prev, from, to)
+# cresce molto col numero di nodi: con la heap di default la JVM va in
+# OutOfMemory gia' sotto i 400 nodi. Con 2 GB si arriva comodamente a ~300.
+# Sovrascrivibile con la variabile d'ambiente ENHSP_HEAP (es. "4g").
+# 6 GB: -Xmx fissa solo il tetto, la JVM non alloca subito, quindi e' sicuro
+# anche su macchine con 8 GB. Se la JVM non parte, abbassalo (ENHSP_HEAP=2g).
+ENHSP_HEAP = os.environ.get('ENHSP_HEAP', '6g')
+
+# Limite di sicurezza sul numero di nodi. NON e' una costante fisica: dipende
+# da RAM e CPU della macchina. Misure fatte su un ambiente molto modesto
+# (3 GB, 1 core) con heap 2 GB, zona media:
+#     300 nodi -> 8 s | 400 -> 14 s | 600 -> molto lento | 939 -> OutOfMemory
+# Su un PC normale con 6 GB di heap il tetto e' molto piu' alto: il default e'
+# quindi 1200, che lascia passare per intero anche la zona media (939 nodi).
+# Alzabile con MAX_SOLVABLE_NODES su macchine piu' potenti.
+# La causa della crescita: sia start-move sia signal-delay hanno tre argomenti
+# (prev, from, to), quindi le istanze generate crescono col cubo dei nodi.
+MAX_SOLVABLE_NODES = int(os.environ.get('MAX_SOLVABLE_NODES', '1200'))
+
+# Timeout di ENHSP in secondi. 0 = nessun limite: sui grafi grandi il grounding
+# puo' richiedere parecchi minuti e interromperlo a 180 s buttava via lavoro
+# gia' fatto. Impostare ENHSP_TIMEOUT=300 per rimettere un tetto.
+_t = int(os.environ.get('ENHSP_TIMEOUT', '0'))
+ENHSP_TIMEOUT = _t if _t > 0 else None
+
+
+def enhsp_cmd(jar, domain, problem):
+    return ["java", f"-Xmx{ENHSP_HEAP}", "-jar", jar,
+            "-o", domain, "-f", problem, "-s", "aibr"]
+
+
+def diagnose_enhsp(output):
+    """Traduce l'esito di ENHSP in un messaggio utile all'utente.
+    Distinguere le cause e' importante: 'nessuna soluzione' e 'memoria
+    esaurita' richiedono azioni completamente diverse."""
+    if 'OutOfMemoryError' in output or 'GC overhead' in output:
+        return ("Memoria insufficiente per ENHSP: il problema ha troppi nodi. "
+                f"Riduci i nodi (max consigliato ~300) oppure aumenta la heap "
+                f"impostando ENHSP_HEAP (ora {ENHSP_HEAP}).")
+    if 'Problem unsolvable' in output or 'unsolvable' in output.lower():
+        return ("ENHSP dichiara il problema irrisolvibile: la destinazione non e' "
+                "raggiungibile dal punto di partenza con i vincoli attuali.")
+    return ("ENHSP non ha trovato soluzione. Cause tipiche: troppi nodi "
+            "selezionati, oppure goal non raggiungibile dallo start.")
+
+
+def run_enhsp(pddl_content):
+    """Risolve un problema PDDL+ con ENHSP. Ritorna (plan_text, route, ms, errore)."""
+    jar = trova_enhsp()
+    domain_abs = os.path.abspath(DOMAIN_PATH)
+    if not jar:
+        return None, None, None, "ENHSP non trovato — installa con: pip install up-enhsp"
+    if not os.path.exists(domain_abs):
+        return None, None, None, f"domain.pddl non trovato in: {domain_abs}"
+
+    tmp_dir = tempfile.mkdtemp()
+    pddl_path = os.path.join(tmp_dir, 'problem.pddl')
+    with open(pddl_path, 'w', encoding='utf-8') as f:
+        f.write(pddl_content)
+    try:
+        result = subprocess.run(enhsp_cmd(jar, domain_abs, pddl_path),
+                                capture_output=True, text=True, timeout=ENHSP_TIMEOUT)
+        output = result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        return None, None, None, (f"ENHSP ha superato il timeout ({ENHSP_TIMEOUT}s): "
+                                  "riduci i nodi o alza ENHSP_TIMEOUT")
+    except FileNotFoundError:
+        return None, None, None, "Java non trovato — installa Java 17+"
+
+    if "Problem Solved" not in output:
+        return None, None, None, diagnose_enhsp(output)
+    plan_text, route, ms = parse_plan(output)
+    return plan_text, route, ms, None
+
+
+def route_metrics(route, nm_inv, edges, vc, cong_delays, signal_nodes, node_data):
+    """Scompone il costo di un percorso (stessa formula del dominio PDDL+):
+    guida + semafori + congestione + svolte."""
+    out = {'dist': 0, 'drive': 0.0, 'signal': 0.0, 'cong': 0.0, 'turn': 0.0,
+           'signals_crossed': 0}
+    osm = [nm_inv.get(r) for r in (route or [])]
+    for i in range(len(osm) - 1):
+        a, b = osm[i], osm[i + 1]
+        if a and b and (a, b) in edges:
+            d, spd = edges[(a, b)]
+            out['dist'] += d
+            cf = 1.0 + vc.get((a, b), 0) / 10.0
+            eff = spd / cf
+            if eff > 0:
+                out['drive'] += d / eff
+        if 0 < i < len(osm) - 1 and osm[i - 1] and a and b:
+            out['turn'] += turn_time_s(osm[i - 1], a, b, node_data)
+    for nd in osm[1:]:
+        if not nd:
+            continue
+        sd = signal_delay_for(nd, signal_nodes)
+        if sd > 0:
+            out['signals_crossed'] += 1
+            out['signal'] += sd
+        out['cong'] += cong_delays.get(nd, 0)
+    out['total'] = out['drive'] + out['signal'] + out['cong'] + out['turn']
+    for k in ('drive', 'signal', 'cong', 'turn', 'total'):
+        out[k] = round(out[k], 1)
+    return out
+
+
+@app.route('/api/replan', methods=['POST'])
+def replan():
+    """Ricalcola il percorso evitando strade/incroci resi non percorribili.
+
+    Il replanning NON riparte dall'origine: simula un veicolo gia' in viaggio
+    che trova la strada chiusa. Si individua il primo elemento bloccato lungo
+    il piano corrente e si ripianifica **dal nodo immediatamente precedente**
+    (l'ultimo punto raggiungibile), passando ad ENHSP anche il nodo di
+    provenienza, cosi' il costo della prima svolta e' quello reale."""
+    data = request.get_json() or {}
+    token = data.get('token')
+    store = graph_store.get(token)
+    if not store:
+        return jsonify({'error': 'Sessione scaduta, ricarica il file OSM'}), 400
+
+    nm, nm_inv = store['nm'], store['nm_inv']
+    node_data, edges, selected = store['node_data'], store['edges'], store['selected']
+    zone = store['zone']
+    signal_nodes = store.get('signal_nodes', set())
+    peripheral = store.get('peripheral', set())
+    density = store.get('density', {})
+    cong_delays = store.get('cong_delays', {})
+    vc = store.get('vehicle_counts', {})
+    sub_hw = store.get('edge_highway', {})
+
+    route = data.get('route') or []
+    goal_pddl = data.get('goal')
+    goal_osm = nm_inv.get(goal_pddl)
+    if len(route) < 2:
+        return jsonify({'error': 'Nessun percorso da ricalcolare: risolvi prima il problema'}), 400
+    if not goal_osm:
+        return jsonify({'error': f'Goal "{goal_pddl}" non trovato'}), 400
+
+    # --- insieme degli archi bloccati (in entrambi i sensi: strada chiusa) ---
+    blocked_edges = set()
+    for pair in data.get('blocked_edges') or []:
+        a, b = nm_inv.get(pair[0]), nm_inv.get(pair[1])
+        if a and b:
+            blocked_edges.add((a, b))
+            blocked_edges.add((b, a))
+    blocked_nodes = {nm_inv[x] for x in (data.get('blocked_nodes') or []) if x in nm_inv}
+    if not blocked_edges and not blocked_nodes:
+        return jsonify({'error': 'Nessuna strada o incrocio bloccato'}), 400
+    if goal_osm in blocked_nodes:
+        return jsonify({'error': 'Il goal stesso e\' bloccato: scegli un altro punto'}), 400
+
+    def is_blocked(a, b):
+        return (a, b) in blocked_edges or a in blocked_nodes or b in blocked_nodes
+
+    # --- primo punto del piano corrente colpito dal blocco ---
+    osm_route = [nm_inv.get(r) for r in route]
+    hit = None
+    for i in range(len(osm_route) - 1):
+        a, b = osm_route[i], osm_route[i + 1]
+        if a and b and is_blocked(a, b):
+            hit = i
+            break
+    if hit is None:
+        return jsonify({'success': True, 'no_impact': True,
+                        'message': 'Il percorso attuale non attraversa nessuna delle '
+                                   'strade bloccate: nessun ricalcolo necessario.'})
+
+    replan_from = osm_route[hit]
+    prev_osm = osm_route[hit - 1] if hit > 0 else None
+    if replan_from in blocked_nodes:
+        return jsonify({'error': 'Il punto di partenza del ricalcolo e\' bloccato'}), 400
+
+    # --- grafo senza gli elementi bloccati ---
+    open_edges = {(a, b): v for (a, b), v in edges.items() if not is_blocked(a, b)}
+    reach = {replan_from}
+    q = deque([replan_from])
+    while q:
+        cur = q.popleft()
+        for (a, b) in open_edges:
+            if a == cur and b not in reach:
+                reach.add(b)
+                q.append(b)
+    if goal_osm not in reach:
+        return jsonify({
+            'error': 'Con queste chiusure il goal non e\' piu\' raggiungibile: '
+                     'il blocco isola la destinazione.',
+            'unreachable': True,
+            'blocked_at': nm.get(replan_from),
+        }), 400
+
+    pddl_content = write_pddl(
+        zone, selected, node_data, open_edges, replan_from, goal_osm, nm,
+        signal_nodes=signal_nodes, congestion_delays=cong_delays,
+        vehicle_counts=vc, intersection_density=density,
+        peripheral=peripheral, edge_highway=sub_hw, prev_osm=prev_osm,
+    )
+
+    plan_text, new_route, plan_ms, err = run_enhsp(pddl_content)
+    if err:
+        return jsonify({'error': err}), 400
+
+    # salva accanto agli altri, cosi' anche SUMO puo' visualizzare il nuovo piano
+    PDDL_DIR = os.path.join(PROJECT_ROOT, 'pddl_files')
+    try:
+        os.makedirs(PDDL_DIR, exist_ok=True)
+        with open(os.path.join(PDDL_DIR, 'problem_custom.pddl'), 'w', encoding='utf-8') as f:
+            f.write(pddl_content)
+        # Per SUMO si salva SOLO il nuovo percorso, non l'intero viaggio.
+        # Motivo: problem_custom.pddl parte da replan_from, e sumo_visualize
+        # centra la vista sullo start del PDDL. Salvando anche il tratto gia'
+        # percorso, il veicolo nasceva lontano dall'inquadratura (fuori
+        # schermo) e la rotta conteneva un ritorno sugli stessi archi, cioe'
+        # un'inversione a U che SUMO non sempre puo' eseguire.
+        # Cosi' invece l'auto parte esattamente dove avviene il ricalcolo.
+        with open(os.path.join(PDDL_DIR, 'route_custom.json'), 'w', encoding='utf-8') as f:
+            json.dump({'route': new_route or []}, f)
+    except Exception:
+        pass
+
+    old_m = route_metrics(route, nm_inv, edges, vc, cong_delays, signal_nodes, node_data)
+    new_full = route[:hit] + (new_route or [])      # tratto percorso + nuovo
+    new_m = route_metrics(new_full, nm_inv, edges, vc, cong_delays, signal_nodes, node_data)
+
+    return jsonify({
+        'success': True,
+        'blocked_at': nm.get(replan_from),          # ultimo nodo raggiungibile
+        'blocked_edge': [nm.get(osm_route[hit]), nm.get(osm_route[hit + 1])],
+        'hit_index': hit,
+        'travelled': route[:hit + 1],               # gia' percorso (invariato)
+        'new_route': new_route,                     # da blocked_at al goal
+        'full_route': new_full,
+        'plan_text': plan_text,
+        'plan_time_ms': plan_ms,
+        'pddl_content': pddl_content,
+        'old_metrics': old_m,
+        'new_metrics': new_m,
+        'n_blocked_edges': len(blocked_edges) // 2,
+        'n_blocked_nodes': len(blocked_nodes),
     })
 
 

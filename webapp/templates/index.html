@@ -134,6 +134,70 @@
     .popup-btn:hover { opacity: .85; }
     .popup-btn-start { background: #16a34a; color: #fff; }
     .popup-btn-goal  { background: #dc2626; color: #fff; }
+    /* ══ REPLANNING: chiusure stradali ══════════════════════════════════ */
+    .block-toggle { background:#1e2233; color:#f8b4b4; border:1px solid #3b2530;
+                    font-size:.78rem; margin-top:0; transition:all .2s; }
+    .block-toggle:hover { background:#2a1d24; border-color:#7f1d1d; }
+    .block-toggle.on { background:linear-gradient(135deg,#7f1d1d,#b91c1c); color:#fff;
+                       border-color:#ef4444; box-shadow:0 0 0 0 rgba(239,68,68,.7);
+                       animation:blockPulse 2s infinite; }
+    @keyframes blockPulse {
+      0%   { box-shadow:0 0 0 0 rgba(239,68,68,.55); }
+      70%  { box-shadow:0 0 0 9px rgba(239,68,68,0); }
+      100% { box-shadow:0 0 0 0 rgba(239,68,68,0); }
+    }
+    .block-hint { font-size:11px; color:#fca5a5; background:#1c1417; border-left:2px solid #ef4444;
+                  padding:6px 8px; border-radius:4px; margin-top:7px; line-height:1.5; }
+    .block-status { display:flex; align-items:center; justify-content:space-between;
+                    margin-top:8px; font-size:11.5px; color:#94a3b8; }
+    .mini-btn { background:transparent; border:1px solid #2a2d3e; color:#94a3b8; font-size:10.5px;
+                padding:3px 8px; border-radius:5px; cursor:pointer; }
+    .mini-btn:hover { border-color:#ef4444; color:#fca5a5; }
+    #map.blocking { cursor:crosshair; }
+    #map.blocking .leaflet-interactive { cursor:crosshair !important; }
+
+    /* cartello 🚧 sulle strade chiuse + pin di ricalcolo */
+    .block-icon { background:none; border:none; }
+    .block-badge { font-size:15px; line-height:22px; text-align:center;
+                   filter:drop-shadow(0 0 3px rgba(0,0,0,.9)); }
+    .reroute-pin { font-size:19px; line-height:30px; text-align:center;
+                   filter:drop-shadow(0 0 5px rgba(245,158,11,.95));
+                   animation:reroutePulse 1.6s ease-in-out infinite; }
+    @keyframes reroutePulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.28);} }
+
+    /* deviazione: linea tratteggiata che "scorre" verso il goal */
+    .route-flow { animation:dashFlow 1.1s linear infinite; }
+    @keyframes dashFlow { to { stroke-dashoffset:-22; } }
+
+    .edge-tip { background:#0f1220; border:1px solid #2a2d3e; color:#cbd5e1;
+                font-size:10.5px; padding:2px 6px; }
+
+    .replan-loading { font-size:12px; color:#f59e0b; margin-top:9px; }
+    .replan-loading::after { content:'⠋'; margin-left:5px; animation:spinDots .8s steps(4) infinite; }
+    @keyframes spinDots { 0%{content:'⠋';} 25%{content:'⠙';} 50%{content:'⠹';} 75%{content:'⠸';} }
+
+    .replan-card { margin-top:10px; background:linear-gradient(160deg,#1a1408,#141726);
+                   border:1px solid #78350f; border-radius:9px; padding:11px;
+                   animation:cardIn .35s ease-out; }
+    @keyframes cardIn { from{opacity:0; transform:translateY(7px);} to{opacity:1; transform:none;} }
+    .replan-head { font-size:12.5px; color:#fbbf24; font-weight:600; }
+    .replan-sub  { font-size:11px; color:#94a3b8; margin-top:3px; line-height:1.5; }
+    .replan-legend { display:flex; gap:10px; flex-wrap:wrap; margin:9px 0 7px;
+                     font-size:10.5px; color:#94a3b8; }
+    .replan-legend .sw { display:inline-block; width:11px; height:3px; border-radius:2px;
+                         margin-right:4px; vertical-align:middle; }
+    .replan-tab { width:100%; border-collapse:collapse; font-size:11.5px; }
+    .replan-tab th { color:#64748b; font-weight:500; text-align:right; padding:3px 5px;
+                     border-bottom:1px solid #2a2d3e; }
+    .replan-tab th:first-child { text-align:left; }
+    .replan-tab td { padding:3px 5px; text-align:right; color:#cbd5e1; }
+    .replan-tab td:first-child { text-align:left; color:#94a3b8; }
+    .replan-tab .worse  { color:#f87171; font-weight:600; }
+    .replan-tab .better { color:#34d399; font-weight:600; }
+    .replan-foot { font-size:10.5px; color:#64748b; margin-top:7px; }
+
+    .popup-btn-block { background:#7f1d1d; color:#fecaca; }
+    .popup-btn-open  { background:#14532d; color:#bbf7d0; }
   </style>
 </head>
 <body>
@@ -161,10 +225,11 @@
     <!-- Params -->
     <div class="sec">
       <h2>Parametri</h2>
-      <label class="lbl">Nodi massimi: <span id="range-val">50</span></label>
-      <input type="range" id="max-nodes" min="10" max="200" value="50" step="5">
+      <label class="lbl">Nodi massimi: <span id="range-val">200</span></label>
+      <input type="range" id="max-nodes" min="10" max="1000" value="200" step="10">
       <div class="range-row">
         <span>10</span>
+        <span style="font-size:.68rem;color:#64748b">più nodi = più deviazioni possibili, ma ENHSP più lento</span>
         <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;color:#9ca3af;cursor:pointer">
           <input type="checkbox" id="all-nodes" style="accent-color:#3b4fd8;cursor:pointer"> Tutti i nodi
         </label>
@@ -231,6 +296,32 @@
       </div>
 
       <div id="enhsp-msg"></div>
+
+      <!-- ══ REPLANNING: chiusure stradali ══ -->
+      <div id="block-sec" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #232838">
+        <div class="cong-title" style="margin-bottom:6px">🚧 Strade chiuse &amp; ricalcolo</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:8px">
+          Marca strade o incroci come non percorribili: il percorso viene
+          ricalcolato dall'ultimo punto raggiungibile prima della chiusura.
+        </div>
+        <button class="btn block-toggle" id="block-mode-btn" onclick="toggleBlockMode()">
+          🚧 Attiva modalità chiusura
+        </button>
+        <div id="block-hint" class="block-hint" style="display:none">
+          Clicca una <b>strada</b> per chiuderla, o un <b>incrocio</b> per bloccarlo.
+          Ri-clicca per riaprire.
+        </div>
+        <div class="block-status">
+          <span id="block-count">nessuna chiusura</span>
+          <button class="mini-btn" id="clear-blocks-btn" style="display:none" onclick="clearBlocks()">Azzera</button>
+        </div>
+        <button class="btn" id="replan-btn" disabled onclick="doReplan()"
+                style="background:#f59e0b;color:#1a1200;margin-top:8px">
+          🔄 Ricalcola percorso
+        </button>
+        <div id="replan-result"></div>
+      </div>
+
       <button class="btn" id="sumo-btn" style="display:none;background:#7c3aed;color:#fff;margin-top:10px" onclick="launchSumo('optimized')">
         <span id="sumo-label">▶ Apri in SUMO (semafori ottimizzati)</span>
         <div class="spinner" id="sumo-spinner"></div>
@@ -365,8 +456,36 @@ let state = {
   file: null,
   routeSignals: new Set(),
   mapLayer: 'default',   // 'default' | 'congestion' | 'peripheral' | 'density'
+  // ── Replanning: strade/incroci chiusi ──
+  blockMode: false,          // true = i click sulla mappa bloccano invece di aprire il popup
+  blockedEdges: {},          // "A|B" -> {from, to}
+  blockedNodes: new Set(),   // id nodi chiusi
+  lastRoute: null,           // ultimo piano calcolato (per il replanning)
+  replan: null,              // risultato dell'ultimo ricalcolo
+  routeHints: {},            // "A|B" -> 'safe' | 'critical' (chiusura fattibile?)
+  edgeLines: {},             // "A|B" -> {line, from, to}
 };
 let leafletMap = null, markerLayer = null, edgeLayer = null, routeLayer = null;
+let blockLayer = null, replanLayer = null;
+
+// Tetto lato client, allineato a MAX_SOLVABLE_NODES del server.
+// Non e' un limite fisico ma dipende da RAM/CPU: con heap 6 GB un PC normale
+// regge comodamente l'intera zona media (939 nodi).
+const MAX_SOLVABLE_NODES = 1200;
+
+// chiave non orientata: una strada chiusa lo e' in entrambi i sensi
+function edgeKey(a, b) { return a < b ? a + '|' + b : b + '|' + a; }
+function isEdgeBlocked(a, b) { return !!state.blockedEdges[edgeKey(a, b)]; }
+function edgeStyle(key) {
+  if (state.blockedEdges[key])
+    return { color: '#ef4444', weight: 4, opacity: 0.95, dashArray: '5 6' };
+  const hint = state.routeHints && state.routeHints[key];
+  if (hint === 'safe')                      // chiudibile: esiste una deviazione
+    return { color: '#fbbf24', weight: 4.5, opacity: 0.95, dashArray: null };
+  if (hint === 'critical')                  // chiuderlo isolerebbe il goal
+    return { color: '#7f1d1d', weight: 3.5, opacity: 0.85, dashArray: '1 5' };
+  return { color: '#2d3748', weight: 1.5, opacity: 0.7, dashArray: null };
+}
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab').forEach(tab => {
@@ -393,7 +512,7 @@ function setFile(f) { state.file = f; document.getElementById('fname').textConte
 const slider = document.getElementById('max-nodes');
 const allNodesCheck = document.getElementById('all-nodes');
 slider.addEventListener('input', () => document.getElementById('range-val').textContent = slider.value);
-allNodesCheck.addEventListener('change', () => { slider.disabled = allNodesCheck.checked; document.getElementById('range-val').textContent = allNodesCheck.checked ? 'tutti' : slider.value; });
+allNodesCheck.addEventListener('change', () => { slider.disabled = allNodesCheck.checked; document.getElementById('range-val').textContent = allNodesCheck.checked ? 'max ' + MAX_SOLVABLE_NODES : slider.value; });
 
 // ── Layer toggle ──────────────────────────────────────────────────────────────
 function setLayer(name) {
@@ -429,7 +548,11 @@ document.getElementById('gen-btn').addEventListener('click', async () => {
   setLoading('gen', true);
   const form = new FormData();
   form.append('osm_file', state.file);
-  form.append('max_nodes', allNodesCheck.checked ? 99999 : slider.value);
+  // "Tutti i nodi" e' limitato a MAX_SOLVABLE_NODES: oltre, ENHSP esaurisce
+  // la heap durante il grounding (start-move ha 3 argomenti per il turn-time,
+  // quindi le istanze crescono col cubo dei nodi). Sulle mappe piccole il
+  // limite non morde e "tutti" resta davvero tutti.
+  form.append('max_nodes', allNodesCheck.checked ? MAX_SOLVABLE_NODES : slider.value);
   form.append('zone', 'custom');
   try {
     const res = await fetch('/api/generate', { method: 'POST', body: form });
@@ -462,6 +585,12 @@ document.getElementById('solve-btn').addEventListener('click', async () => {
     const data = await res.json();
     if (data.error) { document.getElementById('solve-err').innerHTML = `<div class="alert alert-err" style="margin-top:10px">❌ ${data.error}</div>`; return; }
     state.routeSignals = new Set((data.route||[]).filter(id => { const n = nodeById(id); return n && n.is_signal; }));
+    state.lastRoute = data.route || null;      // serve al replanning
+    state.replan = null;
+    document.getElementById('replan-result').innerHTML = '';
+    if (replanLayer) { leafletMap.removeLayer(replanLayer); replanLayer = null; }
+    document.getElementById('block-sec').style.display = data.route ? 'block' : 'none';
+    refreshBlockUI();
     renderStats(data);
     renderPddl(data.pddl_content);
     renderPlan(data.plan_text);
@@ -505,8 +634,29 @@ function renderMap() {
     if (markerLayer) leafletMap.removeLayer(markerLayer);
     routeLayer = null;
   }
-  const lines = state.edges.map(e => { const a = nodeById(e.from), b = nodeById(e.to); return a && b ? [[a.lat,a.lon],[b.lat,b.lon]] : null; }).filter(Boolean);
-  edgeLayer = L.polyline(lines, { color: '#2d3748', weight: 1.5, opacity: 0.7 }).addTo(leafletMap);
+  // Archi disegnati UNO A UNO (non come unica polyline) cosi' sono
+  // selezionabili singolarmente per marcarli come non percorribili.
+  edgeLayer = L.layerGroup();
+  state.edgeLines = {};
+  state.edges.forEach(e => {
+    const a = nodeById(e.from), b = nodeById(e.to);
+    if (!a || !b) return;
+    const key = edgeKey(e.from, e.to);
+    if (state.edgeLines[key]) return;              // evita doppioni A->B / B->A
+    const line = L.polyline([[a.lat,a.lon],[b.lat,b.lon]], edgeStyle(key));
+    // corsia invisibile piu' spessa: rende il click molto piu' facile
+    const hit = L.polyline([[a.lat,a.lon],[b.lat,b.lon]],
+                           { color:'#000', weight:12, opacity:0, interactive:true });
+    const onClick = () => { if (state.blockMode) toggleBlockedEdge(key, e.from, e.to); };
+    hit.on('click', onClick);
+    line.on('click', onClick);
+    hit.on('mouseover', () => { if (state.blockMode) line.setStyle({ weight: 6, color: '#f87171' }); });
+    hit.on('mouseout',  () => line.setStyle(edgeStyle(key)));
+    hit.bindTooltip(`${e.from} → ${e.to}`, { sticky: true, className: 'edge-tip' });
+    state.edgeLines[key] = { line, from: e.from, to: e.to };
+    edgeLayer.addLayer(line); edgeLayer.addLayer(hit);
+  });
+  edgeLayer.addTo(leafletMap);
   redrawMarkers();
   const pts = state.nodes.map(n => [n.lat, n.lon]);
   if (pts.length) leafletMap.fitBounds(L.latLngBounds(pts).pad(0.05));
@@ -556,7 +706,11 @@ function redrawMarkers() {
     if (isStart)     { color = '#22c55e'; border = '#166534'; radius = 11; weight = 2; opacity = 1; }
     else if (isGoal) { color = '#ef4444'; border = '#991b1b'; radius = 11; weight = 2; opacity = 1; }
 
+    const isBlocked = state.blockedNodes.has(n.id);
+    if (isBlocked) { color = '#dc2626'; border = '#fca5a5'; radius = 10; weight = 3; opacity = 1; }
+
     const circle = L.circleMarker([n.lat, n.lon], { radius, fillColor: color, color: border, weight, fillOpacity: opacity });
+    if (isBlocked) circle.setStyle({ dashArray: '3 3' });
 
     const label = n.name || n.id;
     const tag   = isStart ? ' — START 🟢' : isGoal ? ' — GOAL 🔴' : '';
@@ -582,7 +736,18 @@ function redrawMarkers() {
         <button class="popup-btn popup-btn-start" onclick="setNodeStart('${n.id}')">🟢 Start</button>
         ${goalBtn}
       </div>
+      <div class="popup-btns">
+        <button class="popup-btn ${isBlocked ? 'popup-btn-open' : 'popup-btn-block'}"
+                onclick="toggleBlockedNode('${n.id}')">
+          ${isBlocked ? '✅ Riapri incrocio' : '🚧 Chiudi incrocio'}
+        </button>
+      </div>
     `, { maxWidth: 280 });
+
+    // in modalita' chiusura il click sul nodo lo blocca subito, senza popup
+    circle.on('click', (ev) => {
+      if (state.blockMode) { L.DomEvent.stop(ev); window.toggleBlockedNode(n.id); }
+    });
 
     markerLayer.addLayer(circle);
   });
@@ -599,6 +764,257 @@ function drawRoute(route) {
   routeLayer.addTo(leafletMap);
   redrawMarkers();
   leafletMap.fitBounds(L.latLngBounds(pts).pad(0.1));
+}
+
+// ══ REPLANNING: chiusure stradali ════════════════════════════════════════════
+
+// Raggiungibilità del goal ignorando gli elementi chiusi (BFS lato client:
+// istantanea, evita di scoprire solo dopo il round-trip che il blocco isola
+// la destinazione).
+function goalReachableFrom(fromId, extraBlockedKey) {
+  const goal = state.selectedGoal;
+  if (!fromId || !goal) return true;
+  const blockedNodes = state.blockedNodes;
+  const isBlk = (a, b) => {
+    const k = edgeKey(a, b);
+    return (k === extraBlockedKey) || !!state.blockedEdges[k] ||
+           blockedNodes.has(a) || blockedNodes.has(b);
+  };
+  const adj = {};
+  state.edges.forEach(e => {
+    if (isBlk(e.from, e.to)) return;
+    (adj[e.from] = adj[e.from] || []).push(e.to);
+  });
+  const seen = new Set([fromId]); const q = [fromId];
+  while (q.length) {
+    const c = q.shift();
+    if (c === goal) return true;
+    (adj[c] || []).forEach(n => { if (!seen.has(n)) { seen.add(n); q.push(n); } });
+  }
+  return seen.has(goal);
+}
+
+// Per ogni arco del piano corrente: chiuderlo lascia il goal raggiungibile?
+// 'safe' = si ottiene una deviazione, 'critical' = isola la destinazione.
+function routeEdgeStatus() {
+  const st = {};
+  const r = state.lastRoute || [];
+  for (let i = 0; i < r.length - 1; i++) {
+    const k = edgeKey(r[i], r[i + 1]);
+    if (state.blockedEdges[k]) continue;
+    st[k] = goalReachableFrom(r[i], k) ? 'safe' : 'critical';
+  }
+  return st;
+}
+
+function applyRouteEdgeHints() {
+  state.routeHints = state.blockMode ? routeEdgeStatus() : {};
+  Object.keys(state.edgeLines).forEach(k => {
+    state.edgeLines[k].line.setStyle(edgeStyle(k));
+  });
+  const n = Object.values(state.routeHints).filter(v => v === 'safe').length;
+  const hint = document.getElementById('block-hint');
+  if (state.blockMode && hint) {
+    hint.innerHTML = n > 0
+      ? `Clicca una <b>strada</b> per chiuderla o un <b>incrocio</b> per bloccarlo.
+         Sul percorso, <span style="color:#fbbf24">${n} tratt${n === 1 ? 'o è evidenziato' : 'i sono evidenziati'} in giallo</span>:
+         chiudendo quelli esiste una deviazione. Quelli in <span style="color:#7f1d1d">rosso scuro</span> isolerebbero la destinazione.`
+      : `<span style="color:#f87171">Nessun tratto di questo percorso è chiudibile:</span>
+         ogni strada è l'unico collegamento verso la destinazione, quindi
+         chiuderla la isolerebbe. Rigenera con <b>più nodi</b> (fino a 300) per
+         avere una rete con alternative. Se la zona è il centro storico
+         (<i>piccola</i>) è normale: è fatta di vie strette a senso unico e resta
+         quasi ad albero anche con tutti i nodi — usa la zona <b>media</b>.`;
+  }
+}
+
+function toggleBlockMode() {
+  state.blockMode = !state.blockMode;
+  const btn = document.getElementById('block-mode-btn');
+  btn.classList.toggle('on', state.blockMode);
+  btn.innerHTML = state.blockMode
+    ? '🚧 Modalità chiusura ATTIVA — clicca strade o incroci'
+    : '🚧 Attiva modalità chiusura';
+  document.getElementById('map').classList.toggle('blocking', state.blockMode);
+  document.getElementById('block-hint').style.display = state.blockMode ? 'block' : 'none';
+  if (state.blockMode) leafletMap.closePopup();
+  applyRouteEdgeHints();          // evidenzia subito dove conviene cliccare
+}
+
+function toggleBlockedEdge(key, from, to) {
+  const wasCritical = state.routeHints && state.routeHints[key] === 'critical';
+  if (state.blockedEdges[key]) delete state.blockedEdges[key];
+  else state.blockedEdges[key] = { from, to };
+  applyRouteEdgeHints();
+  refreshBlockUI();
+  // avviso immediato, senza aspettare il round-trip al server
+  if (state.blockedEdges[key] && wasCritical) {
+    document.getElementById('replan-result').innerHTML =
+      `<div class="alert alert-err" style="margin-top:8px">
+         🚫 Questa strada è l'unico collegamento verso la destinazione:
+         chiudendola non esiste alcuna deviazione.
+       </div>
+       <div style="font-size:11px;color:#94a3b8;margin-top:6px">
+         Scegli un tratto <span style="color:#fbbf24">giallo</span>, oppure rigenera
+         il problema con più nodi per avere una rete con più alternative.
+       </div>`;
+  } else {
+    document.getElementById('replan-result').innerHTML = '';
+  }
+}
+
+window.toggleBlockedNode = function(id) {
+  if (state.blockedNodes.has(id)) state.blockedNodes.delete(id);
+  else state.blockedNodes.add(id);
+  applyRouteEdgeHints();
+  redrawMarkers(); refreshBlockUI(); leafletMap.closePopup();
+};
+
+function clearBlocks() {
+  Object.keys(state.blockedEdges).forEach(k => {
+    state.blockedEdges[k] = undefined; delete state.blockedEdges[k];
+    if (state.edgeLines[k]) state.edgeLines[k].line.setStyle(edgeStyle(k));
+  });
+  state.blockedNodes.clear();
+  if (replanLayer) { leafletMap.removeLayer(replanLayer); replanLayer = null; }
+  if (blockLayer)  { leafletMap.removeLayer(blockLayer);  blockLayer  = null; }
+  state.replan = null;
+  document.getElementById('replan-result').innerHTML = '';
+  applyRouteEdgeHints();
+  redrawMarkers(); refreshBlockUI();
+  if (state.lastRoute) drawRoute(state.lastRoute);
+}
+
+function refreshBlockUI() {
+  const nE = Object.keys(state.blockedEdges).length;
+  const nN = state.blockedNodes.size;
+  const tot = nE + nN;
+  document.getElementById('block-count').textContent =
+    tot === 0 ? 'nessuna chiusura' :
+    `${nE} strad${nE === 1 ? 'a' : 'e'} · ${nN} incroc${nN === 1 ? 'io' : 'i'}`;
+  document.getElementById('replan-btn').disabled = (tot === 0 || !state.lastRoute);
+  document.getElementById('clear-blocks-btn').style.display = tot ? 'block' : 'none';
+  drawBlockMarkers();
+}
+
+// piccoli cartelli 🚧 al centro di ogni strada chiusa
+function drawBlockMarkers() {
+  if (blockLayer) leafletMap.removeLayer(blockLayer);
+  blockLayer = L.layerGroup();
+  Object.values(state.blockedEdges).forEach(({ from, to }) => {
+    const a = nodeById(from), b = nodeById(to);
+    if (!a || !b) return;
+    L.marker([(a.lat + b.lat) / 2, (a.lon + b.lon) / 2], {
+      icon: L.divIcon({ className: 'block-icon', html: '<div class="block-badge">🚧</div>',
+                        iconSize: [22, 22], iconAnchor: [11, 11] }),
+      interactive: false,
+    }).addTo(blockLayer);
+  });
+  blockLayer.addTo(leafletMap);
+}
+
+async function doReplan() {
+  if (!state.lastRoute) return;
+  const btn = document.getElementById('replan-btn');
+  btn.disabled = true;
+  document.getElementById('replan-result').innerHTML =
+    '<div class="replan-loading">Ricalcolo del percorso in corso…</div>';
+  try {
+    const res = await fetch('/api/replan', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: state.token,
+        route: state.lastRoute,
+        goal: state.selectedGoal,
+        blocked_edges: Object.values(state.blockedEdges).map(e => [e.from, e.to]),
+        blocked_nodes: Array.from(state.blockedNodes),
+      }),
+    });
+    const d = await res.json();
+    renderReplan(d);
+  } catch (e) {
+    document.getElementById('replan-result').innerHTML =
+      `<div class="alert alert-err" style="margin-top:8px">Errore di rete: ${e.message}</div>`;
+  } finally { btn.disabled = false; refreshBlockUI(); }
+}
+
+function renderReplan(d) {
+  const box = document.getElementById('replan-result');
+  if (d.error) {
+    const extra = d.unreachable
+      ? `<div style="font-size:11px;color:#94a3b8;margin-top:6px">
+           Con pochi nodi il sottografo è quasi un albero: chiudere una strada
+           isola la destinazione. Rigenera con <b>più nodi</b> (o “tutti”) per
+           avere percorsi alternativi.</div>` : '';
+    box.innerHTML = `<div class="alert alert-err" style="margin-top:8px">🚫 ${d.error}</div>${extra}`;
+    return;
+  }
+  if (d.no_impact) {
+    box.innerHTML = `<div class="alert alert-ok" style="margin-top:8px">✅ ${d.message}</div>`;
+    return;
+  }
+  state.replan = d;
+  drawReplanRoute(d);
+
+  const o = d.old_metrics, n = d.new_metrics;
+  const dt = (n.total - o.total), dd = (n.dist - o.dist);
+  const cls = dt > 0 ? 'worse' : 'better';
+  const sign = dt > 0 ? '+' : '';
+  box.innerHTML = `
+    <div class="replan-card">
+      <div class="replan-head">🚧 Strada chiusa su <b>${d.blocked_edge[0]} → ${d.blocked_edge[1]}</b></div>
+      <div class="replan-sub">Ricalcolo dal nodo <b>${d.blocked_at}</b>, l'ultimo raggiungibile prima della chiusura.</div>
+      <div class="replan-legend">
+        <span><i class="sw" style="background:#22c55e"></i>già percorso</span>
+        <span><i class="sw" style="background:#f59e0b"></i>deviazione</span>
+        <span><i class="sw" style="background:#64748b"></i>piano originale</span>
+      </div>
+      <table class="replan-tab">
+        <tr><th></th><th>Originale</th><th>Con deviazione</th><th>Δ</th></tr>
+        <tr><td>Distanza</td><td>${o.dist} m</td><td>${n.dist} m</td>
+            <td class="${cls}">${sign}${Math.round(dd)} m</td></tr>
+        <tr><td>Tempo totale</td><td>${o.total} s</td><td>${n.total} s</td>
+            <td class="${cls}">${sign}${dt.toFixed(1)} s</td></tr>
+        <tr><td>Semafori</td><td>${o.signals_crossed}</td><td>${n.signals_crossed}</td><td></td></tr>
+      </table>
+      <div class="replan-foot">Nuovo piano: ${d.new_route.length} nodi · ENHSP ${d.plan_time_ms ?? '—'} ms</div>
+    </div>`;
+}
+
+// disegna: piano originale sbiadito + tratto percorso + deviazione animata
+function drawReplanRoute(d) {
+  if (routeLayer)  { leafletMap.removeLayer(routeLayer);  routeLayer = null; }
+  if (replanLayer) leafletMap.removeLayer(replanLayer);
+  replanLayer = L.layerGroup();
+  const pts = ids => ids.map(id => { const n = nodeById(id); return n ? [n.lat, n.lon] : null; }).filter(Boolean);
+
+  const oldPts = pts(state.lastRoute || []);
+  if (oldPts.length > 1)
+    L.polyline(oldPts, { color: '#64748b', weight: 3, opacity: 0.45, dashArray: '2 7' }).addTo(replanLayer);
+
+  const travPts = pts(d.travelled || []);
+  if (travPts.length > 1) {
+    L.polyline(travPts, { color: '#166534', weight: 8, opacity: 0.85 }).addTo(replanLayer);
+    L.polyline(travPts, { color: '#22c55e', weight: 4, opacity: 1 }).addTo(replanLayer);
+  }
+
+  const newPts = pts(d.new_route || []);
+  if (newPts.length > 1) {
+    L.polyline(newPts, { color: '#78350f', weight: 9, opacity: 0.8 }).addTo(replanLayer);
+    L.polyline(newPts, { color: '#f59e0b', weight: 4.5, opacity: 1,
+                         dashArray: '12 10', className: 'route-flow' }).addTo(replanLayer);
+  }
+
+  const bn = nodeById(d.blocked_at);
+  if (bn) L.marker([bn.lat, bn.lon], {
+    icon: L.divIcon({ className: 'block-icon', html: '<div class="reroute-pin">🔄</div>',
+                      iconSize: [30, 30], iconAnchor: [15, 15] }), interactive: false,
+  }).addTo(replanLayer);
+
+  replanLayer.addTo(leafletMap);
+  redrawMarkers();
+  const all = travPts.concat(newPts);
+  if (all.length) leafletMap.fitBounds(L.latLngBounds(all).pad(0.15));
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────────

@@ -8,3 +8,12 @@ setup.log
 proj_specs.md
 setup_macos.py
 2_traffic_signal_optimization.md
+
+# File di configurazione SUMO: contengono percorsi ASSOLUTI della macchina
+# che li ha generati, quindi non hanno senso condivisi. Vengono ricreati
+# automaticamente da sumo_visualize.py a ogni avvio.
+cfg_files/*.sumocfg
+cfg_files/gui_*.xml
+cfg_files/*_piano.rou.xml
+cfg_files/*_piano.rou.alt.xml
+cfg_files/*_trip.xml
