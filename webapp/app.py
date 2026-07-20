@@ -989,7 +989,12 @@ def run_enhsp(pddl_content):
 
 def route_metrics(route, nm_inv, edges, vc, cong_delays, signal_nodes, node_data):
     """Scompone il costo di un percorso (stessa formula del dominio PDDL+):
-    guida + semafori + congestione + svolte."""
+    guida + semafori + congestione + svolte. Il ritardo semaforico usa
+    assign_movement_signal_delay (per movimento, come /api/solve e come il
+    dominio PDDL+ reale) e ricade su signal_delay_for (media per nodo) solo
+    se il nodo non ha dati di movimento SUMO — stessa logica dei due punti,
+    per non riportare nel pannello di replanning una stima meno precisa di
+    quella usata per generare il piano."""
     out = {'dist': 0, 'drive': 0.0, 'signal': 0.0, 'cong': 0.0, 'turn': 0.0,
            'signals_crossed': 0}
     osm = [nm_inv.get(r) for r in (route or [])]
@@ -1002,16 +1007,22 @@ def route_metrics(route, nm_inv, edges, vc, cong_delays, signal_nodes, node_data
             eff = spd / cf
             if eff > 0:
                 out['drive'] += d / eff
-        if 0 < i < len(osm) - 1 and osm[i - 1] and a and b:
-            out['turn'] += turn_time_s(osm[i - 1], a, b, node_data)
-    for nd in osm[1:]:
-        if not nd:
+        if not (a and b):
             continue
-        sd = signal_delay_for(nd, signal_nodes)
+        if i == 0:
+            sd = assign_movement_signal_delay(a, a, b, node_data, SUMO_MOVEMENTS, is_first=True)
+        else:
+            p = osm[i - 1]
+            out['turn'] += turn_time_s(p, a, b, node_data)
+            sd = assign_movement_signal_delay(p, a, b, node_data, SUMO_MOVEMENTS)
+        if sd is None:
+            sd = signal_delay_for(a, signal_nodes)
         if sd > 0:
             out['signals_crossed'] += 1
             out['signal'] += sd
-        out['cong'] += cong_delays.get(nd, 0)
+    for nd in osm[1:]:
+        if nd:
+            out['cong'] += cong_delays.get(nd, 0)
     out['total'] = out['drive'] + out['signal'] + out['cong'] + out['turn']
     for k in ('drive', 'signal', 'cong', 'turn', 'total'):
         out[k] = round(out[k], 1)

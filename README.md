@@ -286,7 +286,7 @@ aprire la simulazione con i semafori ottimizzati o con quelli originali.
 
 ## Dominio PDDL+
 
-Il dominio definisce un'azione discreta, un processo continuo e un evento automatico. Rispetto alla versione base, `start-move` conosce il **nodo di provenienza** (`?prev`) per poter addebitare il tempo di svolta, e un unico fatto `(prev ...)` tiene traccia dell'ultimo arco percorso (cancellato in `start-move`, ristabilito da `arrive`):
+Il dominio definisce un'azione discreta, un processo continuo e un evento automatico. Rispetto alla versione base, `start-move` conosce il **nodo di provenienza** (`?prev`) per poter addebitare il tempo di svolta e il ritardo semaforico, e un unico fatto `(prev ...)` tiene traccia dell'ultimo arco percorso (cancellato in `start-move`, ristabilito da `arrive`):
 
 ```pddl
 (:action start-move
@@ -295,7 +295,8 @@ Il dominio definisce un'azione discreta, un processo continuo e un evento automa
   :effect (and
     (not (at ?from)) (not (prev ?prev)) (moving ?from ?to)
     (assign (progress ?from ?to) 0)
-    (increase (total-time) (turn-time ?prev ?from ?to))))   ; costo di svolta
+    (increase (total-time) (turn-time ?prev ?from ?to))       ; costo di svolta
+    (increase (total-time) (signal-delay ?prev ?from ?to))))  ; ritardo semaforico del MOVIMENTO
 
 (:process driving
   :parameters (?from ?to - location)
@@ -309,14 +310,13 @@ Il dominio definisce un'azione discreta, un processo continuo e un evento automa
     (not (moving ?from ?to)) (at ?to) (prev ?from)
     (increase (total-dist) (distance ?from ?to))
     (increase (total-time) (arc-time ?from ?to))          ; tempo di guida
-    (increase (total-time) (signal-delay ?to))            ; ritardo semaforico (SUMO)
     (increase (total-time) (congestion-delay ?to))        ; ritardo congestione
     (assign (progress ?from ?to) 0)))
 ```
 
-Il processo `driving` fa avanzare `progress` in modo continuo tramite la variabile temporale `#t`; l'evento `arrive` si attiva automaticamente quando `progress >= distance` e aggiorna `total-time` in modo discreto, sommando il tempo di guida, il ritardo semaforico e quello di congestione del nodo di arrivo; l'azione `start-move` aggiunge il tempo di svolta. L'aggiornamento di `total-time` avviene esclusivamente negli eventi/azioni discreti, e non nel processo continuo, per evitare che ENHSP tratti il tempo accumulato come variabile continua da campionare ad ogni istante, con conseguente aumento del costo computazionale della ricerca.
+Il processo `driving` fa avanzare `progress` in modo continuo tramite la variabile temporale `#t`; l'evento `arrive` si attiva automaticamente quando `progress >= distance` e aggiorna `total-time` in modo discreto, sommando il tempo di guida e il ritardo di congestione del nodo di arrivo; l'azione `start-move` aggiunge il tempo di svolta **e** il ritardo semaforico del movimento `(?prev, ?from, ?to)` che si sta per impegnare — addebitato alla partenza da `?from`, non all'arrivo a `?to`, perché è il momento in cui il veicolo attende davvero il verde di quello specifico movimento (vedi sezione "Semafori e tempi di svolta" e `2_traffic_signal_optimization.md`, sez. 1, per il perché del passaggio da un valore medio per nodo a uno specifico per movimento). L'aggiornamento di `total-time` avviene esclusivamente negli eventi/azioni discreti, e non nel processo continuo, per evitare che ENHSP tratti il tempo accumulato come variabile continua da campionare ad ogni istante, con conseguente aumento del costo computazionale della ricerca.
 
-> **Nota sulla scomposizione del tempo.** La *timeline* stampata da ENHSP (gli istanti delle azioni) riflette il solo tempo di **guida** simulato dal processo continuo; i ritardi (semaforo, congestione, svolta) sono incrementi *discreti* su `total-time` e non fanno avanzare l'orologio simulato. Il costo effettivo del piano è quindi la somma: **total-time = guida + semafori + congestione + svolte**. Esempio (zona piccola): 242,7 s = 85,6 (guida) + 17,1 (semafori) + 130 (congestione) + 10,0 (svolte).
+> **Nota sulla scomposizione del tempo.** La *timeline* stampata da ENHSP (gli istanti delle azioni) riflette il solo tempo di **guida** simulato dal processo continuo; i ritardi (semaforo, congestione, svolta) sono incrementi *discreti* su `total-time` e non fanno avanzare l'orologio simulato. Il costo effettivo del piano è quindi la somma: **total-time = guida + semafori + congestione + svolte**.
 
 ---
 
