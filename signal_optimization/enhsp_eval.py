@@ -25,8 +25,9 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if BASE not in sys.path:
-    sys.path.insert(0, BASE)
+SCRIPTS_DIR = os.path.join(BASE, "scripts")
+if SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, SCRIPTS_DIR)
 PDDL_DIR = os.path.join(BASE, "pddl_files")
 if PDDL_DIR not in sys.path:
     sys.path.insert(0, PDDL_DIR)

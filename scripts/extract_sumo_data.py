@@ -470,7 +470,7 @@ def process(zone, net_path, out_dir):
 
 
 if __name__ == "__main__":
-    BASE = os.path.dirname(os.path.abspath(__file__))
+    BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # radice del progetto
     # cerca la cartella net_files relativa al progetto o al file
     net_dir_candidates = [
         os.path.join(BASE, "net_files"),

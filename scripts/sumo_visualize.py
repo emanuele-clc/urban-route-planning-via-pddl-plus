@@ -221,8 +221,8 @@ def compute_edges_from_pddl(pddl_path, net_path):
     }
 
 # ── Argomenti ────────────────────────────────────────────────
-# Uso standard:  python sumo_visualize.py [piccola|media|grande]
-# Uso dinamico:  python sumo_visualize.py pddl <percorso_pddl> [piccola|media|grande]
+# Uso standard:  python scripts/sumo_visualize.py [piccola|media|grande]
+# Uso dinamico:  python scripts/sumo_visualize.py pddl <percorso_pddl> [piccola|media|grande]
 # Opzione:       --baseline  -> NON carica i semafori ottimizzati (punto 3),
 #                               usa il programma originale "0" del net.xml.
 USE_OPTIMIZED_TLS = "--baseline" not in sys.argv
@@ -234,17 +234,17 @@ dynamic_pddl = None
 if zona == "pddl":
     # modalità dinamica: legge il PDDL e calcola il percorso
     if len(sys.argv) < 3:
-        print("Uso dinamico: python sumo_visualize.py pddl <file.pddl> [piccola|media|grande]")
+        print("Uso dinamico: python scripts/sumo_visualize.py pddl <file.pddl> [piccola|media|grande]")
         sys.exit(1)
     dynamic_pddl = sys.argv[2]
     zona = sys.argv[3] if len(sys.argv) > 3 else "piccola"
 
 if zona not in ("piccola", "media", "grande"):
-    print("Uso: python sumo_visualize.py [piccola|media|grande]")
-    print("     python sumo_visualize.py pddl <file.pddl> [piccola|media|grande]")
+    print("Uso: python scripts/sumo_visualize.py [piccola|media|grande]")
+    print("     python scripts/sumo_visualize.py pddl <file.pddl> [piccola|media|grande]")
     sys.exit(1)
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # radice del progetto
 OUT  = os.path.join(BASE, "cfg_files")
 os.makedirs(OUT, exist_ok=True)
 

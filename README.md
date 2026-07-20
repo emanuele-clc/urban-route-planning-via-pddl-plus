@@ -158,12 +158,12 @@ simulazione.
 python -m signal_optimization.optimize piccola media grande
 
 # 2. traduci il piano in additional-file SUMO (punto 3)
-python inject_signal_plan.py                 # tutte le zone disponibili
-python inject_signal_plan.py piccola         # una sola zona
+python scripts/inject_signal_plan.py                 # tutte le zone disponibili
+python scripts/inject_signal_plan.py piccola         # una sola zona
 
 # 3. visualizza: i semafori ottimizzati sono caricati automaticamente
-python sumo_visualize.py piccola
-python sumo_visualize.py piccola --baseline  # forza i semafori originali
+python scripts/sumo_visualize.py piccola
+python scripts/sumo_visualize.py piccola --baseline  # forza i semafori originali
 ```
 
 `sumo_visualize.py` aggiunge da solo la riga
@@ -270,9 +270,9 @@ le ipotesi di Webster sono meno valide.
 ### Uso
 
 ```bash
-python compare_sumo.py                        # tutte le zone
-python compare_sumo.py piccola media grande
-python compare_sumo.py grande --max-vehicles 15
+python scripts/compare_sumo.py                        # tutte le zone
+python scripts/compare_sumo.py piccola media grande
+python scripts/compare_sumo.py grande --max-vehicles 15
 ```
 
 I risultati sono **cumulativi**: eseguire una zona alla volta non cancella
@@ -453,15 +453,18 @@ spiegazione nella sezione sul confronto in simulazione.
 ├── README.md
 ├── requirements.txt
 ├── setup.bat
-├── build_problems.py          # Genera i file problem_*.pddl da OSM
-├── extract_sumo_data.py       # Estrae semafori/settaggi/turn dai net.xml SUMO
-├── inject_signal_plan.py      # Punto 3: inietta il piano ottimizzato in SUMO
-├── compare_sumo.py            # Punto 4: confronto in simulazione baseline vs ottimizzato
-├── download_dublin_map.py     # Scarica le mappe OSM tramite osmnx
-├── convert_to_osm.py          # Converte OSM in net.xml tramite netconvert
-├── sumo_visualize.py          # Visualizza il piano in sumo-gui
-├── compare_versions.py        # Confronto vecchia/nuova versione del dominio
-├── generate_demand.py         # Campione O-D condiviso fra i punti 2 e 4
+├── setup_macos.py
+│
+├── scripts/                   # Pipeline dati e strumenti di confronto/ottimizzazione
+│   ├── build_problems.py          # Genera i file problem_*.pddl da OSM
+│   ├── extract_sumo_data.py       # Estrae semafori/settaggi/turn dai net.xml SUMO
+│   ├── inject_signal_plan.py      # Punto 3: inietta il piano ottimizzato in SUMO
+│   ├── compare_sumo.py            # Punto 4: confronto in simulazione baseline vs ottimizzato
+│   ├── download_dublin_map.py     # Scarica le mappe OSM tramite osmnx
+│   ├── convert_to_osm.py          # Converte OSM in net.xml tramite netconvert
+│   ├── sumo_visualize.py          # Visualizza il piano in sumo-gui
+│   ├── compare_versions.py        # Confronto vecchia/nuova versione del dominio
+│   └── generate_demand.py         # Campione O-D condiviso fra i punti 2 e 4
 │
 ├── docs/                      # Materiale di documentazione e presentazione
 │   ├── spiegazione_tecnica.pdf
@@ -477,14 +480,14 @@ spiegazione nella sezione sul confronto in simulazione.
 │   ├── search.py              # Ricerca locale
 │   └── progression.py         # Penalita' di progressione
 │
-├── comparison_results/        # Output di compare_versions.py
+├── comparison_results/        # Output di scripts/compare_versions.py
 ├── diagnostics_out/           # Report diagnostici
 │
 ├── sumo_comparison/           # Punto 4: risultati del confronto in simulazione
 │   ├── results.json
 │   └── report.md
 │
-├── sumo_extracted/            # Dati estratti da SUMO (generati da extract_sumo_data.py)
+├── sumo_extracted/            # Dati estratti da SUMO (generati da scripts/extract_sumo_data.py)
 │   ├── sumo_data_piccola.json
 │   ├── sumo_data_media.json
 │   ├── sumo_data_grande.json
@@ -519,7 +522,11 @@ spiegazione nella sezione sul confronto in simulazione.
 │   └── run.py
 │
 └── webapp/                    # Interfaccia web (Flask + Leaflet)
-    ├── app.py
+    ├── app.py                 # Route Flask (generate/solve/replan/sumo)
+    ├── osm_graph.py           # Parsing OSM, grafo contratto, congestione
+    ├── sumo_signals.py        # Bearing, tempo di svolta, ritardo semaforico per movimento
+    ├── pddl_writer.py         # Generazione del problema PDDL+ e route_metrics
+    ├── enhsp_runner.py        # Discovery/esecuzione ENHSP, parsing del piano
     └── templates/
         └── index.html
 ```
@@ -567,10 +574,10 @@ python run.py piccola    # oppure: media, grande
 
 ```bash
 # Zona predefinita
-python sumo_visualize.py piccola    # oppure: media, grande
+python scripts/sumo_visualize.py piccola    # oppure: media, grande
 
 # Percorso generato dalla webapp
-python sumo_visualize.py pddl pddl_files/problem_custom.pddl piccola
+python scripts/sumo_visualize.py pddl pddl_files/problem_custom.pddl piccola
 ```
 
 ---

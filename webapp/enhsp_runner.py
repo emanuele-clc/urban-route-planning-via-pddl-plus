@@ -1,0 +1,146 @@
+"""
+enhsp_runner.py
+----------------
+Discovery ed esecuzione di ENHSP, parsing del piano prodotto. Estratto da
+webapp/app.py — usato dalle route /api/solve e /api/replan.
+"""
+import os
+import re
+import glob
+import sysconfig
+import subprocess
+import tempfile
+
+PROJECT_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+DOMAIN_PATH = os.path.join(PROJECT_ROOT, 'pddl_files', 'domain.pddl')
+
+# Heap per ENHSP. Il grounding di start-move (3 argomenti: prev, from, to)
+# cresce molto col numero di nodi: con la heap di default la JVM va in
+# OutOfMemory gia' sotto i 400 nodi. Con 2 GB si arriva comodamente a ~300.
+# Sovrascrivibile con la variabile d'ambiente ENHSP_HEAP (es. "4g").
+# 6 GB: -Xmx fissa solo il tetto, la JVM non alloca subito, quindi e' sicuro
+# anche su macchine con 8 GB. Se la JVM non parte, abbassalo (ENHSP_HEAP=2g).
+ENHSP_HEAP = os.environ.get('ENHSP_HEAP', '6g')
+
+# Limite di sicurezza sul numero di nodi. NON e' una costante fisica: dipende
+# da RAM e CPU della macchina. Misure fatte su un ambiente molto modesto
+# (3 GB, 1 core) con heap 2 GB, zona media:
+#     300 nodi -> 8 s | 400 -> 14 s | 600 -> molto lento | 939 -> OutOfMemory
+# NON e' un limite di RAM ma di ESPLOSIONE COMBINATORIA: sia start-move sia
+# signal-delay hanno tre argomenti (prev, from, to), quindi le istanze che
+# ENHSP deve generare crescono col CUBO dei nodi. Raddoppiare la heap non
+# raddoppia i nodi gestibili: 400 nodi ~ 64 M combinazioni potenziali,
+# 1200 ~ 1.7 miliardi. Verificato con heap 2 GB (zona media):
+#     300 nodi -> 8 s | 400 -> 14 s | 600 -> molto lento | 939 -> OutOfMemory
+# 400 e' il valore piu' alto verificato come affidabile; alzarlo e' possibile
+# ma va provato sulla propria macchina.
+MAX_SOLVABLE_NODES = int(os.environ.get('MAX_SOLVABLE_NODES', '400'))
+
+# Timeout di ENHSP in secondi. 0 = nessun limite: sui grafi grandi il grounding
+# puo' richiedere parecchi minuti e interromperlo a 180 s buttava via lavoro
+# gia' fatto. Impostare ENHSP_TIMEOUT=300 per rimettere un tetto.
+_t = int(os.environ.get('ENHSP_TIMEOUT', '0'))
+ENHSP_TIMEOUT = _t if _t > 0 else None
+
+
+def trova_enhsp():
+    import site as _site
+    cartelle = []
+    try: cartelle.append(_site.getusersitepackages())
+    except Exception: pass
+    cartelle += [sysconfig.get_path("purelib"), sysconfig.get_path("platlib")]
+    for base in cartelle:
+        if base and os.path.exists(base):
+            for root, dirs, files in os.walk(base):
+                for f in files:
+                    if f.endswith(".jar") and "enhsp" in f.lower():
+                        return os.path.join(root, f)
+    for ver in ["313", "312", "311", "310", "39"]:
+        for base in [
+            os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "Python", f"Python{ver}"),
+            os.path.join(os.environ.get("APPDATA", ""), "Python", f"Python{ver}"),
+            f"C:\\Python{ver}",
+        ]:
+            for hit in glob.glob(os.path.join(base, "**", "enhsp*.jar"), recursive=True):
+                return hit
+    for base in ["/usr/local/lib", "/usr/lib", os.path.expanduser("~/.local/lib")]:
+        for hit in glob.glob(os.path.join(base, "**", "enhsp*.jar"), recursive=True):
+            return hit
+    return None
+
+
+def enhsp_cmd(jar, domain, problem):
+    return ["java", f"-Xmx{ENHSP_HEAP}", "-jar", jar,
+            "-o", domain, "-f", problem, "-s", "aibr"]
+
+
+def diagnose_enhsp(output):
+    """Traduce l'esito di ENHSP in un messaggio utile all'utente.
+    Distinguere le cause e' importante: 'nessuna soluzione' e 'memoria
+    esaurita' richiedono azioni completamente diverse."""
+    if 'OutOfMemoryError' in output or 'GC overhead' in output:
+        return (f"Memoria insufficiente per ENHSP (heap attuale: {ENHSP_HEAP}). "
+                f"Il numero di istanze da generare cresce col cubo dei nodi, "
+                f"quindi oltre ~{MAX_SOLVABLE_NODES} nodi non basta aumentare la RAM: "
+                f"rigenera il grafo con meno nodi. In alternativa alza "
+                f"ENHSP_HEAP e MAX_SOLVABLE_NODES.")
+    if 'Problem unsolvable' in output or 'unsolvable' in output.lower():
+        return ("ENHSP dichiara il problema irrisolvibile: la destinazione non e' "
+                "raggiungibile dal punto di partenza con i vincoli attuali.")
+    return ("ENHSP non ha trovato soluzione. Cause tipiche: troppi nodi "
+            "selezionati, oppure goal non raggiungibile dallo start.")
+
+
+def parse_plan(output):
+    plan_lines = []; in_plan = False
+    for line in output.splitlines():
+        if "Found Plan:" in line: in_plan = True; continue
+        if in_plan:
+            if line.strip() == "" or "Plan-Length" in line: in_plan = False
+            else: plan_lines.append(line.strip())
+
+    route_names = []
+    for line in plan_lines:
+        # start-move a 3 argomenti: (start-move ?prev ?from ?to)
+        m = re.search(r'\(start-move\s+(\S+)\s+(\S+)\s+(\S+)\)', line, re.IGNORECASE)
+        if m:
+            frm = m.group(2).lower(); to = m.group(3).lower()
+            if not route_names: route_names.append(frm)
+            route_names.append(to)
+
+    plan_time_ms = None
+    for line in output.splitlines():
+        if "Planning Time (msec)" in line:
+            m = re.search(r':\s*([\d.]+)', line)
+            if m: plan_time_ms = float(m.group(1)); break
+
+    return "\n".join(plan_lines), route_names, plan_time_ms
+
+
+def run_enhsp(pddl_content):
+    """Risolve un problema PDDL+ con ENHSP. Ritorna (plan_text, route, ms, errore)."""
+    jar = trova_enhsp()
+    domain_abs = os.path.abspath(DOMAIN_PATH)
+    if not jar:
+        return None, None, None, "ENHSP non trovato — installa con: pip install up-enhsp"
+    if not os.path.exists(domain_abs):
+        return None, None, None, f"domain.pddl non trovato in: {domain_abs}"
+
+    tmp_dir = tempfile.mkdtemp()
+    pddl_path = os.path.join(tmp_dir, 'problem.pddl')
+    with open(pddl_path, 'w', encoding='utf-8') as f:
+        f.write(pddl_content)
+    try:
+        result = subprocess.run(enhsp_cmd(jar, domain_abs, pddl_path),
+                                capture_output=True, text=True, timeout=ENHSP_TIMEOUT)
+        output = result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        return None, None, None, (f"ENHSP ha superato il timeout ({ENHSP_TIMEOUT}s): "
+                                  "riduci i nodi o alza ENHSP_TIMEOUT")
+    except FileNotFoundError:
+        return None, None, None, "Java non trovato — installa Java 17+"
+
+    if "Problem Solved" not in output:
+        return None, None, None, diagnose_enhsp(output)
+    plan_text, route, ms = parse_plan(output)
+    return plan_text, route, ms, None

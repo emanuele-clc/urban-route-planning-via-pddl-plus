@@ -79,8 +79,8 @@ sola verifica finale.
 ## Riproducibilita'
 
 ```bash
-python compare_sumo.py                  # tutte le zone
-python compare_sumo.py piccola media grande
+python scripts/compare_sumo.py                  # tutte le zone
+python scripts/compare_sumo.py piccola media grande
 ```
 
 Output: `sumo_comparison/results.json` (dati grezzi) e questo report.

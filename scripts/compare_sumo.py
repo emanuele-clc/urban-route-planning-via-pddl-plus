@@ -37,10 +37,10 @@ Punti chiave per la validita' del confronto:
   timeLoss    tempo perso rispetto alla marcia a velocita' ideale (s)
   arrived     n. di veicoli che hanno raggiunto la destinazione
 
-Uso:
-    python compare_sumo.py                     # tutte le zone disponibili
-    python compare_sumo.py piccola
-    python compare_sumo.py piccola media grande --max-vehicles 60
+Uso (dalla radice del progetto):
+    python scripts/compare_sumo.py                     # tutte le zone disponibili
+    python scripts/compare_sumo.py piccola
+    python scripts/compare_sumo.py piccola media grande --max-vehicles 60
 """
 
 import os
@@ -56,7 +56,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # radice del progetto
 NET_DIR = os.path.join(BASE, "net_files")
 SUMO_DIR = os.path.join(BASE, "sumo_extracted")
 CFG_DIR = os.path.join(BASE, "cfg_files")
@@ -177,7 +177,7 @@ def build_routes(zone, net_path, max_vehicles=None, verbose=True):
     demand_path = os.path.join(SUMO_DIR, f"demand_{zone}.json")
     if not os.path.exists(demand_path):
         print(f"[{zone}] domanda non trovata: {os.path.basename(demand_path)}")
-        print(f"[{zone}] generala con: python generate_demand.py {zone}")
+        print(f"[{zone}] generala con: python scripts/generate_demand.py {zone}")
         return None, 0, 0
 
     with open(demand_path, encoding="utf-8") as f:
@@ -276,7 +276,7 @@ def compare_zone(zone, sumo_bin, max_vehicles=None, verbose=True):
     if not os.path.exists(add_path):
         print(f"[{zone}] semafori ottimizzati non trovati "
               f"({os.path.basename(add_path)}).")
-        print(f"[{zone}] generali con: python inject_signal_plan.py {zone}")
+        print(f"[{zone}] generali con: python scripts/inject_signal_plan.py {zone}")
         return None
 
     rou_xml, n_veh, n_skip = build_routes(zone, net_path, max_vehicles, verbose)
@@ -432,8 +432,8 @@ def write_report(results):
           "- **tempo perso** (`timeLoss`): ritardo rispetto alla marcia ideale a",
           "  velocita' consentita; include anche le decelerazioni.", "",
           "## Riproducibilita'", "",
-          "```bash", "python compare_sumo.py                  # tutte le zone",
-          "python compare_sumo.py piccola media grande", "```", "",
+          "```bash", "python scripts/compare_sumo.py                  # tutte le zone",
+          "python scripts/compare_sumo.py piccola media grande", "```", "",
           "Output: `sumo_comparison/results.json` (dati grezzi) e questo report.",
           "I teletrasporti sono disattivati (`--time-to-teleport -1`): un veicolo",
           "bloccato resta in coda invece di essere rimosso, altrimenti le attese",

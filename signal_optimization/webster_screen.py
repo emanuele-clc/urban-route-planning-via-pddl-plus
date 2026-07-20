@@ -16,8 +16,9 @@ import json
 from collections import defaultdict
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if BASE not in sys.path:
-    sys.path.insert(0, BASE)
+SCRIPTS_DIR = os.path.join(BASE, "scripts")
+if SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, SCRIPTS_DIR)
 
 import build_problems as bp  # noqa: E402
 import extract_sumo_data as esd  # noqa: E402

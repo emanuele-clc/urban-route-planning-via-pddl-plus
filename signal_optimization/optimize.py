@@ -27,8 +27,9 @@ import time
 import argparse
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if BASE not in sys.path:
-    sys.path.insert(0, BASE)
+SCRIPTS_DIR = os.path.join(BASE, "scripts")
+if SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, SCRIPTS_DIR)
 
 from signal_optimization import candidates as C  # noqa: E402
 from signal_optimization import webster_screen as ws  # noqa: E402

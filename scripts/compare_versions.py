@@ -21,8 +21,8 @@ Il "vecchio" build_problems.py/domain.pddl vengono caricati dinamicamente
 da `git show HEAD:...` (nessun checkout, nessuna modifica allo stato del
 repo) cosi' il confronto e' riproducibile anche dopo un commit.
 
-Uso:
-    python compare_versions.py [piccola] [media] [grande] [--n-samples 10]
+Uso (dalla radice del progetto):
+    python scripts/compare_versions.py [piccola] [media] [grande] [--n-samples 10]
 
 Output:
     comparison_results/results_<zona>.json  (dati grezzi, per debug/riuso)
@@ -41,8 +41,9 @@ import random
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-BASE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, BASE)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))         # scripts/
+BASE = os.path.dirname(SCRIPT_DIR)                               # radice del progetto
+sys.path.insert(0, SCRIPT_DIR)
 sys.path.insert(0, os.path.join(BASE, "pddl_files"))
 
 import build_problems as new_bp  # noqa: E402  (working tree = versione NUOVA)
@@ -75,7 +76,7 @@ def _git_show(rel_path):
 
 
 def load_old_build_problems():
-    content = _git_show("build_problems.py")
+    content = _git_show("scripts/build_problems.py")
     tmp_dir = tempfile.mkdtemp(prefix="old_bp_")
     tmp_path = os.path.join(tmp_dir, "build_problems_old.py")
     with open(tmp_path, "w", encoding="utf-8") as f:

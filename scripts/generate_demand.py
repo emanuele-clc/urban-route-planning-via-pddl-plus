@@ -25,8 +25,8 @@ coppie O-D dentro 'selected' via lo stesso Dijkstra gia' usato da
 build_problems.compute_vehicle_counts — meno realistico ma comunque
 condiviso/riproducibile (stesso seed) tra punto 2 e punto 4.
 
-Uso:
-    python generate_demand.py piccola media grande
+Uso (dalla radice del progetto):
+    python scripts/generate_demand.py piccola media grande
 Output:
     sumo_extracted/demand_<zona>.json
 """
@@ -42,8 +42,9 @@ import tempfile
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 
-BASE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, BASE)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))          # scripts/
+BASE = os.path.dirname(SCRIPT_DIR)                                # radice del progetto
+sys.path.insert(0, SCRIPT_DIR)
 
 import build_problems as bp  # noqa: E402  (riuso: build_contracted_graph, select_connected_subgraph, haversine)
 import extract_sumo_data as esd  # noqa: E402  (riuso: load_net, cluster_member_ids helper duplicato sotto)

@@ -18,7 +18,14 @@ iniettabile in SUMO senza rischio di conflitti tra movimenti: la
 compatibilita' e' quella gia' validata da netconvert.
 """
 
+import os
+import sys
 import random
+
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCRIPTS_DIR = os.path.join(BASE, "scripts")
+if SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, SCRIPTS_DIR)
 
 from extract_sumo_data import GREEN_CHARS, REAL_CYCLE_S
 

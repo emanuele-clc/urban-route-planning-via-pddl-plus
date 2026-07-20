@@ -36,11 +36,11 @@ ottimizzato sulla stessa simulazione.
 Le fasi NON presenti nel piano mantengono la durata originale del net.xml
 (cosi' come documentato nel file prodotto dal punto 2).
 
-Uso:
-    python inject_signal_plan.py                    # tutte le zone disponibili
-    python inject_signal_plan.py piccola            # una zona
-    python inject_signal_plan.py piccola media grande
-    python inject_signal_plan.py piccola --program-id opt2
+Uso (dalla radice del progetto):
+    python scripts/inject_signal_plan.py                    # tutte le zone disponibili
+    python scripts/inject_signal_plan.py piccola            # una zona
+    python scripts/inject_signal_plan.py piccola media grande
+    python scripts/inject_signal_plan.py piccola --program-id opt2
 """
 
 import os
@@ -50,7 +50,7 @@ import argparse
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # radice del progetto
 NET_DIR = os.path.join(BASE, "net_files")
 SUMO_DIR = os.path.join(BASE, "sumo_extracted")
 CFG_DIR = os.path.join(BASE, "cfg_files")

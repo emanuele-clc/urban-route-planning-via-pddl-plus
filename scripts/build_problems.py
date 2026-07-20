@@ -7,7 +7,7 @@ import random
 import xml.etree.ElementTree as ET
 from collections import defaultdict, Counter, deque
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # radice del progetto (scripts/ e' un livello sotto)
 OSM_DIR = os.path.join(BASE, "osm_files")
 PDDL_DIR = os.path.join(BASE, "pddl_files")
 SUMO_DIR = os.path.join(BASE, "sumo_extracted")  # JSON da extract_sumo_data.py
@@ -762,7 +762,7 @@ if __name__ == "__main__":
         osm_path = os.path.join(OSM_DIR, osm_file)
         if not os.path.exists(osm_path):
             print(f"[ERRORE] file non trovato: {osm_path}")
-            print(f"  esegui prima: python download_dublin_map.py")
+            print(f"  esegui prima: python scripts/download_dublin_map.py")
             sys.exit(1)
         generate(zone, osm_path, max_nodes)
 

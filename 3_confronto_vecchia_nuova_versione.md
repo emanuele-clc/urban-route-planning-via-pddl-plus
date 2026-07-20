@@ -275,8 +275,8 @@ che non altera le conclusioni aggregate.
 ## 7. Riproducibilita'
 
 ```bash
-python compare_versions.py piccola media --n-samples 12 --max-workers 6 --timeout 60
-python compare_versions.py grande --n-samples 20 --max-workers 6 --timeout 60
+python scripts/compare_versions.py piccola media --n-samples 12 --max-workers 6 --timeout 60
+python scripts/compare_versions.py grande --n-samples 20 --max-workers 6 --timeout 60
 ```
 
 Output:
@@ -479,8 +479,8 @@ Pipeline completa riproducibile con:
 
 ```bash
 python -m signal_optimization.optimize piccola media grande
-python inject_signal_plan.py
-python sumo_visualize.py piccola        # oppure media, grande
+python scripts/inject_signal_plan.py
+python scripts/sumo_visualize.py piccola        # oppure media, grande
 ```
 
 Se un piano manca, `inject_signal_plan.py` lo segnala indicando il comando da
@@ -640,8 +640,8 @@ restituisce gli stessi valori della riga di comando (attesa 3.17 -> 1.0 s,
 ### 10.6 Riproducibilita' e limiti
 
 ```bash
-python compare_sumo.py                  # tutte le zone (risultati cumulativi)
-python compare_sumo.py grande --max-vehicles 15
+python scripts/compare_sumo.py                  # tutte le zone (risultati cumulativi)
+python scripts/compare_sumo.py grande --max-vehicles 15
 ```
 
 Limiti da tenere presenti:
