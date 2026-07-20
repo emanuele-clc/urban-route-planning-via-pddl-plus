@@ -226,7 +226,7 @@
     <div class="sec">
       <h2>Parametri</h2>
       <label class="lbl">Nodi massimi: <span id="range-val">200</span></label>
-      <input type="range" id="max-nodes" min="10" max="1000" value="200" step="10">
+      <input type="range" id="max-nodes" min="10" max="400" value="200" step="10">
       <div class="range-row">
         <span>10</span>
         <span style="font-size:.68rem;color:#64748b">più nodi = più deviazioni possibili, ma ENHSP più lento</span>
@@ -469,9 +469,10 @@ let leafletMap = null, markerLayer = null, edgeLayer = null, routeLayer = null;
 let blockLayer = null, replanLayer = null;
 
 // Tetto lato client, allineato a MAX_SOLVABLE_NODES del server.
-// Non e' un limite fisico ma dipende da RAM/CPU: con heap 6 GB un PC normale
-// regge comodamente l'intera zona media (939 nodi).
-const MAX_SOLVABLE_NODES = 1200;
+// Non dipende dalla RAM ma dall'esplosione combinatoria del grounding:
+// start-move e signal-delay hanno 3 argomenti, quindi le istanze crescono
+// col cubo dei nodi. 400 e' il massimo verificato come affidabile.
+const MAX_SOLVABLE_NODES = 400;
 
 // chiave non orientata: una strada chiusa lo e' in entrambi i sensi
 function edgeKey(a, b) { return a < b ? a + '|' + b : b + '|' + a; }

@@ -10,19 +10,19 @@
       "waiting_mean": 3.17,
       "waiting_total": 146.0,
       "timeloss_mean": 6.03,
-      "timeloss_total": 277.2
+      "timeloss_total": 277.3
     },
     "optimized": {
       "arrived": 46,
-      "duration_mean": 30.57,
-      "duration_total": 1406.0,
+      "duration_mean": 30.54,
+      "duration_total": 1405.0,
       "waiting_mean": 1.0,
       "waiting_total": 46.0,
       "timeloss_mean": 3.83,
       "timeloss_total": 176.1
     },
     "delta_pct": {
-      "duration_mean": -6.6,
+      "duration_mean": -6.7,
       "waiting_mean": -68.5,
       "timeloss_mean": -36.5
     }
@@ -33,26 +33,26 @@
     "n_skipped_pairs": 15,
     "baseline": {
       "arrived": 45,
-      "duration_mean": 139.67,
-      "duration_total": 6285.0,
-      "waiting_mean": 44.51,
-      "waiting_total": 2003.0,
-      "timeloss_mean": 53.41,
-      "timeloss_total": 2403.4
+      "duration_mean": 139.64,
+      "duration_total": 6284.0,
+      "waiting_mean": 44.49,
+      "waiting_total": 2002.0,
+      "timeloss_mean": 53.39,
+      "timeloss_total": 2402.4
     },
     "optimized": {
       "arrived": 45,
-      "duration_mean": 127.82,
-      "duration_total": 5752.0,
-      "waiting_mean": 34.22,
-      "waiting_total": 1540.0,
-      "timeloss_mean": 41.48,
-      "timeloss_total": 1866.5
+      "duration_mean": 127.8,
+      "duration_total": 5751.0,
+      "waiting_mean": 34.2,
+      "waiting_total": 1539.0,
+      "timeloss_mean": 41.45,
+      "timeloss_total": 1865.1
     },
     "delta_pct": {
       "duration_mean": -8.5,
       "waiting_mean": -23.1,
-      "timeloss_mean": -22.3
+      "timeloss_mean": -22.4
     }
   },
   {

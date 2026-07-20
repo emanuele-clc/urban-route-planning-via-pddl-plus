@@ -19,12 +19,12 @@ l'unica variabile e' la temporizzazione dei semafori.
 
 | Zona | Veicoli | Metrica | Baseline | Ottimizzato | Δ% |
 |---|---:|---|---:|---:|---:|
-| **piccola** | 46 | tempo di viaggio medio (s) | 32.7 | 30.6 | **-6.6%** |
+| **piccola** | 46 | tempo di viaggio medio (s) | 32.7 | 30.5 | **-6.7%** |
 | | | attesa media ai semafori (s) | 3.2 | 1.0 | **-68.5%** |
 | | | tempo perso medio (s) | 6.0 | 3.8 | **-36.5%** |
-| **media** | 45 | tempo di viaggio medio (s) | 139.7 | 127.8 | **-8.5%** |
+| **media** | 45 | tempo di viaggio medio (s) | 139.6 | 127.8 | **-8.5%** |
 | | | attesa media ai semafori (s) | 44.5 | 34.2 | **-23.1%** |
-| | | tempo perso medio (s) | 53.4 | 41.5 | **-22.3%** |
+| | | tempo perso medio (s) | 53.4 | 41.5 | **-22.4%** |
 | **grande** | 43 | tempo di viaggio medio (s) | 270.7 | 277.3 | **+2.4%** |
 | | | attesa media ai semafori (s) | 99.1 | 109.1 | **+10.1%** |
 | | | tempo perso medio (s) | 117.8 | 124.4 | **+5.6%** |

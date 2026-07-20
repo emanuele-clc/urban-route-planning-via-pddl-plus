@@ -919,12 +919,15 @@ ENHSP_HEAP = os.environ.get('ENHSP_HEAP', '6g')
 # da RAM e CPU della macchina. Misure fatte su un ambiente molto modesto
 # (3 GB, 1 core) con heap 2 GB, zona media:
 #     300 nodi -> 8 s | 400 -> 14 s | 600 -> molto lento | 939 -> OutOfMemory
-# Su un PC normale con 6 GB di heap il tetto e' molto piu' alto: il default e'
-# quindi 1200, che lascia passare per intero anche la zona media (939 nodi).
-# Alzabile con MAX_SOLVABLE_NODES su macchine piu' potenti.
-# La causa della crescita: sia start-move sia signal-delay hanno tre argomenti
-# (prev, from, to), quindi le istanze generate crescono col cubo dei nodi.
-MAX_SOLVABLE_NODES = int(os.environ.get('MAX_SOLVABLE_NODES', '1200'))
+# NON e' un limite di RAM ma di ESPLOSIONE COMBINATORIA: sia start-move sia
+# signal-delay hanno tre argomenti (prev, from, to), quindi le istanze che
+# ENHSP deve generare crescono col CUBO dei nodi. Raddoppiare la heap non
+# raddoppia i nodi gestibili: 400 nodi ~ 64 M combinazioni potenziali,
+# 1200 ~ 1.7 miliardi. Verificato con heap 2 GB (zona media):
+#     300 nodi -> 8 s | 400 -> 14 s | 600 -> molto lento | 939 -> OutOfMemory
+# 400 e' il valore piu' alto verificato come affidabile; alzarlo e' possibile
+# ma va provato sulla propria macchina.
+MAX_SOLVABLE_NODES = int(os.environ.get('MAX_SOLVABLE_NODES', '400'))
 
 # Timeout di ENHSP in secondi. 0 = nessun limite: sui grafi grandi il grounding
 # puo' richiedere parecchi minuti e interromperlo a 180 s buttava via lavoro
@@ -943,9 +946,11 @@ def diagnose_enhsp(output):
     Distinguere le cause e' importante: 'nessuna soluzione' e 'memoria
     esaurita' richiedono azioni completamente diverse."""
     if 'OutOfMemoryError' in output or 'GC overhead' in output:
-        return ("Memoria insufficiente per ENHSP: il problema ha troppi nodi. "
-                f"Riduci i nodi (max consigliato ~300) oppure aumenta la heap "
-                f"impostando ENHSP_HEAP (ora {ENHSP_HEAP}).")
+        return (f"Memoria insufficiente per ENHSP (heap attuale: {ENHSP_HEAP}). "
+                f"Il numero di istanze da generare cresce col cubo dei nodi, "
+                f"quindi oltre ~{MAX_SOLVABLE_NODES} nodi non basta aumentare la RAM: "
+                f"rigenera il grafo con meno nodi. In alternativa alza "
+                f"ENHSP_HEAP e MAX_SOLVABLE_NODES.")
     if 'Problem unsolvable' in output or 'unsolvable' in output.lower():
         return ("ENHSP dichiara il problema irrisolvibile: la destinazione non e' "
                 "raggiungibile dal punto di partenza con i vincoli attuali.")
