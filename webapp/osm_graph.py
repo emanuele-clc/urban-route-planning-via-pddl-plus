@@ -239,3 +239,37 @@ def auto_start_goal(selected, edges, node_data):
     goal = max(reach - {start},
                key=lambda n: haversine(slat, slon, node_data[n]["lat"], node_data[n]["lon"]))
     return start, goal
+
+
+def select_local_subgraph(start_osm, goal_osm, edges, node_data,
+                           max_nodes=150, margin_factor=1.6):
+    """Sottografo minimo da passare a ENHSP per risolvere start->goal: il
+    percorso piu' breve (sempre incluso) + un margine di deviazioni
+    plausibili (corridoio ellittico dist_da_start + dist_da_goal <=
+    ottimo*margin_factor), troncato a max_nodes prendendo prima i nodi piu'
+    vicini al percorso ottimo. Disaccoppia il costo del solve dalla
+    dimensione della mappa caricata (con 'tutti i nodi' su zone grandi il
+    grafo mostrato puo' avere migliaia di nodi anche per un tragitto di
+    poche centinaia di metri — vedi audit su dublin_grande_porto.osm)."""
+    adj_fwd = defaultdict(dict)
+    adj_rev = defaultdict(dict)
+    for (a, b), (d, _spd) in edges.items():
+        adj_fwd[a][b] = d
+        adj_rev[b][a] = d
+
+    dist_s, prev_s = dijkstra(start_osm, adj_fwd)
+    if goal_osm not in dist_s:
+        return None  # goal non raggiungibile — il chiamante deve averlo gia' verificato
+
+    path = reconstruct_path(prev_s, goal_osm)
+    if len(path) >= max_nodes:
+        return path  # il percorso da solo satura il tetto: nessun margine possibile
+
+    dist_g, _prev_g = dijkstra(goal_osm, adj_rev)
+    budget = dist_s[goal_osm] * margin_factor
+
+    candidates = sorted(
+        (dist_s[n] + dist_g[n], n) for n in dist_s
+        if n in dist_g and dist_s[n] + dist_g[n] <= budget
+    )
+    return [n for _score, n in candidates[:max_nodes]]

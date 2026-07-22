@@ -14,6 +14,7 @@ from osm_graph import (
     build_contracted_graph, select_connected_subgraph, name_map_for,
     classify_zones, compute_intersection_density, compute_congestion_delay,
     compute_vehicle_counts, compute_reachable, auto_start_goal,
+    select_local_subgraph,
 )
 from sumo_signals import (
     signal_delay_for, assign_movement_signal_delay, turn_time_s,
@@ -21,8 +22,8 @@ from sumo_signals import (
 )
 from pddl_writer import write_pddl, route_metrics
 from enhsp_runner import (
-    DOMAIN_PATH, ENHSP_TIMEOUT, MAX_SOLVABLE_NODES, trova_enhsp, enhsp_cmd,
-    diagnose_enhsp, parse_plan, run_enhsp,
+    DOMAIN_PATH, ENHSP_TIMEOUT, MAX_SOLVABLE_NODES, trova_enhsp,
+    diagnose_enhsp, parse_plan, run_enhsp, run_enhsp_output,
 )
 
 app = Flask(__name__)
@@ -163,14 +164,24 @@ def solve():
     if goal_osm not in reach:
         return jsonify({'error': f'Il goal "{goal_pddl}" non è raggiungibile da "{start_pddl}"'}), 400
 
-    if len(selected) > MAX_SOLVABLE_NODES:
+    # Sottografo locale per la coppia start/goal, NON l'intero grafo caricato
+    # (che con "tutti i nodi" su una zona grande puo' avere migliaia di nodi
+    # anche per un tragitto di poche centinaia di metri) — il costo del solve
+    # deve dipendere dalla distanza reale del tragitto, non dalla dimensione
+    # della mappa mostrata.
+    local_nodes = select_local_subgraph(start_osm, goal_osm, edges, node_data)
+    local_set = set(local_nodes)
+    local_edges = {(a, b): v for (a, b), v in edges.items() if a in local_set and b in local_set}
+
+    if len(local_nodes) > MAX_SOLVABLE_NODES:
         return jsonify({'error':
-            f'Problema troppo grande per ENHSP: {len(selected)} nodi '
-            f'(massimo {MAX_SOLVABLE_NODES}). Rigenera il grafo con meno nodi, '
-            f'oppure aumenta la heap con ENHSP_HEAP e alza MAX_SOLVABLE_NODES.'}), 400
+            f'Problema troppo grande per ENHSP: {len(local_nodes)} nodi nel '
+            f'sottografo locale start-goal (massimo {MAX_SOLVABLE_NODES}). '
+            f'La distanza tra i due punti richiede troppe deviazioni. '
+            f'Aumenta la heap con ENHSP_HEAP e alza MAX_SOLVABLE_NODES.'}), 400
 
     pddl_content = write_pddl(
-        zone, selected, node_data, edges, start_osm, goal_osm, nm,
+        zone, local_nodes, node_data, local_edges, start_osm, goal_osm, nm,
         signal_nodes=signal_nodes,
         congestion_delays=cong_delays,
         vehicle_counts=vc,
@@ -205,9 +216,7 @@ def solve():
         enhsp_error = f"domain.pddl non trovato in: {domain_abs}"
     else:
         try:
-            result = subprocess.run(enhsp_cmd(jar, domain_abs, pddl_path),
-                                    capture_output=True, text=True, timeout=ENHSP_TIMEOUT)
-            output = result.stdout + result.stderr
+            output = run_enhsp_output(jar, domain_abs, pddl_path, ENHSP_TIMEOUT)
 
             if "Problem Solved" in output:
                 plan_text, route, plan_time_ms = parse_plan(output)
@@ -397,8 +406,18 @@ def replan():
             'blocked_at': nm.get(replan_from),
         }), 400
 
+    # stesso sottografo locale usato da /api/solve — vedi commento li'. prev_osm
+    # va sempre incluso come oggetto PDDL: write_pddl lo referenzia in (prev ...)
+    # e nelle turn-time anche se non ha piu' un arco verso replan_from (strada
+    # chiusa), quindi deve comunque comparire tra gli (:objects ...).
+    local_nodes = select_local_subgraph(replan_from, goal_osm, open_edges, node_data)
+    if prev_osm and prev_osm not in local_nodes:
+        local_nodes = local_nodes + [prev_osm]
+    local_set = set(local_nodes)
+    local_open_edges = {(a, b): v for (a, b), v in open_edges.items() if a in local_set and b in local_set}
+
     pddl_content = write_pddl(
-        zone, selected, node_data, open_edges, replan_from, goal_osm, nm,
+        zone, local_nodes, node_data, local_open_edges, replan_from, goal_osm, nm,
         signal_nodes=signal_nodes, congestion_delays=cong_delays,
         vehicle_counts=vc, intersection_density=density,
         peripheral=peripheral, edge_highway=sub_hw, prev_osm=prev_osm,

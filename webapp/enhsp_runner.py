@@ -66,9 +66,36 @@ def trova_enhsp():
     return None
 
 
-def enhsp_cmd(jar, domain, problem):
-    return ["java", f"-Xmx{ENHSP_HEAP}", "-jar", jar,
-            "-o", domain, "-f", problem, "-s", "aibr"]
+def enhsp_cmd(jar, domain, problem, heuristic=None):
+    cmd = ["java", f"-Xmx{ENHSP_HEAP}", "-jar", jar,
+           "-o", domain, "-f", problem, "-s", "aibr"]
+    if heuristic:
+        cmd += ["-h", heuristic]
+    return cmd
+
+
+# Firma dell'overflow numerico dell'euristica 'aibr' (Float.MAX_VALUE):
+# su percorsi molto lunghi (~70+ hop) l'euristica interval-based cresce
+# esponenzialmente e satura, ed ENHSP legge la saturazione come "irraggiungibile"
+# anche quando una soluzione esiste (falso negativo, verificato sperimentalmente
+# su dublin_grande_porto.osm). 'blind' (nessuna guida euristica, ma numericamente
+# robusta) risolve correttamente questi casi — usata solo come fallback perche'
+# su problemi con molta piu' diramazione aibr guida la ricerca meglio.
+AIBR_OVERFLOW_SIGNATURE = "3.4028235E38"
+
+
+def run_enhsp_output(jar, domain_abs, pddl_path, timeout):
+    """Esegue ENHSP e ritorna l'output testuale. Se 'aibr' dichiara il
+    problema irrisolvibile per overflow (vedi AIBR_OVERFLOW_SIGNATURE),
+    ritenta una volta con l'euristica 'blind' prima di arrendersi."""
+    result = subprocess.run(enhsp_cmd(jar, domain_abs, pddl_path),
+                            capture_output=True, text=True, timeout=timeout)
+    output = result.stdout + result.stderr
+    if "Problem Solved" not in output and AIBR_OVERFLOW_SIGNATURE in output:
+        result = subprocess.run(enhsp_cmd(jar, domain_abs, pddl_path, heuristic="blind"),
+                                capture_output=True, text=True, timeout=timeout)
+        output = result.stdout + result.stderr
+    return output
 
 
 def diagnose_enhsp(output):
@@ -128,9 +155,7 @@ def run_enhsp(pddl_content):
     with open(pddl_path, 'w', encoding='utf-8') as f:
         f.write(pddl_content)
     try:
-        result = subprocess.run(enhsp_cmd(jar, domain_abs, pddl_path),
-                                capture_output=True, text=True, timeout=ENHSP_TIMEOUT)
-        output = result.stdout + result.stderr
+        output = run_enhsp_output(jar, domain_abs, pddl_path, ENHSP_TIMEOUT)
     except subprocess.TimeoutExpired:
         return None, None, None, (f"ENHSP ha superato il timeout ({ENHSP_TIMEOUT}s): "
                                   "riduci i nodi o alza ENHSP_TIMEOUT")

@@ -27,7 +27,7 @@ l'unica variabile e' la temporizzazione dei semafori.
 | | | tempo perso medio (s) | 53.4 | 41.5 | **-22.4%** |
 | **grande** | 43 | tempo di viaggio medio (s) | 270.7 | 277.3 | **+2.4%** |
 | | | attesa media ai semafori (s) | 99.1 | 109.1 | **+10.1%** |
-| | | tempo perso medio (s) | 117.8 | 124.4 | **+5.6%** |
+| | | tempo perso medio (s) | 117.8 | 124.3 | **+5.6%** |
 
 Valori negativi = miglioramento (tempi piu' bassi con i semafori
 ottimizzati).

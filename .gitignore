@@ -28,3 +28,5 @@ pddl_files/output_*.txt
 comparison_results/
 diagnostics_out/
 sumo_comparison/results.json
+
+possibili_ottimizzazioni.md
