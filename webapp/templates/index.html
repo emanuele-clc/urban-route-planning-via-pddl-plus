@@ -226,7 +226,7 @@
     <div class="sec">
       <h2>Parametri</h2>
       <label class="lbl">Nodi massimi: <span id="range-val">200</span></label>
-      <input type="range" id="max-nodes" min="10" max="400" value="200" step="10">
+      <input type="range" id="max-nodes" min="10" max="1000" value="200" step="10">
       <div class="range-row">
         <span>10</span>
         <span style="font-size:.68rem;color:#64748b">più nodi = più deviazioni possibili, ma ENHSP più lento</span>
@@ -468,11 +468,11 @@ let state = {
 let leafletMap = null, markerLayer = null, edgeLayer = null, routeLayer = null;
 let blockLayer = null, replanLayer = null;
 
-// Tetto lato client, allineato a MAX_SOLVABLE_NODES del server.
-// Non dipende dalla RAM ma dall'esplosione combinatoria del grounding:
-// start-move e signal-delay hanno 3 argomenti, quindi le istanze crescono
-// col cubo dei nodi. 400 e' il massimo verificato come affidabile.
-const MAX_SOLVABLE_NODES = 400;
+// Tetto lato client per la RISOLUZIONE (non per la visualizzazione, che mostra
+// sempre tutti i nodi). Allineato a MAX_SOLVABLE_NODES del server: 1000 lascia
+// passare l'intera zona media (939 nodi). La ricerca puo' richiedere qualche
+// minuto sui grafi grandi (nessun timeout).
+const MAX_SOLVABLE_NODES = 1000;
 
 // chiave non orientata: una strada chiusa lo e' in entrambi i sensi
 function edgeKey(a, b) { return a < b ? a + '|' + b : b + '|' + a; }
@@ -513,7 +513,7 @@ function setFile(f) { state.file = f; document.getElementById('fname').textConte
 const slider = document.getElementById('max-nodes');
 const allNodesCheck = document.getElementById('all-nodes');
 slider.addEventListener('input', () => document.getElementById('range-val').textContent = slider.value);
-allNodesCheck.addEventListener('change', () => { slider.disabled = allNodesCheck.checked; document.getElementById('range-val').textContent = allNodesCheck.checked ? 'max ' + MAX_SOLVABLE_NODES : slider.value; });
+allNodesCheck.addEventListener('change', () => { slider.disabled = allNodesCheck.checked; document.getElementById('range-val').textContent = allNodesCheck.checked ? 'tutti' : slider.value; });
 
 // ── Layer toggle ──────────────────────────────────────────────────────────────
 function setLayer(name) {
@@ -549,11 +549,10 @@ document.getElementById('gen-btn').addEventListener('click', async () => {
   setLoading('gen', true);
   const form = new FormData();
   form.append('osm_file', state.file);
-  // "Tutti i nodi" e' limitato a MAX_SOLVABLE_NODES: oltre, ENHSP esaurisce
-  // la heap durante il grounding (start-move ha 3 argomenti per il turn-time,
-  // quindi le istanze crescono col cubo dei nodi). Sulle mappe piccole il
-  // limite non morde e "tutti" resta davvero tutti.
-  form.append('max_nodes', allNodesCheck.checked ? MAX_SOLVABLE_NODES : slider.value);
+  // "Tutti i nodi" mostra l'INTERO grafo sulla mappa: la visualizzazione non
+  // ha limiti (e' leggera). Il tetto MAX_SOLVABLE_NODES vale solo dopo, quando
+  // si preme Risolvi e il problema va a ENHSP.
+  form.append('max_nodes', allNodesCheck.checked ? 999999 : slider.value);
   form.append('zone', 'custom');
   try {
     const res = await fetch('/api/generate', { method: 'POST', body: form });

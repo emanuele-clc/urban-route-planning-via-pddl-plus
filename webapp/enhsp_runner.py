@@ -22,19 +22,16 @@ DOMAIN_PATH = os.path.join(PROJECT_ROOT, 'pddl_files', 'domain.pddl')
 # anche su macchine con 8 GB. Se la JVM non parte, abbassalo (ENHSP_HEAP=2g).
 ENHSP_HEAP = os.environ.get('ENHSP_HEAP', '6g')
 
-# Limite di sicurezza sul numero di nodi. NON e' una costante fisica: dipende
-# da RAM e CPU della macchina. Misure fatte su un ambiente molto modesto
-# (3 GB, 1 core) con heap 2 GB, zona media:
-#     300 nodi -> 8 s | 400 -> 14 s | 600 -> molto lento | 939 -> OutOfMemory
-# NON e' un limite di RAM ma di ESPLOSIONE COMBINATORIA: sia start-move sia
-# signal-delay hanno tre argomenti (prev, from, to), quindi le istanze che
-# ENHSP deve generare crescono col CUBO dei nodi. Raddoppiare la heap non
-# raddoppia i nodi gestibili: 400 nodi ~ 64 M combinazioni potenziali,
-# 1200 ~ 1.7 miliardi. Verificato con heap 2 GB (zona media):
-#     300 nodi -> 8 s | 400 -> 14 s | 600 -> molto lento | 939 -> OutOfMemory
-# 400 e' il valore piu' alto verificato come affidabile; alzarlo e' possibile
-# ma va provato sulla propria macchina.
-MAX_SOLVABLE_NODES = int(os.environ.get('MAX_SOLVABLE_NODES', '400'))
+# Tetto sul numero di nodi PASSATI A ENHSP (non alla visualizzazione della
+# mappa, che non ha limiti). Il grounding di start-move/signal-delay a tre
+# argomenti (prev, from, to) e' pesante: su un ambiente modesto (3 GB, 1 core,
+# heap 2 GB) 300 nodi -> 8 s, 400 -> 14 s, 939 -> memoria esaurita. Il default
+# e' quindi 1000, che lascia passare l'intera zona media (939 nodi) su un PC
+# normale con heap 6 GB; puo' richiedere qualche minuto perche' non c'e'
+# timeout. Su grande (3756 nodi) resta un tetto di sicurezza: per solve
+# affidabili conviene comunque restare sotto i ~400 nodi.
+# Regolabile con MAX_SOLVABLE_NODES; la heap con ENHSP_HEAP.
+MAX_SOLVABLE_NODES = int(os.environ.get('MAX_SOLVABLE_NODES', '1000'))
 
 # Timeout di ENHSP in secondi. 0 = nessun limite: sui grafi grandi il grounding
 # puo' richiedere parecchi minuti e interromperlo a 180 s buttava via lavoro
