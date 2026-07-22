@@ -978,6 +978,7 @@ function renderReplan(d) {
         <tr><td>Semafori</td><td>${o.signals_crossed}</td><td>${n.signals_crossed}</td><td></td></tr>
       </table>
       <div class="replan-foot">Nuovo piano: ${d.new_route.length} nodi · ENHSP ${d.plan_time_ms ?? '—'} ms</div>
+      ${d.used_fallback_heuristic ? `<div class="alert alert-warn" style="margin-top:8px">⚠️ Euristica <code>aibr</code> in overflow numerico: ricalcolo rieseguito con l'euristica <code>blind</code>.</div>` : ''}
     </div>`;
 }
 
@@ -1071,11 +1072,14 @@ function renderStats(data) {
     sumoBase.style.display = v;
     cmpBox.style.display   = v;
   };
+  const fallbackWarn = data.used_fallback_heuristic
+    ? `<div class="alert alert-warn">⚠️ Euristica <code>aibr</code> in overflow numerico su questo percorso: ENHSP e' stato rieseguito con l'euristica <code>blind</code> per trovare la soluzione.</div>`
+    : '';
   if (data.enhsp_error) {
-    msg.innerHTML = `<div class="alert alert-warn">⚠️ ${data.enhsp_error}</div>`;
+    msg.innerHTML = `<div class="alert alert-warn">⚠️ ${data.enhsp_error}</div>` + fallbackWarn;
     setVis('none');
   } else if (data.plan_text) {
-    msg.innerHTML = `<div class="alert alert-ok">✅ ENHSP ha trovato la soluzione</div>`;
+    msg.innerHTML = `<div class="alert alert-ok">✅ ENHSP ha trovato la soluzione</div>` + fallbackWarn;
     setVis('block');
   } else {
     msg.innerHTML = ''; setVis('none');

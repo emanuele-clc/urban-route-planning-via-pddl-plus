@@ -85,9 +85,10 @@ AIBR_OVERFLOW_SIGNATURE = "3.4028235E38"
 
 
 def run_enhsp_output(jar, domain_abs, pddl_path, timeout):
-    """Esegue ENHSP e ritorna l'output testuale. Se 'aibr' dichiara il
-    problema irrisolvibile per overflow (vedi AIBR_OVERFLOW_SIGNATURE),
-    ritenta una volta con l'euristica 'blind' prima di arrendersi."""
+    """Esegue ENHSP e ritorna (output testuale, fallback_usato). Se 'aibr'
+    dichiara il problema irrisolvibile per overflow (vedi
+    AIBR_OVERFLOW_SIGNATURE), ritenta una volta con l'euristica 'blind'
+    prima di arrendersi; fallback_usato indica se e' scattato il retry."""
     result = subprocess.run(enhsp_cmd(jar, domain_abs, pddl_path),
                             capture_output=True, text=True, timeout=timeout)
     output = result.stdout + result.stderr
@@ -95,7 +96,8 @@ def run_enhsp_output(jar, domain_abs, pddl_path, timeout):
         result = subprocess.run(enhsp_cmd(jar, domain_abs, pddl_path, heuristic="blind"),
                                 capture_output=True, text=True, timeout=timeout)
         output = result.stdout + result.stderr
-    return output
+        return output, True
+    return output, False
 
 
 def diagnose_enhsp(output):
@@ -142,27 +144,27 @@ def parse_plan(output):
 
 
 def run_enhsp(pddl_content):
-    """Risolve un problema PDDL+ con ENHSP. Ritorna (plan_text, route, ms, errore)."""
+    """Risolve un problema PDDL+ con ENHSP. Ritorna (plan_text, route, ms, errore, fallback_usato)."""
     jar = trova_enhsp()
     domain_abs = os.path.abspath(DOMAIN_PATH)
     if not jar:
-        return None, None, None, "ENHSP non trovato — installa con: pip install up-enhsp"
+        return None, None, None, "ENHSP non trovato — installa con: pip install up-enhsp", False
     if not os.path.exists(domain_abs):
-        return None, None, None, f"domain.pddl non trovato in: {domain_abs}"
+        return None, None, None, f"domain.pddl non trovato in: {domain_abs}", False
 
     tmp_dir = tempfile.mkdtemp()
     pddl_path = os.path.join(tmp_dir, 'problem.pddl')
     with open(pddl_path, 'w', encoding='utf-8') as f:
         f.write(pddl_content)
     try:
-        output = run_enhsp_output(jar, domain_abs, pddl_path, ENHSP_TIMEOUT)
+        output, used_fallback = run_enhsp_output(jar, domain_abs, pddl_path, ENHSP_TIMEOUT)
     except subprocess.TimeoutExpired:
         return None, None, None, (f"ENHSP ha superato il timeout ({ENHSP_TIMEOUT}s): "
-                                  "riduci i nodi o alza ENHSP_TIMEOUT")
+                                  "riduci i nodi o alza ENHSP_TIMEOUT"), False
     except FileNotFoundError:
-        return None, None, None, "Java non trovato — installa Java 17+"
+        return None, None, None, "Java non trovato — installa Java 17+", False
 
     if "Problem Solved" not in output:
-        return None, None, None, diagnose_enhsp(output)
+        return None, None, None, diagnose_enhsp(output), used_fallback
     plan_text, route, ms = parse_plan(output)
-    return plan_text, route, ms, None
+    return plan_text, route, ms, None, used_fallback

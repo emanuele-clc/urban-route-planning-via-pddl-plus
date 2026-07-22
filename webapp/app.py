@@ -206,6 +206,7 @@ def solve():
     plan_text = route = total_dist = travel_time = None
     signals_crossed = signal_delay_total = plan_time_ms = None
     enhsp_error = None
+    used_fallback_heuristic = False
 
     jar        = trova_enhsp()
     domain_abs = os.path.abspath(DOMAIN_PATH)
@@ -216,7 +217,7 @@ def solve():
         enhsp_error = f"domain.pddl non trovato in: {domain_abs}"
     else:
         try:
-            output = run_enhsp_output(jar, domain_abs, pddl_path, ENHSP_TIMEOUT)
+            output, used_fallback_heuristic = run_enhsp_output(jar, domain_abs, pddl_path, ENHSP_TIMEOUT)
 
             if "Problem Solved" in output:
                 plan_text, route, plan_time_ms = parse_plan(output)
@@ -306,6 +307,7 @@ def solve():
         'plan_text':    plan_text,
         'route':        route,
         'enhsp_error':  enhsp_error,
+        'used_fallback_heuristic': used_fallback_heuristic,
         'congestion_on_route': congestion_on_route,
         'stats': {
             'total_dist':              total_dist,
@@ -423,7 +425,7 @@ def replan():
         peripheral=peripheral, edge_highway=sub_hw, prev_osm=prev_osm,
     )
 
-    plan_text, new_route, plan_ms, err = run_enhsp(pddl_content)
+    plan_text, new_route, plan_ms, err, used_fallback_heuristic = run_enhsp(pddl_content)
     if err:
         return jsonify({'error': err}), 400
 
@@ -458,6 +460,7 @@ def replan():
         'full_route': new_full,
         'plan_text': plan_text,
         'plan_time_ms': plan_ms,
+        'used_fallback_heuristic': used_fallback_heuristic,
         'pddl_content': pddl_content,
         'old_metrics': old_m,
         'new_metrics': new_m,
