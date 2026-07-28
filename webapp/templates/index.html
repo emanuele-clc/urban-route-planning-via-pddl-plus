@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -134,7 +134,7 @@
     .popup-btn:hover { opacity: .85; }
     .popup-btn-start { background: #16a34a; color: #fff; }
     .popup-btn-goal  { background: #dc2626; color: #fff; }
-    /* ══ REPLANNING: chiusure stradali ══════════════════════════════════ */
+    /* ══ REPLANNING: road closures ══════════════════════════════════ */
     .block-toggle { background:#1e2233; color:#f8b4b4; border:1px solid #3b2530;
                     font-size:.78rem; margin-top:0; transition:all .2s; }
     .block-toggle:hover { background:#2a1d24; border-color:#7f1d1d; }
@@ -156,7 +156,7 @@
     #map.blocking { cursor:crosshair; }
     #map.blocking .leaflet-interactive { cursor:crosshair !important; }
 
-    /* cartello 🚧 sulle strade chiuse + pin di ricalcolo */
+    /* 🚧 sign on closed roads + reroute pin */
     .block-icon { background:none; border:none; }
     .block-badge { font-size:15px; line-height:22px; text-align:center;
                    filter:drop-shadow(0 0 3px rgba(0,0,0,.9)); }
@@ -165,7 +165,7 @@
                    animation:reroutePulse 1.6s ease-in-out infinite; }
     @keyframes reroutePulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.28);} }
 
-    /* deviazione: linea tratteggiata che "scorre" verso il goal */
+    /* detour: dashed line that "flows" toward the goal */
     .route-flow { animation:dashFlow 1.1s linear infinite; }
     @keyframes dashFlow { to { stroke-dashoffset:-22; } }
 
@@ -213,41 +213,41 @@
 
     <!-- Upload -->
     <div class="sec">
-      <h2>File OSM</h2>
+      <h2>OSM File</h2>
       <div class="upload-zone" id="drop-zone">
         <input type="file" id="osm-input" accept=".osm,.xml">
         <span class="icon">🗺️</span>
-        <p>Trascina un file <strong>.osm</strong> qui<br>o clicca per selezionarlo</p>
+        <p>Drag an <strong>.osm</strong> file here<br>or click to select one</p>
         <div class="fname" id="fname"></div>
       </div>
     </div>
 
     <!-- Params -->
     <div class="sec">
-      <h2>Parametri</h2>
-      <label class="lbl">Nodi massimi: <span id="range-val">200</span></label>
+      <h2>Parameters</h2>
+      <label class="lbl">Max nodes: <span id="range-val">200</span></label>
       <input type="range" id="max-nodes" min="10" max="1000" value="200" step="10">
       <div class="range-row">
         <span>10</span>
-        <span style="font-size:.68rem;color:#64748b">più nodi = più deviazioni possibili, ma ENHSP più lento</span>
+        <span style="font-size:.68rem;color:#64748b">more nodes = more possible detours, but ENHSP is slower</span>
         <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;color:#9ca3af;cursor:pointer">
-          <input type="checkbox" id="all-nodes" style="accent-color:#3b4fd8;cursor:pointer"> Tutti i nodi
+          <input type="checkbox" id="all-nodes" style="accent-color:#3b4fd8;cursor:pointer"> All nodes
         </label>
         <span>200</span>
       </div>
 
       <!-- layer toggle -->
-      <label class="lbl" style="margin-top:14px">Visualizzazione mappa</label>
+      <label class="lbl" style="margin-top:14px">Map view</label>
       <div class="layer-pills">
         <div class="layer-pill on" id="pill-default"    onclick="setLayer('default')">Default</div>
-        <div class="layer-pill"   id="pill-congestion"  onclick="setLayer('congestion')">🔥 Congestione</div>
-        <div class="layer-pill"   id="pill-peripheral"  onclick="setLayer('peripheral')">🏙 Zone</div>
-        <div class="layer-pill"   id="pill-density"     onclick="setLayer('density')">📍 Densità</div>
+        <div class="layer-pill"   id="pill-congestion"  onclick="setLayer('congestion')">🔥 Congestion</div>
+        <div class="layer-pill"   id="pill-peripheral"  onclick="setLayer('peripheral')">🏙 Zones</div>
+        <div class="layer-pill"   id="pill-density"     onclick="setLayer('density')">📍 Density</div>
       </div>
       <div class="legend" id="map-legend" style="display:none"></div>
 
       <button class="btn btn-primary" id="gen-btn" disabled>
-        <span id="gen-label">Visualizza Mappa</span>
+        <span id="gen-label">Show Map</span>
         <div class="spinner" id="gen-spinner"></div>
       </button>
     </div>
@@ -274,11 +274,11 @@
         </div>
       </div>
       <div class="hint-box" style="margin-top:10px">
-        Clicca un nodo sulla mappa per impostare Start o Goal.<br>
-        Se non selezioni nulla, vengono usati quelli automatici.
+        Click a node on the map to set Start or Goal.<br>
+        If you don't select anything, the automatic ones are used.
       </div>
       <button class="btn btn-green" id="solve-btn">
-        <span id="solve-label">Risolvi con ENHSP</span>
+        <span id="solve-label">Solve with ENHSP</span>
         <div class="spinner" id="solve-spinner"></div>
       </button>
       <div id="solve-err"></div>
@@ -286,67 +286,67 @@
 
     <!-- Results -->
     <div class="sec" id="stats-sec" style="display:none">
-      <h2>Risultati</h2>
+      <h2>Results</h2>
       <div class="stats-grid" id="stats-grid"></div>
 
       <!-- Congestion breakdown -->
       <div class="cong-section" id="cong-breakdown" style="display:none">
-        <div class="cong-title">Ritardi sul percorso</div>
+        <div class="cong-title">Delays along the route</div>
         <div id="cong-bars"></div>
       </div>
 
       <div id="enhsp-msg"></div>
 
-      <!-- ══ REPLANNING: chiusure stradali ══ -->
+      <!-- ══ REPLANNING: road closures ══ -->
       <div id="block-sec" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #232838">
-        <div class="cong-title" style="margin-bottom:6px">🚧 Strade chiuse &amp; ricalcolo</div>
+        <div class="cong-title" style="margin-bottom:6px">🚧 Closed roads &amp; replanning</div>
         <div style="font-size:12px;color:#64748b;margin-bottom:8px">
-          Marca strade o incroci come non percorribili: il percorso viene
-          ricalcolato dall'ultimo punto raggiungibile prima della chiusura.
+          Mark roads or intersections as impassable: the route is
+          recalculated from the last reachable point before the closure.
         </div>
         <button class="btn block-toggle" id="block-mode-btn" onclick="toggleBlockMode()">
-          🚧 Attiva modalità chiusura
+          🚧 Enable closure mode
         </button>
         <div id="block-hint" class="block-hint" style="display:none">
-          Clicca una <b>strada</b> per chiuderla, o un <b>incrocio</b> per bloccarlo.
-          Ri-clicca per riaprire.
+          Click a <b>road</b> to close it, or an <b>intersection</b> to block it.
+          Click again to reopen it.
         </div>
         <div class="block-status">
-          <span id="block-count">nessuna chiusura</span>
-          <button class="mini-btn" id="clear-blocks-btn" style="display:none" onclick="clearBlocks()">Azzera</button>
+          <span id="block-count">no closures</span>
+          <button class="mini-btn" id="clear-blocks-btn" style="display:none" onclick="clearBlocks()">Clear</button>
         </div>
         <button class="btn" id="replan-btn" disabled onclick="doReplan()"
                 style="background:#f59e0b;color:#1a1200;margin-top:8px">
-          🔄 Ricalcola percorso
+          🔄 Recalculate route
         </button>
         <div id="replan-result"></div>
       </div>
 
       <button class="btn" id="sumo-btn" style="display:none;background:#7c3aed;color:#fff;margin-top:10px" onclick="launchSumo('optimized')">
-        <span id="sumo-label">▶ Apri in SUMO (semafori ottimizzati)</span>
+        <span id="sumo-label">▶ Open in SUMO (optimized signals)</span>
         <div class="spinner" id="sumo-spinner"></div>
       </button>
       <button class="btn" id="sumo-btn-base" style="display:none;background:#475569;color:#fff;margin-top:6px" onclick="launchSumo('baseline')">
-        <span id="sumo-label-base">▶ Apri in SUMO (semafori originali)</span>
+        <span id="sumo-label-base">▶ Open in SUMO (original signals)</span>
         <div class="spinner" id="sumo-spinner-base"></div>
       </button>
       <div id="sumo-msg"></div>
 
-      <!-- PUNTO 4: confronto simulativo baseline vs ottimizzato -->
+      <!-- POINT 4: simulated comparison baseline vs optimized -->
       <div id="cmp-box" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #e2e8f0">
-        <div class="cong-title" style="margin-bottom:6px">Confronto in SUMO</div>
+        <div class="cong-title" style="margin-bottom:6px">Comparison in SUMO</div>
         <div style="font-size:12px;color:#64748b;margin-bottom:8px">
-          Simula la zona con i semafori originali e con quelli ottimizzati,
-          sulla stessa domanda di traffico, e misura la differenza.
+          Simulates the zone with the original signals and with the optimized
+          ones, on the same traffic demand, and measures the difference.
         </div>
         <div style="display:flex;gap:6px;align-items:center">
           <select id="cmp-zone" style="flex:1;padding:7px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px">
-            <option value="piccola">piccola</option>
-            <option value="media">media</option>
-            <option value="grande">grande</option>
+            <option value="piccola">small</option>
+            <option value="media">medium</option>
+            <option value="grande">large</option>
           </select>
           <button class="btn" id="cmp-btn" style="background:#0d9488;color:#fff;margin:0" onclick="compareSumo()">
-            <span id="cmp-label">Confronta</span>
+            <span id="cmp-label">Compare</span>
             <div class="spinner" id="cmp-spinner"></div>
           </button>
         </div>
@@ -359,16 +359,16 @@
   <!-- Right panel -->
   <div class="right-panel">
     <div class="tabs">
-      <div class="tab active" data-tab="map">🗺 Mappa</div>
+      <div class="tab active" data-tab="map">🗺 Map</div>
       <div class="tab" data-tab="pddl">📄 PDDL</div>
-      <div class="tab" data-tab="plan">📋 Piano</div>
-      <div class="tab" data-tab="congestion">🔥 Congestione</div>
+      <div class="tab" data-tab="plan">📋 Plan</div>
+      <div class="tab" data-tab="congestion">🔥 Congestion</div>
     </div>
 
     <div class="tab-content active" id="tab-map">
       <div class="empty-state" id="map-empty">
         <div class="eicon">📂</div>
-        <p>Carica un file OSM e premi "Visualizza Mappa" per iniziare</p>
+        <p>Load an OSM file and press "Show Map" to get started</p>
       </div>
       <div id="map" style="display:none"></div>
     </div>
@@ -376,10 +376,10 @@
     <div class="tab-content" id="tab-pddl">
       <div class="empty-state" id="pddl-empty">
         <div class="eicon">📄</div>
-        <p>Il file PDDL generato apparirà qui dopo aver risolto</p>
+        <p>The generated PDDL file will appear here after solving</p>
       </div>
       <div class="code-wrap" id="pddl-wrap" style="display:none">
-        <button class="copy-btn" onclick="copyCode()">Copia</button>
+        <button class="copy-btn" onclick="copyCode()">Copy</button>
         <pre id="pddl-code"></pre>
       </div>
     </div>
@@ -387,7 +387,7 @@
     <div class="tab-content" id="tab-plan">
       <div class="empty-state" id="plan-empty">
         <div class="eicon">📋</div>
-        <p>Il piano ENHSP apparirà qui dopo aver risolto</p>
+        <p>The ENHSP plan will appear here after solving</p>
       </div>
       <div class="plan-steps" id="plan-steps" style="display:none"></div>
     </div>
@@ -395,48 +395,48 @@
     <div class="tab-content" id="tab-congestion">
       <div class="empty-state" id="cong-empty">
         <div class="eicon">🔥</div>
-        <p>I dati di congestione appariranno qui dopo aver caricato una mappa</p>
+        <p>Congestion data will appear here after loading a map</p>
       </div>
       <div class="cong-tab-wrap" id="cong-tab-wrap" style="display:none">
 
-        <!-- Card 1: Riepilogo parametri -->
+        <!-- Card 1: Parameter summary -->
         <div class="cong-card">
-          <h3>⚙️ Parametri congestione</h3>
+          <h3>⚙️ Congestion parameters</h3>
           <table class="cong-table">
-            <tr><td>Veicoli random simulati (N)</td><td style="color:#818cf8;font-weight:700">10</td></tr>
-            <tr><td>Raggio zona periferica</td><td style="color:#a78bfa;font-weight:700">600 m dal centroide</td></tr>
-            <tr><td>Raggio densità incroci</td><td style="color:#34d399;font-weight:700">200 m</td></tr>
-            <tr><td>Seed Dijkstra random</td><td style="color:#6b7280">42</td></tr>
+            <tr><td>Simulated random vehicles (N)</td><td style="color:#818cf8;font-weight:700">10</td></tr>
+            <tr><td>Peripheral zone radius</td><td style="color:#a78bfa;font-weight:700">600 m from centroid</td></tr>
+            <tr><td>Intersection density radius</td><td style="color:#34d399;font-weight:700">200 m</td></tr>
+            <tr><td>Random Dijkstra seed</td><td style="color:#6b7280">42</td></tr>
           </table>
         </div>
 
-        <!-- Card 2: Zone periferiche vs urbane -->
+        <!-- Card 2: Peripheral vs urban zones -->
         <div class="cong-card">
-          <h3>🏙️ Classificazione zone</h3>
-          <div id="zone-summary" style="font-size:0.78rem;color:#6b7280">Carica una mappa per vedere la classificazione.</div>
+          <h3>🏙️ Zone classification</h3>
+          <div id="zone-summary" style="font-size:0.78rem;color:#6b7280">Load a map to see the classification.</div>
           <table class="cong-table" id="zone-table" style="margin-top:10px;display:none">
-            <thead><tr><th>Nodo</th><th>Distanza centro</th><th>Zona</th><th>Cong. delay</th></tr></thead>
+            <thead><tr><th>Node</th><th>Distance from center</th><th>Zone</th><th>Cong. delay</th></tr></thead>
             <tbody id="zone-tbody"></tbody>
           </table>
         </div>
 
-        <!-- Card 3: Densità incroci -->
+        <!-- Card 3: Intersection density -->
         <div class="cong-card">
-          <h3>📍 Densità incroci (nodi entro 200m)</h3>
+          <h3>📍 Intersection density (nodes within 200m)</h3>
           <div id="density-bars" style="margin-top:6px"></div>
         </div>
 
-        <!-- Card 4: Veicoli per arco -->
+        <!-- Card 4: Vehicles per edge -->
         <div class="cong-card">
-          <h3>🚗 Traffico per arco (vehicle-count)</h3>
-          <div id="vehicle-bars" style="margin-top:6px;font-size:0.78rem;color:#6b7280">Carica una mappa.</div>
+          <h3>🚗 Traffic per edge (vehicle-count)</h3>
+          <div id="vehicle-bars" style="margin-top:6px;font-size:0.78rem;color:#6b7280">Load a map.</div>
         </div>
 
-        <!-- Card 5: Percorso con congestione (dopo solve) -->
+        <!-- Card 5: Route congestion (after solve) -->
         <div class="cong-card" id="route-cong-card" style="display:none">
-          <h3>📍 Congestione sul percorso trovato</h3>
+          <h3>📍 Congestion along the found route</h3>
           <table class="cong-table" id="route-cong-table">
-            <thead><tr><th>Tratto</th><th>Veicoli</th><th>CF</th><th>Eff. speed</th></tr></thead>
+            <thead><tr><th>Segment</th><th>Vehicles</th><th>CF</th><th>Eff. speed</th></tr></thead>
             <tbody id="route-cong-tbody"></tbody>
           </table>
         </div>
@@ -456,34 +456,34 @@ let state = {
   file: null,
   routeSignals: new Set(),
   mapLayer: 'default',   // 'default' | 'congestion' | 'peripheral' | 'density'
-  // ── Replanning: strade/incroci chiusi ──
-  blockMode: false,          // true = i click sulla mappa bloccano invece di aprire il popup
+  // ── Replanning: closed roads/intersections ──
+  blockMode: false,          // true = clicks on the map block instead of opening the popup
   blockedEdges: {},          // "A|B" -> {from, to}
-  blockedNodes: new Set(),   // id nodi chiusi
-  lastRoute: null,           // ultimo piano calcolato (per il replanning)
-  replan: null,              // risultato dell'ultimo ricalcolo
-  routeHints: {},            // "A|B" -> 'safe' | 'critical' (chiusura fattibile?)
+  blockedNodes: new Set(),   // ids of closed nodes
+  lastRoute: null,           // last computed plan (for replanning)
+  replan: null,              // result of the last recalculation
+  routeHints: {},            // "A|B" -> 'safe' | 'critical' (is closure feasible?)
   edgeLines: {},             // "A|B" -> {line, from, to}
 };
 let leafletMap = null, markerLayer = null, edgeLayer = null, routeLayer = null;
 let blockLayer = null, replanLayer = null;
 
-// Tetto lato client per la RISOLUZIONE (non per la visualizzazione, che mostra
-// sempre tutti i nodi). Allineato a MAX_SOLVABLE_NODES del server: 1000 lascia
-// passare l'intera zona media (939 nodi). La ricerca puo' richiedere qualche
-// minuto sui grafi grandi (nessun timeout).
+// Client-side cap for SOLVING (not for display, which always shows all
+// nodes). Aligned with the server's MAX_SOLVABLE_NODES: 1000 lets the whole
+// medium zone through (939 nodes). The search can take a few minutes on
+// large graphs (no timeout).
 const MAX_SOLVABLE_NODES = 1000;
 
-// chiave non orientata: una strada chiusa lo e' in entrambi i sensi
+// undirected key: a closed road is closed in both directions
 function edgeKey(a, b) { return a < b ? a + '|' + b : b + '|' + a; }
 function isEdgeBlocked(a, b) { return !!state.blockedEdges[edgeKey(a, b)]; }
 function edgeStyle(key) {
   if (state.blockedEdges[key])
     return { color: '#ef4444', weight: 4, opacity: 0.95, dashArray: '5 6' };
   const hint = state.routeHints && state.routeHints[key];
-  if (hint === 'safe')                      // chiudibile: esiste una deviazione
+  if (hint === 'safe')                      // closable: a detour exists
     return { color: '#fbbf24', weight: 4.5, opacity: 0.95, dashArray: null };
-  if (hint === 'critical')                  // chiuderlo isolerebbe il goal
+  if (hint === 'critical')                  // closing it would isolate the goal
     return { color: '#7f1d1d', weight: 3.5, opacity: 0.85, dashArray: '1 5' };
   return { color: '#2d3748', weight: 1.5, opacity: 0.7, dashArray: null };
 }
@@ -513,7 +513,7 @@ function setFile(f) { state.file = f; document.getElementById('fname').textConte
 const slider = document.getElementById('max-nodes');
 const allNodesCheck = document.getElementById('all-nodes');
 slider.addEventListener('input', () => document.getElementById('range-val').textContent = slider.value);
-allNodesCheck.addEventListener('change', () => { slider.disabled = allNodesCheck.checked; document.getElementById('range-val').textContent = allNodesCheck.checked ? 'tutti' : slider.value; });
+allNodesCheck.addEventListener('change', () => { slider.disabled = allNodesCheck.checked; document.getElementById('range-val').textContent = allNodesCheck.checked ? 'all' : slider.value; });
 
 // ── Layer toggle ──────────────────────────────────────────────────────────────
 function setLayer(name) {
@@ -526,19 +526,19 @@ function setLayer(name) {
   else if (name === 'congestion') {
     legend.style.display = 'flex';
     legend.innerHTML = `
-      <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0"></div>Nessuna cong.</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Media</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>Alta</div>`;
+      <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0"></div>No cong.</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Medium</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>High</div>`;
   } else if (name === 'peripheral') {
     legend.style.display = 'flex';
     legend.innerHTML = `
-      <div class="legend-item"><div class="legend-dot" style="background:#38bdf8"></div>Periferico</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#fb923c"></div>Urbano</div>`;
+      <div class="legend-item"><div class="legend-dot" style="background:#38bdf8"></div>Peripheral</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fb923c"></div>Urban</div>`;
   } else if (name === 'density') {
     legend.style.display = 'flex';
     legend.innerHTML = `
-      <div class="legend-item"><div class="legend-dot" style="background:#93c5fd"></div>Bassa densità</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#1d4ed8"></div>Alta densità</div>`;
+      <div class="legend-item"><div class="legend-dot" style="background:#93c5fd"></div>Low density</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1d4ed8"></div>High density</div>`;
   }
   if (state.nodes.length) redrawMarkers();
 }
@@ -549,15 +549,15 @@ document.getElementById('gen-btn').addEventListener('click', async () => {
   setLoading('gen', true);
   const form = new FormData();
   form.append('osm_file', state.file);
-  // "Tutti i nodi" mostra l'INTERO grafo sulla mappa: la visualizzazione non
-  // ha limiti (e' leggera). Il tetto MAX_SOLVABLE_NODES vale solo dopo, quando
-  // si preme Risolvi e il problema va a ENHSP.
+  // "All nodes" shows the ENTIRE graph on the map: the display has no limits
+  // (it's lightweight). The MAX_SOLVABLE_NODES cap only applies afterwards,
+  // when Solve is pressed and the problem goes to ENHSP.
   form.append('max_nodes', allNodesCheck.checked ? 999999 : slider.value);
   form.append('zone', 'custom');
   try {
     const res = await fetch('/api/generate', { method: 'POST', body: form });
     const data = await res.json();
-    if (data.error) { alert('Errore: ' + data.error); return; }
+    if (data.error) { alert('Error: ' + data.error); return; }
     state.token = data.token; state.nodes = data.nodes; state.edges = data.edges;
     state.autoStart = data.auto_start; state.autoGoal = data.auto_goal;
     state.selectedStart = data.auto_start; state.selectedGoal = data.auto_goal;
@@ -568,7 +568,7 @@ document.getElementById('gen-btn').addEventListener('click', async () => {
     document.getElementById('pick-sec').style.display = 'block';
     document.getElementById('stats-sec').style.display = 'none';
     switchTab('map');
-  } catch(e) { alert('Errore di rete: ' + e.message); }
+  } catch(e) { alert('Network error: ' + e.message); }
   finally { setLoading('gen', false); }
 });
 
@@ -585,7 +585,7 @@ document.getElementById('solve-btn').addEventListener('click', async () => {
     const data = await res.json();
     if (data.error) { document.getElementById('solve-err').innerHTML = `<div class="alert alert-err" style="margin-top:10px">❌ ${data.error}</div>`; return; }
     state.routeSignals = new Set((data.route||[]).filter(id => { const n = nodeById(id); return n && n.is_signal; }));
-    state.lastRoute = data.route || null;      // serve al replanning
+    state.lastRoute = data.route || null;      // needed for replanning
     state.replan = null;
     document.getElementById('replan-result').innerHTML = '';
     if (replanLayer) { leafletMap.removeLayer(replanLayer); replanLayer = null; }
@@ -596,7 +596,7 @@ document.getElementById('solve-btn').addEventListener('click', async () => {
     renderPlan(data.plan_text);
     if (data.route) drawRoute(data.route);
     renderCongestionRoute(data);
-  } catch(e) { document.getElementById('solve-err').innerHTML = `<div class="alert alert-err" style="margin-top:10px">Errore di rete: ${e.message}</div>`; }
+  } catch(e) { document.getElementById('solve-err').innerHTML = `<div class="alert alert-err" style="margin-top:10px">Network error: ${e.message}</div>`; }
   finally { setLoading('solve', false); }
 });
 
@@ -634,17 +634,17 @@ function renderMap() {
     if (markerLayer) leafletMap.removeLayer(markerLayer);
     routeLayer = null;
   }
-  // Archi disegnati UNO A UNO (non come unica polyline) cosi' sono
-  // selezionabili singolarmente per marcarli come non percorribili.
+  // Edges are drawn ONE BY ONE (not as a single polyline) so they can be
+  // selected individually to mark them as impassable.
   edgeLayer = L.layerGroup();
   state.edgeLines = {};
   state.edges.forEach(e => {
     const a = nodeById(e.from), b = nodeById(e.to);
     if (!a || !b) return;
     const key = edgeKey(e.from, e.to);
-    if (state.edgeLines[key]) return;              // evita doppioni A->B / B->A
+    if (state.edgeLines[key]) return;              // avoids A->B / B->A duplicates
     const line = L.polyline([[a.lat,a.lon],[b.lat,b.lon]], edgeStyle(key));
-    // corsia invisibile piu' spessa: rende il click molto piu' facile
+    // invisible, thicker lane: makes clicking much easier
     const hit = L.polyline([[a.lat,a.lon],[b.lat,b.lon]],
                            { color:'#000', weight:12, opacity:0, interactive:true });
     const onClick = () => { if (state.blockMode) toggleBlockedEdge(key, e.from, e.to); };
@@ -717,20 +717,20 @@ function redrawMarkers() {
     const cd    = n.congestion_delay || 0;
     const dens  = n.intersection_density || 0;
     const zone  = n.is_peripheral
-      ? '<span class="periph-badge">🏘 Periferico</span>'
-      : '<span class="urban-badge">🏙 Urbano</span>';
-    const sigBadge = isSignal ? `<div class="popup-row">🚦 Semaforo OSM — <span>+30s</span></div>` : '';
+      ? '<span class="periph-badge">🏘 Peripheral</span>'
+      : '<span class="urban-badge">🏙 Urban</span>';
+    const sigBadge = isSignal ? `<div class="popup-row">🚦 OSM traffic signal — <span>+30s</span></div>` : '';
 
     const goalBtn = reachable
       ? `<button class="popup-btn popup-btn-goal" onclick="setNodeGoal('${n.id}')">🔴 Goal</button>`
-      : `<button class="popup-btn" style="background:#1f2233;color:#4b5563;cursor:not-allowed" disabled>🚫 Non raggiungibile</button>`;
+      : `<button class="popup-btn" style="background:#1f2233;color:#4b5563;cursor:not-allowed" disabled>🚫 Not reachable</button>`;
 
     circle.bindPopup(`
       <div class="popup-name">${label}${tag}</div>
       <div class="popup-osm">${n.id}</div>
-      <div class="popup-row">Zona: ${zone}</div>
+      <div class="popup-row">Zone: ${zone}</div>
       <div class="popup-row">🔥 Cong. delay: <span>${cd} s</span></div>
-      <div class="popup-row">📍 Densità incroci: <span>${dens}</span></div>
+      <div class="popup-row">📍 Intersection density: <span>${dens}</span></div>
       ${sigBadge}
       <div class="popup-btns">
         <button class="popup-btn popup-btn-start" onclick="setNodeStart('${n.id}')">🟢 Start</button>
@@ -739,12 +739,12 @@ function redrawMarkers() {
       <div class="popup-btns">
         <button class="popup-btn ${isBlocked ? 'popup-btn-open' : 'popup-btn-block'}"
                 onclick="toggleBlockedNode('${n.id}')">
-          ${isBlocked ? '✅ Riapri incrocio' : '🚧 Chiudi incrocio'}
+          ${isBlocked ? '✅ Reopen intersection' : '🚧 Close intersection'}
         </button>
       </div>
     `, { maxWidth: 280 });
 
-    // in modalita' chiusura il click sul nodo lo blocca subito, senza popup
+    // in closure mode, clicking the node blocks it immediately, without a popup
     circle.on('click', (ev) => {
       if (state.blockMode) { L.DomEvent.stop(ev); window.toggleBlockedNode(n.id); }
     });
@@ -766,11 +766,11 @@ function drawRoute(route) {
   leafletMap.fitBounds(L.latLngBounds(pts).pad(0.1));
 }
 
-// ══ REPLANNING: chiusure stradali ════════════════════════════════════════════
+// ══ REPLANNING: road closures ════════════════════════════════════════════
 
-// Raggiungibilità del goal ignorando gli elementi chiusi (BFS lato client:
-// istantanea, evita di scoprire solo dopo il round-trip che il blocco isola
-// la destinazione).
+// Reachability of the goal ignoring the closed elements (client-side BFS:
+// instant, avoids only discovering after the round-trip that the closure
+// isolates the destination).
 function goalReachableFrom(fromId, extraBlockedKey) {
   const goal = state.selectedGoal;
   if (!fromId || !goal) return true;
@@ -794,8 +794,8 @@ function goalReachableFrom(fromId, extraBlockedKey) {
   return seen.has(goal);
 }
 
-// Per ogni arco del piano corrente: chiuderlo lascia il goal raggiungibile?
-// 'safe' = si ottiene una deviazione, 'critical' = isola la destinazione.
+// For each edge of the current plan: does closing it leave the goal
+// reachable? 'safe' = a detour exists, 'critical' = isolates the destination.
 function routeEdgeStatus() {
   const st = {};
   const r = state.lastRoute || [];
@@ -816,15 +816,15 @@ function applyRouteEdgeHints() {
   const hint = document.getElementById('block-hint');
   if (state.blockMode && hint) {
     hint.innerHTML = n > 0
-      ? `Clicca una <b>strada</b> per chiuderla o un <b>incrocio</b> per bloccarlo.
-         Sul percorso, <span style="color:#fbbf24">${n} tratt${n === 1 ? 'o è evidenziato' : 'i sono evidenziati'} in giallo</span>:
-         chiudendo quelli esiste una deviazione. Quelli in <span style="color:#7f1d1d">rosso scuro</span> isolerebbero la destinazione.`
-      : `<span style="color:#f87171">Nessun tratto di questo percorso è chiudibile:</span>
-         ogni strada è l'unico collegamento verso la destinazione, quindi
-         chiuderla la isolerebbe. Rigenera con <b>più nodi</b> (fino a 300) per
-         avere una rete con alternative. Se la zona è il centro storico
-         (<i>piccola</i>) è normale: è fatta di vie strette a senso unico e resta
-         quasi ad albero anche con tutti i nodi — usa la zona <b>media</b>.`;
+      ? `Click a <b>road</b> to close it or an <b>intersection</b> to block it.
+         On the route, <span style="color:#fbbf24">${n} segment${n === 1 ? ' is highlighted' : 's are highlighted'} in yellow</span>:
+         closing those leaves a detour available. Those in <span style="color:#7f1d1d">dark red</span> would isolate the destination.`
+      : `<span style="color:#f87171">No segment of this route can be closed:</span>
+         every road is the only link toward the destination, so closing it
+         would isolate it. Regenerate with <b>more nodes</b> (up to 300) to
+         get a network with alternatives. If the zone is the historic center
+         (<i>small</i>) this is normal: it's made of narrow one-way streets and
+         stays nearly tree-shaped even with all nodes — use the <b>medium</b> zone.`;
   }
 }
 
@@ -833,12 +833,12 @@ function toggleBlockMode() {
   const btn = document.getElementById('block-mode-btn');
   btn.classList.toggle('on', state.blockMode);
   btn.innerHTML = state.blockMode
-    ? '🚧 Modalità chiusura ATTIVA — clicca strade o incroci'
-    : '🚧 Attiva modalità chiusura';
+    ? '🚧 Closure mode ACTIVE — click roads or intersections'
+    : '🚧 Enable closure mode';
   document.getElementById('map').classList.toggle('blocking', state.blockMode);
   document.getElementById('block-hint').style.display = state.blockMode ? 'block' : 'none';
   if (state.blockMode) leafletMap.closePopup();
-  applyRouteEdgeHints();          // evidenzia subito dove conviene cliccare
+  applyRouteEdgeHints();          // immediately highlight where it's worth clicking
 }
 
 function toggleBlockedEdge(key, from, to) {
@@ -847,16 +847,16 @@ function toggleBlockedEdge(key, from, to) {
   else state.blockedEdges[key] = { from, to };
   applyRouteEdgeHints();
   refreshBlockUI();
-  // avviso immediato, senza aspettare il round-trip al server
+  // immediate warning, without waiting for the round-trip to the server
   if (state.blockedEdges[key] && wasCritical) {
     document.getElementById('replan-result').innerHTML =
       `<div class="alert alert-err" style="margin-top:8px">
-         🚫 Questa strada è l'unico collegamento verso la destinazione:
-         chiudendola non esiste alcuna deviazione.
+         🚫 This road is the only link toward the destination:
+         closing it leaves no detour.
        </div>
        <div style="font-size:11px;color:#94a3b8;margin-top:6px">
-         Scegli un tratto <span style="color:#fbbf24">giallo</span>, oppure rigenera
-         il problema con più nodi per avere una rete con più alternative.
+         Choose a <span style="color:#fbbf24">yellow</span> segment, or
+         regenerate the problem with more nodes to get a network with more alternatives.
        </div>`;
   } else {
     document.getElementById('replan-result').innerHTML = '';
@@ -890,14 +890,14 @@ function refreshBlockUI() {
   const nN = state.blockedNodes.size;
   const tot = nE + nN;
   document.getElementById('block-count').textContent =
-    tot === 0 ? 'nessuna chiusura' :
-    `${nE} strad${nE === 1 ? 'a' : 'e'} · ${nN} incroc${nN === 1 ? 'io' : 'i'}`;
+    tot === 0 ? 'no closures' :
+    `${nE} road${nE === 1 ? '' : 's'} · ${nN} intersection${nN === 1 ? '' : 's'}`;
   document.getElementById('replan-btn').disabled = (tot === 0 || !state.lastRoute);
   document.getElementById('clear-blocks-btn').style.display = tot ? 'block' : 'none';
   drawBlockMarkers();
 }
 
-// piccoli cartelli 🚧 al centro di ogni strada chiusa
+// small 🚧 signs at the center of each closed road
 function drawBlockMarkers() {
   if (blockLayer) leafletMap.removeLayer(blockLayer);
   blockLayer = L.layerGroup();
@@ -918,7 +918,7 @@ async function doReplan() {
   const btn = document.getElementById('replan-btn');
   btn.disabled = true;
   document.getElementById('replan-result').innerHTML =
-    '<div class="replan-loading">Ricalcolo del percorso in corso…</div>';
+    '<div class="replan-loading">Recalculating route…</div>';
   try {
     const res = await fetch('/api/replan', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -934,7 +934,7 @@ async function doReplan() {
     renderReplan(d);
   } catch (e) {
     document.getElementById('replan-result').innerHTML =
-      `<div class="alert alert-err" style="margin-top:8px">Errore di rete: ${e.message}</div>`;
+      `<div class="alert alert-err" style="margin-top:8px">Network error: ${e.message}</div>`;
   } finally { btn.disabled = false; refreshBlockUI(); }
 }
 
@@ -943,9 +943,9 @@ function renderReplan(d) {
   if (d.error) {
     const extra = d.unreachable
       ? `<div style="font-size:11px;color:#94a3b8;margin-top:6px">
-           Con pochi nodi il sottografo è quasi un albero: chiudere una strada
-           isola la destinazione. Rigenera con <b>più nodi</b> (o “tutti”) per
-           avere percorsi alternativi.</div>` : '';
+           With few nodes the subgraph is nearly a tree: closing one road
+           isolates the destination. Regenerate with <b>more nodes</b> (or "all") to
+           get alternative routes.</div>` : '';
     box.innerHTML = `<div class="alert alert-err" style="margin-top:8px">🚫 ${d.error}</div>${extra}`;
     return;
   }
@@ -962,27 +962,27 @@ function renderReplan(d) {
   const sign = dt > 0 ? '+' : '';
   box.innerHTML = `
     <div class="replan-card">
-      <div class="replan-head">🚧 Strada chiusa su <b>${d.blocked_edge[0]} → ${d.blocked_edge[1]}</b></div>
-      <div class="replan-sub">Ricalcolo dal nodo <b>${d.blocked_at}</b>, l'ultimo raggiungibile prima della chiusura.</div>
+      <div class="replan-head">🚧 Road closed on <b>${d.blocked_edge[0]} → ${d.blocked_edge[1]}</b></div>
+      <div class="replan-sub">Recalculating from node <b>${d.blocked_at}</b>, the last one reachable before the closure.</div>
       <div class="replan-legend">
-        <span><i class="sw" style="background:#22c55e"></i>già percorso</span>
-        <span><i class="sw" style="background:#f59e0b"></i>deviazione</span>
-        <span><i class="sw" style="background:#64748b"></i>piano originale</span>
+        <span><i class="sw" style="background:#22c55e"></i>already travelled</span>
+        <span><i class="sw" style="background:#f59e0b"></i>detour</span>
+        <span><i class="sw" style="background:#64748b"></i>original plan</span>
       </div>
       <table class="replan-tab">
-        <tr><th></th><th>Originale</th><th>Con deviazione</th><th>Δ</th></tr>
-        <tr><td>Distanza</td><td>${o.dist} m</td><td>${n.dist} m</td>
+        <tr><th></th><th>Original</th><th>With detour</th><th>Δ</th></tr>
+        <tr><td>Distance</td><td>${o.dist} m</td><td>${n.dist} m</td>
             <td class="${cls}">${sign}${Math.round(dd)} m</td></tr>
-        <tr><td>Tempo totale</td><td>${o.total} s</td><td>${n.total} s</td>
+        <tr><td>Total time</td><td>${o.total} s</td><td>${n.total} s</td>
             <td class="${cls}">${sign}${dt.toFixed(1)} s</td></tr>
-        <tr><td>Semafori</td><td>${o.signals_crossed}</td><td>${n.signals_crossed}</td><td></td></tr>
+        <tr><td>Signals</td><td>${o.signals_crossed}</td><td>${n.signals_crossed}</td><td></td></tr>
       </table>
-      <div class="replan-foot">Nuovo piano: ${d.new_route.length} nodi · ENHSP ${d.plan_time_ms ?? '—'} ms</div>
-      ${d.used_fallback_heuristic ? `<div class="alert alert-warn" style="margin-top:8px">⚠️ Euristica <code>aibr</code> in overflow numerico: ricalcolo rieseguito con l'euristica <code>blind</code>.</div>` : ''}
+      <div class="replan-foot">New plan: ${d.new_route.length} nodes · ENHSP ${d.plan_time_ms ?? '—'} ms</div>
+      ${d.used_fallback_heuristic ? `<div class="alert alert-warn" style="margin-top:8px">⚠️ The <code>aibr</code> heuristic hit a numeric overflow: recalculation was rerun with the <code>blind</code> heuristic.</div>` : ''}
     </div>`;
 }
 
-// disegna: piano originale sbiadito + tratto percorso + deviazione animata
+// draws: faded original plan + travelled segment + animated detour
 function drawReplanRoute(d) {
   if (routeLayer)  { leafletMap.removeLayer(routeLayer);  routeLayer = null; }
   if (replanLayer) leafletMap.removeLayer(replanLayer);
@@ -1033,13 +1033,13 @@ function renderStats(data) {
   const congColor = s.congestion_delay_total > 0 ? '#f87171' : '#4b5563';
 
   document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-card"><div class="val">${dist}</div><div class="lbl">Distanza percorso</div></div>
-    <div class="stat-card"><div class="val">${travel}</div><div class="lbl">Tempo totale</div></div>
-    <div class="stat-card"><div class="val" style="color:${sigColor}">${sigCount}</div><div class="lbl">🚦 Semafori</div></div>
-    <div class="stat-card"><div class="val" style="color:${sigColor}">${sigDelay}</div><div class="lbl">Ritardo semafori</div></div>
-    <div class="stat-card"><div class="val" style="color:${congColor}">${congDelay}</div><div class="lbl">🔥 Ritardo congestione</div></div>
-    <div class="stat-card"><div class="val" style="color:#a78bfa">${periph}</div><div class="lbl">🏘 Nodi periferici</div></div>
-    <div class="stat-card stat-full"><div class="val" style="font-size:0.95rem">${compute}</div><div class="lbl">Tempo calcolo ENHSP</div></div>
+    <div class="stat-card"><div class="val">${dist}</div><div class="lbl">Route distance</div></div>
+    <div class="stat-card"><div class="val">${travel}</div><div class="lbl">Total time</div></div>
+    <div class="stat-card"><div class="val" style="color:${sigColor}">${sigCount}</div><div class="lbl">🚦 Signals</div></div>
+    <div class="stat-card"><div class="val" style="color:${sigColor}">${sigDelay}</div><div class="lbl">Signal delay</div></div>
+    <div class="stat-card"><div class="val" style="color:${congColor}">${congDelay}</div><div class="lbl">🔥 Congestion delay</div></div>
+    <div class="stat-card"><div class="val" style="color:#a78bfa">${periph}</div><div class="lbl">🏘 Peripheral nodes</div></div>
+    <div class="stat-card stat-full"><div class="val" style="font-size:0.95rem">${compute}</div><div class="lbl">ENHSP compute time</div></div>
   `;
 
   // congestion bars
@@ -1048,12 +1048,12 @@ function renderStats(data) {
     document.getElementById('cong-breakdown').style.display = 'block';
     document.getElementById('cong-bars').innerHTML = `
       <div class="cong-bar-row">
-        <div class="cong-bar-label">🚦 Semafori</div>
+        <div class="cong-bar-label">🚦 Signals</div>
         <div class="cong-bar-track"><div class="cong-bar-fill" style="width:${Math.round((s.signal_delay_total||0)/maxDelay*100)}%;background:#f59e0b"></div></div>
         <div class="cong-bar-val">${s.signal_delay_total||0}s</div>
       </div>
       <div class="cong-bar-row">
-        <div class="cong-bar-label">🔥 Congestione</div>
+        <div class="cong-bar-label">🔥 Congestion</div>
         <div class="cong-bar-track"><div class="cong-bar-fill" style="width:${Math.round((s.congestion_delay_total||0)/maxDelay*100)}%;background:#ef4444"></div></div>
         <div class="cong-bar-val">${s.congestion_delay_total||0}s</div>
       </div>
@@ -1073,13 +1073,13 @@ function renderStats(data) {
     cmpBox.style.display   = v;
   };
   const fallbackWarn = data.used_fallback_heuristic
-    ? `<div class="alert alert-warn">⚠️ Euristica <code>aibr</code> in overflow numerico su questo percorso: ENHSP e' stato rieseguito con l'euristica <code>blind</code> per trovare la soluzione.</div>`
+    ? `<div class="alert alert-warn">⚠️ The <code>aibr</code> heuristic hit a numeric overflow on this route: ENHSP was rerun with the <code>blind</code> heuristic to find the solution.</div>`
     : '';
   if (data.enhsp_error) {
     msg.innerHTML = `<div class="alert alert-warn">⚠️ ${data.enhsp_error}</div>` + fallbackWarn;
     setVis('none');
   } else if (data.plan_text) {
-    msg.innerHTML = `<div class="alert alert-ok">✅ ENHSP ha trovato la soluzione</div>` + fallbackWarn;
+    msg.innerHTML = `<div class="alert alert-ok">✅ ENHSP found a solution</div>` + fallbackWarn;
     setVis('block');
   } else {
     msg.innerHTML = ''; setVis('none');
@@ -1096,11 +1096,11 @@ function renderCongestionTab() {
   const sorted = [...state.nodes].sort((a,b) => (b.congestion_delay||0) - (a.congestion_delay||0));
   document.getElementById('zone-table').style.display = 'table';
   document.getElementById('zone-summary').textContent =
-    `${sorted.filter(n=>n.is_peripheral).length} nodi periferici, ${sorted.filter(n=>!n.is_peripheral).length} urbani`;
+    `${sorted.filter(n=>n.is_peripheral).length} peripheral nodes, ${sorted.filter(n=>!n.is_peripheral).length} urban`;
   document.getElementById('zone-tbody').innerHTML = sorted.map(n => {
     const zone = n.is_peripheral
-      ? '<span class="periph-badge">Periferico</span>'
-      : '<span class="urban-badge">Urbano</span>';
+      ? '<span class="periph-badge">Peripheral</span>'
+      : '<span class="urban-badge">Urban</span>';
     const cd = n.congestion_delay || 0;
     const cdColor = cd === 0 ? '#4b5563' : cd <= 10 ? '#84cc16' : cd <= 20 ? '#f59e0b' : '#ef4444';
     return `<tr>
@@ -1121,13 +1121,13 @@ function renderCongestionTab() {
       <div class="cong-bar-track"><div class="cong-bar-fill" style="width:${pct}%;background:#3b82f6"></div></div>
       <div class="cong-bar-val">${d}</div>
     </div>`;
-  }).join('') + (sorted.length > 20 ? `<div style="font-size:0.72rem;color:#4b5563;margin-top:6px">... e altri ${sorted.length-20} nodi</div>` : '');
+  }).join('') + (sorted.length > 20 ? `<div style="font-size:0.72rem;color:#4b5563;margin-top:6px">... and ${sorted.length-20} more nodes</div>` : '');
 
-  // Vehicle count per arco
+  // Vehicle count per edge
   const edgesWithVc = state.edges.filter(e => (e.vehicle_count||0) > 0).sort((a,b) => (b.vehicle_count||0)-(a.vehicle_count||0));
   const maxVc = Math.max(...state.edges.map(e => e.vehicle_count||0), 1);
   if (edgesWithVc.length === 0) {
-    document.getElementById('vehicle-bars').innerHTML = '<div style="color:#4b5563;font-size:0.78rem">Nessun arco con traffico rilevante.</div>';
+    document.getElementById('vehicle-bars').innerHTML = '<div style="color:#4b5563;font-size:0.78rem">No edge with significant traffic.</div>';
   } else {
     document.getElementById('vehicle-bars').innerHTML = edgesWithVc.slice(0,15).map(e => {
       const vc = e.vehicle_count || 0;
@@ -1174,7 +1174,7 @@ function renderPlan(planText) {
   document.getElementById('plan-empty').style.display = 'none';
   const el = document.getElementById('plan-steps');
   el.style.display = 'block'; el.innerHTML = '';
-  if (!planText) { el.innerHTML = '<div class="alert alert-warn" style="margin:14px">Nessun piano disponibile</div>'; return; }
+  if (!planText) { el.innerHTML = '<div class="alert alert-warn" style="margin:14px">No plan available</div>'; return; }
   planText.split('\n').forEach(line => {
     const m = line.match(/^([\d.]+)\s*:\s*\((.+)\)/i);
     const step = document.createElement('div');
@@ -1186,7 +1186,7 @@ function renderPlan(planText) {
 }
 
 // ── SUMO ──────────────────────────────────────────────────────────────────────
-// variant: 'optimized' (semafori del punto 3) oppure 'baseline' (net.xml)
+// variant: 'optimized' (signals from point 3) or 'baseline' (net.xml)
 async function launchSumo(variant) {
   variant = variant || 'optimized';
   const isBase = variant === 'baseline';
@@ -1205,12 +1205,12 @@ async function launchSumo(variant) {
       body: JSON.stringify({ variant: variant })
     });
     const data = await res.json();
-    const what = isBase ? 'semafori originali' : 'semafori ottimizzati';
+    const what = isBase ? 'original signals' : 'optimized signals';
     document.getElementById('sumo-msg').innerHTML = data.error
       ? `<div class="alert alert-err" style="margin-top:8px">❌ ${data.error}</div>`
-      : `<div class="alert alert-ok" style="margin-top:8px">✅ SUMO avviato (${what})</div>`;
+      : `<div class="alert alert-ok" style="margin-top:8px">✅ SUMO started (${what})</div>`;
   } catch(e) {
-    document.getElementById('sumo-msg').innerHTML = `<div class="alert alert-err" style="margin-top:8px">Errore: ${e.message}</div>`;
+    document.getElementById('sumo-msg').innerHTML = `<div class="alert alert-err" style="margin-top:8px">Error: ${e.message}</div>`;
   } finally {
     document.getElementById(labelId).style.display = 'block';
     document.getElementById(spinId).style.display = 'none';
@@ -1218,14 +1218,14 @@ async function launchSumo(variant) {
   }
 }
 
-// ── PUNTO 4: confronto simulativo in SUMO ─────────────────────────────────────
+// ── POINT 4: simulated comparison in SUMO ─────────────────────────────────────
 async function compareSumo() {
   const zone = document.getElementById('cmp-zone').value;
   document.getElementById('cmp-label').style.display = 'none';
   document.getElementById('cmp-spinner').style.display = 'block';
   document.getElementById('cmp-btn').disabled = true;
   document.getElementById('cmp-msg').innerHTML =
-    `<div style="font-size:12px;color:#64748b;margin-top:8px">Simulazione in corso (due run SUMO)…</div>`;
+    `<div style="font-size:12px;color:#64748b;margin-top:8px">Simulation in progress (two SUMO runs)…</div>`;
   try {
     const res = await fetch('/api/compare_sumo', {
       method: 'POST',
@@ -1252,22 +1252,22 @@ async function compareSumo() {
       document.getElementById('cmp-msg').innerHTML = `
         <table style="width:100%;font-size:12px;margin-top:8px;border-collapse:collapse">
           <tr style="color:#64748b;border-bottom:1px solid #e2e8f0">
-            <th style="text-align:left;padding:3px 6px">Metrica</th>
-            <th style="text-align:right;padding:3px 6px">Originali</th>
-            <th style="text-align:right;padding:3px 6px">Ottimizzati</th>
+            <th style="text-align:left;padding:3px 6px">Metric</th>
+            <th style="text-align:right;padding:3px 6px">Original</th>
+            <th style="text-align:right;padding:3px 6px">Optimized</th>
             <th style="text-align:right;padding:3px 6px">Δ</th>
           </tr>
-          ${row('Tempo di viaggio', b.duration_mean, o.duration_mean, d.duration_mean, 's')}
-          ${row('Attesa ai semafori', b.waiting_mean, o.waiting_mean, d.waiting_mean, 's')}
-          ${row('Tempo perso', b.timeloss_mean, o.timeloss_mean, d.timeloss_mean, 's')}
+          ${row('Travel time', b.duration_mean, o.duration_mean, d.duration_mean, 's')}
+          ${row('Wait at signals', b.waiting_mean, o.waiting_mean, d.waiting_mean, 's')}
+          ${row('Time lost', b.timeloss_mean, o.timeloss_mean, d.timeloss_mean, 's')}
         </table>
         <div style="font-size:11px;color:#64748b;margin-top:6px">
-          ${r.n_vehicles} veicoli, stesse rotte nei due scenari. Verde = miglioramento.
+          ${r.n_vehicles} vehicles, same routes in both scenarios. Green = improvement.
         </div>`;
     }
   } catch(e) {
     document.getElementById('cmp-msg').innerHTML =
-      `<div class="alert alert-err" style="margin-top:8px">Errore: ${e.message}</div>`;
+      `<div class="alert alert-err" style="margin-top:8px">Error: ${e.message}</div>`;
   } finally {
     document.getElementById('cmp-label').style.display = 'block';
     document.getElementById('cmp-spinner').style.display = 'none';
@@ -1302,8 +1302,8 @@ function setLoading(which, on) {
 }
 function copyCode() {
   navigator.clipboard.writeText(document.getElementById('pddl-code').textContent).then(() => {
-    document.querySelector('.copy-btn').textContent = 'Copiato!';
-    setTimeout(() => document.querySelector('.copy-btn').textContent = 'Copia', 1500);
+    document.querySelector('.copy-btn').textContent = 'Copied!';
+    setTimeout(() => document.querySelector('.copy-btn').textContent = 'Copy', 1500);
   });
 }
 </script>

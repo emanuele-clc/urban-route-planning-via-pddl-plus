@@ -31,7 +31,7 @@ app = Flask(__name__)
 PROJECT_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 PDDL_DIR = os.path.join(PROJECT_ROOT, 'pddl_files')
 
-# store in memoria: token → dati grafo
+# in-memory store: token -> graph data
 graph_store = {}
 
 
@@ -49,7 +49,7 @@ def generate():
     zone      = request.form.get('zone', 'custom') or 'custom'
 
     if not osm_file:
-        return jsonify({'error': 'Nessun file caricato'}), 400
+        return jsonify({'error': 'No file uploaded'}), 400
 
     tmp_dir  = tempfile.mkdtemp()
     osm_path = os.path.join(tmp_dir, 'input.osm')
@@ -58,7 +58,7 @@ def generate():
     try:
         node_data, adj, signal_node_ids, edge_highway = build_contracted_graph(osm_path)
         if not adj:
-            return jsonify({'error': 'Nessuna strada percorribile trovata nel file OSM'}), 400
+            return jsonify({'error': 'No drivable road found in the OSM file'}), 400
 
         selected = select_connected_subgraph(node_data, adj, max_nodes)
         sel_set  = set(selected)
@@ -74,7 +74,7 @@ def generate():
         nm_inv = {v: k for k, v in nm.items()}
         signal_nodes_in_subgraph = signal_node_ids & sel_set
 
-        # pre-calcolo congestione (salvato nel token)
+        # pre-compute congestion (saved in the token)
         peripheral  = classify_zones(selected, node_data)
         density     = compute_intersection_density(selected, node_data)
         sub_hw      = {(a, b): edge_highway.get((a, b), "unclassified") for (a, b) in edges}
@@ -120,7 +120,7 @@ def generate():
         })
 
     except ET.ParseError as e:
-        return jsonify({'error': f'File OSM non valido: {e}'}), 400
+        return jsonify({'error': f'Invalid OSM file: {e}'}), 400
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
@@ -135,7 +135,7 @@ def solve():
 
     store = graph_store.get(token)
     if not store:
-        return jsonify({'error': 'Sessione scaduta, ricarica il file OSM'}), 400
+        return jsonify({'error': 'Session expired, reload the OSM file'}), 400
 
     nm           = store['nm']
     nm_inv       = store['nm_inv']
@@ -154,31 +154,31 @@ def solve():
     goal_osm  = nm_inv.get(goal_pddl)
 
     if not start_osm:
-        return jsonify({'error': f'Start "{start_pddl}" non trovato'}), 400
+        return jsonify({'error': f'Start "{start_pddl}" not found'}), 400
     if not goal_osm:
-        return jsonify({'error': f'Goal "{goal_pddl}" non trovato'}), 400
+        return jsonify({'error': f'Goal "{goal_pddl}" not found'}), 400
     if start_osm == goal_osm:
-        return jsonify({'error': 'Start e Goal devono essere nodi diversi'}), 400
+        return jsonify({'error': 'Start and Goal must be different nodes'}), 400
 
     reach = compute_reachable(start_osm, edges)
     if goal_osm not in reach:
-        return jsonify({'error': f'Il goal "{goal_pddl}" non è raggiungibile da "{start_pddl}"'}), 400
+        return jsonify({'error': f'Goal "{goal_pddl}" is not reachable from "{start_pddl}"'}), 400
 
-    # Sottografo locale per la coppia start/goal, NON l'intero grafo caricato
-    # (che con "tutti i nodi" su una zona grande puo' avere migliaia di nodi
-    # anche per un tragitto di poche centinaia di metri) — il costo del solve
-    # deve dipendere dalla distanza reale del tragitto, non dalla dimensione
-    # della mappa mostrata.
+    # Local subgraph for the start/goal pair, NOT the entire loaded graph
+    # (which with "all nodes" on a large zone can have thousands of nodes
+    # even for a route of a few hundred meters) — the cost of solving must
+    # depend on the actual distance of the trip, not on the size of the
+    # displayed map.
     local_nodes = select_local_subgraph(start_osm, goal_osm, edges, node_data)
     local_set = set(local_nodes)
     local_edges = {(a, b): v for (a, b), v in edges.items() if a in local_set and b in local_set}
 
     if len(local_nodes) > MAX_SOLVABLE_NODES:
         return jsonify({'error':
-            f'Problema troppo grande per ENHSP: {len(local_nodes)} nodi nel '
-            f'sottografo locale start-goal (massimo {MAX_SOLVABLE_NODES}). '
-            f'La distanza tra i due punti richiede troppe deviazioni. '
-            f'Aumenta la heap con ENHSP_HEAP e alza MAX_SOLVABLE_NODES.'}), 400
+            f'Problem too large for ENHSP: {len(local_nodes)} nodes in the '
+            f'local start-goal subgraph (maximum {MAX_SOLVABLE_NODES}). '
+            f'The distance between the two points requires too many detours. '
+            f'Increase the heap with ENHSP_HEAP and raise MAX_SOLVABLE_NODES.'}), 400
 
     pddl_content = write_pddl(
         zone, local_nodes, node_data, local_edges, start_osm, goal_osm, nm,
@@ -212,9 +212,9 @@ def solve():
     domain_abs = os.path.abspath(DOMAIN_PATH)
 
     if not jar:
-        enhsp_error = "ENHSP non trovato — installa con: pip install up-enhsp"
+        enhsp_error = "ENHSP not found — install with: pip install up-enhsp"
     elif not os.path.exists(domain_abs):
-        enhsp_error = f"domain.pddl non trovato in: {domain_abs}"
+        enhsp_error = f"domain.pddl not found at: {domain_abs}"
     else:
         try:
             output, used_fallback_heuristic = run_enhsp_output(jar, domain_abs, pddl_path, ENHSP_TIMEOUT)
@@ -222,9 +222,9 @@ def solve():
             if "Problem Solved" in output:
                 plan_text, route, plan_time_ms = parse_plan(output)
 
-                # salva il percorso pianificato (sequenza di nodi PDDL) cosi'
-                # che SUMO possa seguire ESATTAMENTE le stesse strade del piano,
-                # invece di ricalcolare un proprio Dijkstra start->goal.
+                # save the planned route (sequence of PDDL nodes) so that
+                # SUMO can follow EXACTLY the same roads as the plan,
+                # instead of recomputing its own start->goal Dijkstra.
                 route_path = os.path.join(PDDL_DIR, 'route_custom.json')
                 try:
                     with open(route_path, 'w', encoding='utf-8') as f:
@@ -249,10 +249,10 @@ def solve():
                                 travel_time += d / eff_spd
                         if not (a_osm and b_osm):
                             continue
-                        # ritardo semaforico del movimento (prev,a_osm,b_osm) — pagato
-                        # partendo da a_osm, come in domain.pddl 'start-move' (sez. 3.1
-                        # di 2_traffic_signal_optimization.md). i==0: nessun prev reale
-                        # (start-move fittizio start->start->b_osm).
+                        # signal delay of the movement (prev,a_osm,b_osm) — paid
+                        # when leaving a_osm, as in domain.pddl 'start-move' (sec. 3.1
+                        # of 2_traffic_signal_optimization.md). i==0: no real prev
+                        # (fictitious start-move start->start->b_osm).
                         if i == 0:
                             sd = assign_movement_signal_delay(a_osm, a_osm, b_osm, node_data,
                                                                SUMO_MOVEMENTS, is_first=True)
@@ -273,12 +273,12 @@ def solve():
             else:
                 enhsp_error = diagnose_enhsp(output)
         except subprocess.TimeoutExpired:
-            enhsp_error = (f"ENHSP ha superato il timeout ({ENHSP_TIMEOUT}s) — "
-                           "riduci i nodi oppure alza ENHSP_TIMEOUT")
+            enhsp_error = (f"ENHSP exceeded the timeout ({ENHSP_TIMEOUT}s) — "
+                           "reduce the nodes or raise ENHSP_TIMEOUT")
         except FileNotFoundError:
-            enhsp_error = "Java non trovato — installa Java 17+"
+            enhsp_error = "Java not found — install Java 17+"
 
-    # calcola sommario congestione sul percorso
+    # compute congestion summary along the route
     congestion_on_route = []
     if route and len(route) >= 2:
         for i in range(len(route) - 1):
@@ -325,18 +325,19 @@ def solve():
 
 @app.route('/api/replan', methods=['POST'])
 def replan():
-    """Ricalcola il percorso evitando strade/incroci resi non percorribili.
+    """Recomputes the route avoiding roads/intersections made impassable.
 
-    Il replanning NON riparte dall'origine: simula un veicolo gia' in viaggio
-    che trova la strada chiusa. Si individua il primo elemento bloccato lungo
-    il piano corrente e si ripianifica **dal nodo immediatamente precedente**
-    (l'ultimo punto raggiungibile), passando ad ENHSP anche il nodo di
-    provenienza, cosi' il costo della prima svolta e' quello reale."""
+    Replanning does NOT restart from the origin: it simulates a vehicle
+    already en route that finds the road closed. The first blocked element
+    along the current plan is located and replanning happens **from the
+    immediately preceding node** (the last reachable point), also passing
+    the node of origin to ENHSP, so that the cost of the first turn is the
+    real one."""
     data = request.get_json() or {}
     token = data.get('token')
     store = graph_store.get(token)
     if not store:
-        return jsonify({'error': 'Sessione scaduta, ricarica il file OSM'}), 400
+        return jsonify({'error': 'Session expired, reload the OSM file'}), 400
 
     nm, nm_inv = store['nm'], store['nm_inv']
     node_data, edges, selected = store['node_data'], store['edges'], store['selected']
@@ -352,11 +353,11 @@ def replan():
     goal_pddl = data.get('goal')
     goal_osm = nm_inv.get(goal_pddl)
     if len(route) < 2:
-        return jsonify({'error': 'Nessun percorso da ricalcolare: risolvi prima il problema'}), 400
+        return jsonify({'error': 'No route to recalculate: solve the problem first'}), 400
     if not goal_osm:
-        return jsonify({'error': f'Goal "{goal_pddl}" non trovato'}), 400
+        return jsonify({'error': f'Goal "{goal_pddl}" not found'}), 400
 
-    # --- insieme degli archi bloccati (in entrambi i sensi: strada chiusa) ---
+    # --- set of blocked edges (in both directions: a closed road is closed both ways) ---
     blocked_edges = set()
     for pair in data.get('blocked_edges') or []:
         a, b = nm_inv.get(pair[0]), nm_inv.get(pair[1])
@@ -365,14 +366,14 @@ def replan():
             blocked_edges.add((b, a))
     blocked_nodes = {nm_inv[x] for x in (data.get('blocked_nodes') or []) if x in nm_inv}
     if not blocked_edges and not blocked_nodes:
-        return jsonify({'error': 'Nessuna strada o incrocio bloccato'}), 400
+        return jsonify({'error': 'No road or intersection blocked'}), 400
     if goal_osm in blocked_nodes:
-        return jsonify({'error': 'Il goal stesso e\' bloccato: scegli un altro punto'}), 400
+        return jsonify({'error': 'The goal itself is blocked: choose another point'}), 400
 
     def is_blocked(a, b):
         return (a, b) in blocked_edges or a in blocked_nodes or b in blocked_nodes
 
-    # --- primo punto del piano corrente colpito dal blocco ---
+    # --- first point of the current plan hit by the block ---
     osm_route = [nm_inv.get(r) for r in route]
     hit = None
     for i in range(len(osm_route) - 1):
@@ -382,15 +383,15 @@ def replan():
             break
     if hit is None:
         return jsonify({'success': True, 'no_impact': True,
-                        'message': 'Il percorso attuale non attraversa nessuna delle '
-                                   'strade bloccate: nessun ricalcolo necessario.'})
+                        'message': 'The current route does not cross any of the '
+                                   'blocked roads: no recalculation needed.'})
 
     replan_from = osm_route[hit]
     prev_osm = osm_route[hit - 1] if hit > 0 else None
     if replan_from in blocked_nodes:
-        return jsonify({'error': 'Il punto di partenza del ricalcolo e\' bloccato'}), 400
+        return jsonify({'error': 'The starting point of the recalculation is blocked'}), 400
 
-    # --- grafo senza gli elementi bloccati ---
+    # --- graph without the blocked elements ---
     open_edges = {(a, b): v for (a, b), v in edges.items() if not is_blocked(a, b)}
     reach = {replan_from}
     q = deque([replan_from])
@@ -402,16 +403,17 @@ def replan():
                 q.append(b)
     if goal_osm not in reach:
         return jsonify({
-            'error': 'Con queste chiusure il goal non e\' piu\' raggiungibile: '
-                     'il blocco isola la destinazione.',
+            'error': 'With these closures the goal is no longer reachable: '
+                     'the block isolates the destination.',
             'unreachable': True,
             'blocked_at': nm.get(replan_from),
         }), 400
 
-    # stesso sottografo locale usato da /api/solve — vedi commento li'. prev_osm
-    # va sempre incluso come oggetto PDDL: write_pddl lo referenzia in (prev ...)
-    # e nelle turn-time anche se non ha piu' un arco verso replan_from (strada
-    # chiusa), quindi deve comunque comparire tra gli (:objects ...).
+    # same local subgraph used by /api/solve — see comment there. prev_osm
+    # must always be included as a PDDL object: write_pddl references it in
+    # (prev ...) and in the turn-times even if it no longer has an edge
+    # toward replan_from (road closed), so it must still appear among the
+    # (:objects ...).
     local_nodes = select_local_subgraph(replan_from, goal_osm, open_edges, node_data)
     if prev_osm and prev_osm not in local_nodes:
         local_nodes = local_nodes + [prev_osm]
@@ -429,34 +431,34 @@ def replan():
     if err:
         return jsonify({'error': err}), 400
 
-    # salva accanto agli altri, cosi' anche SUMO puo' visualizzare il nuovo piano
+    # save alongside the others, so SUMO can also display the new plan
     try:
         os.makedirs(PDDL_DIR, exist_ok=True)
         with open(os.path.join(PDDL_DIR, 'problem_custom.pddl'), 'w', encoding='utf-8') as f:
             f.write(pddl_content)
-        # Per SUMO si salva SOLO il nuovo percorso, non l'intero viaggio.
-        # Motivo: problem_custom.pddl parte da replan_from, e sumo_visualize
-        # centra la vista sullo start del PDDL. Salvando anche il tratto gia'
-        # percorso, il veicolo nasceva lontano dall'inquadratura (fuori
-        # schermo) e la rotta conteneva un ritorno sugli stessi archi, cioe'
-        # un'inversione a U che SUMO non sempre puo' eseguire.
-        # Cosi' invece l'auto parte esattamente dove avviene il ricalcolo.
+        # For SUMO only the new route is saved, not the whole trip. Reason:
+        # problem_custom.pddl starts at replan_from, and sumo_visualize
+        # centers the view on the PDDL start. Saving the already-travelled
+        # segment too made the vehicle spawn far from the view (off screen)
+        # and the route contained a return over the same edges, i.e. a
+        # U-turn that SUMO cannot always perform. This way the car starts
+        # exactly where the recalculation happens.
         with open(os.path.join(PDDL_DIR, 'route_custom.json'), 'w', encoding='utf-8') as f:
             json.dump({'route': new_route or []}, f)
     except Exception:
         pass
 
     old_m = route_metrics(route, nm_inv, edges, vc, cong_delays, signal_nodes, node_data)
-    new_full = route[:hit] + (new_route or [])      # tratto percorso + nuovo
+    new_full = route[:hit] + (new_route or [])      # travelled segment + new one
     new_m = route_metrics(new_full, nm_inv, edges, vc, cong_delays, signal_nodes, node_data)
 
     return jsonify({
         'success': True,
-        'blocked_at': nm.get(replan_from),          # ultimo nodo raggiungibile
+        'blocked_at': nm.get(replan_from),          # last reachable node
         'blocked_edge': [nm.get(osm_route[hit]), nm.get(osm_route[hit + 1])],
         'hit_index': hit,
-        'travelled': route[:hit + 1],               # gia' percorso (invariato)
-        'new_route': new_route,                     # da blocked_at al goal
+        'travelled': route[:hit + 1],               # already travelled (unchanged)
+        'new_route': new_route,                     # from blocked_at to the goal
         'full_route': new_full,
         'plan_text': plan_text,
         'plan_time_ms': plan_ms,
@@ -471,13 +473,13 @@ def replan():
 
 @app.route('/api/sumo', methods=['POST'])
 def launch_sumo():
-    """Apre il percorso in sumo-gui.
+    """Opens the route in sumo-gui.
 
-    variant = 'optimized' (default) -> semafori ottimizzati (punto 3), cioe'
-                                       carica cfg_files/tls_<zona>.add.xml
-    variant = 'baseline'            -> semafori originali del net.xml
-    In entrambi i casi si usa lo stesso sumo_visualize.py di sempre: cambia
-    solo il flag --baseline."""
+    variant = 'optimized' (default) -> optimized signals (point 3), i.e.
+                                       loads cfg_files/tls_<zone>.add.xml
+    variant = 'baseline'            -> original signals from net.xml
+    In both cases the same sumo_visualize.py as always is used: only the
+    --baseline flag changes."""
     data    = request.get_json(silent=True) or {}
     variant = data.get('variant', 'optimized')
 
@@ -486,9 +488,9 @@ def launch_sumo():
     pddl   = os.path.join(base, '..', 'pddl_files', 'problem_custom.pddl')
 
     if not os.path.exists(script):
-        return jsonify({'error': 'scripts/sumo_visualize.py non trovato'}), 400
+        return jsonify({'error': 'scripts/sumo_visualize.py not found'}), 400
     if not os.path.exists(pddl):
-        return jsonify({'error': 'problem_custom.pddl non trovato'}), 400
+        return jsonify({'error': 'problem_custom.pddl not found'}), 400
 
     cmd = [sys.executable or 'python', os.path.abspath(script),
            'pddl', os.path.abspath(pddl), 'piccola']
@@ -504,49 +506,49 @@ def launch_sumo():
 
 @app.route('/api/compare_sumo', methods=['POST'])
 def compare_sumo_api():
-    """PUNTO 4 — esegue in SUMO il confronto baseline vs semafori ottimizzati
-    per la zona scelta e restituisce le metriche misurate.
+    """POINT 4 — runs the baseline vs optimized-signals comparison in SUMO
+    for the chosen zone and returns the measured metrics.
 
-    Il confronto usa il campione O-D condiviso della zona
-    (sumo_extracted/demand_<zona>.json), non il singolo percorso disegnato
-    dall'utente: misura la qualita' del PIANO SEMAFORICO, non di una singola
-    corsa."""
+    The comparison uses the zone's shared O-D sample
+    (sumo_extracted/demand_<zone>.json), not the single route drawn by the
+    user: it measures the quality of the SIGNAL PLAN, not of a single
+    run."""
     data = request.get_json(silent=True) or {}
     zone = data.get('zone', 'piccola')
     if zone not in ('piccola', 'media', 'grande'):
-        return jsonify({'error': f'zona non valida: {zone}'}), 400
+        return jsonify({'error': f'invalid zone: {zone}'}), 400
 
     root   = os.path.abspath(PROJECT_ROOT)
     script = os.path.join(root, 'scripts', 'compare_sumo.py')
     if not os.path.exists(script):
-        return jsonify({'error': 'scripts/compare_sumo.py non trovato'}), 400
+        return jsonify({'error': 'scripts/compare_sumo.py not found'}), 400
 
     add_file = os.path.join(root, 'cfg_files', f'tls_{zone}.add.xml')
     if not os.path.exists(add_file):
-        return jsonify({'error': f"Semafori ottimizzati mancanti per '{zone}'. "
-                                 f"Esegui: python scripts/inject_signal_plan.py {zone}"}), 400
+        return jsonify({'error': f"Optimized signals missing for '{zone}'. "
+                                 f"Run: python scripts/inject_signal_plan.py {zone}"}), 400
 
     try:
         r = subprocess.run([sys.executable or 'python', script, zone],
                            capture_output=True, text=True, timeout=1800, cwd=root)
     except subprocess.TimeoutExpired:
-        return jsonify({'error': 'Confronto SUMO oltre il timeout (30 min)'}), 500
+        return jsonify({'error': 'SUMO comparison exceeded the timeout (30 min)'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
     res_path = os.path.join(root, 'sumo_comparison', 'results.json')
     if not os.path.exists(res_path):
-        return jsonify({'error': 'Nessun risultato prodotto',
+        return jsonify({'error': 'No result produced',
                         'log': (r.stdout + r.stderr)[-800:]}), 500
     try:
         with open(res_path, encoding='utf-8') as f:
             all_res = json.load(f)
     except Exception as e:
-        return jsonify({'error': f'results.json illeggibile: {e}'}), 500
+        return jsonify({'error': f'results.json unreadable: {e}'}), 500
 
     entry = next((x for x in all_res if x.get('zone') == zone), None)
     if not entry:
-        return jsonify({'error': f"Nessun risultato per la zona '{zone}'",
+        return jsonify({'error': f"No result for zone '{zone}'",
                         'log': (r.stdout + r.stderr)[-800:]}), 500
 
     return jsonify({'success': True, 'zone': zone, 'result': entry,
@@ -556,16 +558,16 @@ def compare_sumo_api():
 def _parse_args():
     parser = argparse.ArgumentParser(
         prog='app.py',
-        description='Interfaccia web (Flask + Leaflet) per Map Construction in PDDL+.',
+        description='Web interface (Flask + Leaflet) for Map Construction in PDDL+.',
     )
     parser.add_argument('--debug', action='store_true',
-                         help='avvia Flask in debug mode (auto-reload + debugger '
-                              'interattivo Werkzeug). Da usare solo in sviluppo, '
-                              'non se il server e\' esposto oltre localhost.')
+                         help='start Flask in debug mode (auto-reload + interactive '
+                              'Werkzeug debugger). Use only in development, '
+                              'not if the server is exposed beyond localhost.')
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = _parse_args()
-    print(f"Server avviato su http://localhost:5000 (debug={'on' if args.debug else 'off'})")
+    print(f"Server started at http://localhost:5000 (debug={'on' if args.debug else 'off'})")
     app.run(debug=args.debug, port=5000)

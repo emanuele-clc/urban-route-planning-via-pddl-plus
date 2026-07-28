@@ -1,10 +1,10 @@
 """
 sumo_signals.py
 ----------------
-Geometria (bearing, tempo di svolta) e ritardo semaforico per-movimento
-ricavato dai dati SUMO estratti (sumo_extracted/sumo_data_{zona}.json).
-Estratto da webapp/app.py: usato sia da pddl_writer.py (generazione del
-problema PDDL+) sia direttamente da app.py (route /api/solve).
+Geometry (bearing, turn time) and per-movement signal delay derived from
+the extracted SUMO data (sumo_extracted/sumo_data_{zone}.json). Extracted
+from webapp/app.py: used both by pddl_writer.py (PDDL+ problem generation)
+and directly by app.py (route /api/solve).
 """
 import os
 import json
@@ -14,14 +14,14 @@ from collections import defaultdict
 PROJECT_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 SUMO_DIR = os.path.join(PROJECT_ROOT, 'sumo_extracted')
 
-# ── Turn rate e ritardi realistici (allineati a build_problems.py) ────────────
-TURN_RATE_DPS = 20.0  # gradi/s: velocita' angolare di svolta veicolo
-DEFAULT_SIGNAL_DELAY = 17.1  # ritardo realistico incrocio 2 fasi, ciclo 120s
-                              # (usato quando l'incrocio non e' nei dati SUMO)
+# ── Turn rate and realistic delays (aligned with build_problems.py) ────────────
+TURN_RATE_DPS = 20.0  # degrees/s: vehicle turning angular speed
+DEFAULT_SIGNAL_DELAY = 17.1  # realistic delay for a 2-phase intersection, 120s cycle
+                              # (used when the intersection is not in the SUMO data)
 
 
 def bearing(lat1, lon1, lat2, lon2):
-    """Rotta (gradi, 0=Nord) dal punto 1 al punto 2."""
+    """Bearing (degrees, 0=North) from point 1 to point 2."""
     f1 = math.radians(lat1); f2 = math.radians(lat2)
     dl = math.radians(lon2 - lon1)
     y = math.sin(dl) * math.cos(f2)
@@ -30,7 +30,7 @@ def bearing(lat1, lon1, lat2, lon2):
 
 
 def turn_time_s(prev, mid, nxt, node_data, turn_rate=TURN_RATE_DPS):
-    """Tempo di svolta (s) = angolo_di_svolta / turn_rate."""
+    """Turn time (s) = turning_angle / turn_rate."""
     b_in  = bearing(node_data[prev]["lat"], node_data[prev]["lon"],
                     node_data[mid]["lat"],  node_data[mid]["lon"])
     b_out = bearing(node_data[mid]["lat"],  node_data[mid]["lon"],
@@ -40,8 +40,9 @@ def turn_time_s(prev, mid, nxt, node_data, turn_rate=TURN_RATE_DPS):
 
 
 def load_all_sumo_delays():
-    """Mappa unita {id_nodo_OSM: ritardo_s} da tutti i sumo_data_*.json.
-    Cosi' un OSM caricato che ricade in una zona nota usa i ritardi reali."""
+    """Merged map {OSM_node_id: delay_s} from all sumo_data_*.json.
+    This way a loaded OSM that falls within a known zone uses the real
+    delays."""
     merged = {}
     for z in ("piccola", "media", "grande"):
         p = os.path.join(SUMO_DIR, f"sumo_data_{z}.json")
@@ -61,11 +62,12 @@ SUMO_DELAYS = load_all_sumo_delays()
 
 
 def signal_delay_for(osm_id, signal_nodes):
-    """Ritardo semaforico realistico MEDIO per un nodo (fallback quando un
-    movimento specifico non e' mappabile — vedi assign_movement_signal_delay):
-    - dai dati SUMO se disponibile,
-    - altrimenti default 2-fasi se e' un semaforo OSM,
-    - altrimenti 0."""
+    """Realistic AVERAGE signal delay for a node (fallback for when a
+    specific movement can't be mapped — see
+    assign_movement_signal_delay):
+    - from the SUMO data if available,
+    - otherwise a 2-phase default if it's an OSM traffic signal,
+    - otherwise 0."""
     if osm_id in SUMO_DELAYS:
         return SUMO_DELAYS[osm_id]
     if osm_id in signal_nodes:
@@ -74,8 +76,8 @@ def signal_delay_for(osm_id, signal_nodes):
 
 
 def cluster_member_ids(junction_id):
-    """Da un id junction SUMO ricava gli id-nodo OSM che rappresenta
-    (stessa logica di extract_sumo_data.py::cluster_member_ids)."""
+    """From a SUMO junction id, derives the OSM node ids it represents
+    (same logic as extract_sumo_data.py::cluster_member_ids)."""
     if not junction_id.startswith("cluster_"):
         return [junction_id]
     body = junction_id[len("cluster_"):]
@@ -89,11 +91,11 @@ def cluster_member_ids(junction_id):
 
 
 def load_all_sumo_movements():
-    """Mappa unita {id_nodo_OSM: [movement, ...]} da tutti i sumo_data_*.json,
-    espandendo i cluster SUMO. Ogni movement ha delay_s/bearing_in_bucket/
-    bearing_out_bucket/dir_label (vedi extract_sumo_data.py). Usata da
-    assign_movement_signal_delay per il ritardo per-movimento (prev,from,to)
-    invece della media per nodo."""
+    """Merged map {OSM_node_id: [movement, ...]} from all sumo_data_*.json,
+    expanding the SUMO clusters. Each movement has
+    delay_s/bearing_in_bucket/bearing_out_bucket/dir_label (see
+    extract_sumo_data.py). Used by assign_movement_signal_delay for the
+    per-movement (prev,from,to) delay instead of the per-node average."""
     merged = defaultdict(list)
     for z in ("piccola", "media", "grande"):
         p = os.path.join(SUMO_DIR, f"sumo_data_{z}.json")
@@ -118,8 +120,9 @@ SUMO_MOVEMENTS = load_all_sumo_movements()
 
 
 def bearing_bucket(angle_deg, n_buckets=8):
-    """Arrotonda un bearing (0=Nord, orario) al settore piu' vicino tra
-    n_buckets equidistanti — stessa convenzione di extract_sumo_data.py."""
+    """Rounds a bearing (0=North, clockwise) to the nearest sector among
+    n_buckets equally spaced ones — same convention as
+    extract_sumo_data.py."""
     if angle_deg is None:
         return None
     step = 360.0 / n_buckets
@@ -128,15 +131,16 @@ def bearing_bucket(angle_deg, n_buckets=8):
 
 
 def circ_dist(a, b):
-    """Distanza angolare minima tra due bearing (0-360)."""
+    """Minimum angular distance between two bearings (0-360)."""
     d = abs(a - b) % 360.0
     return min(d, 360.0 - d)
 
 
 def assign_movement_signal_delay(a, b, c, node_data, movements_by_node, is_first=False):
-    """Ritardo semaforico (s) del movimento specifico (a,b,c) attraversando
-    il nodo 'b' — stessa logica di build_problems.py::assign_movement_signal_delay.
-    Ritorna None se 'b' non ha dati di movimento SUMO."""
+    """Signal delay (s) for the specific movement (a,b,c) crossing node 'b'
+    — same logic as
+    build_problems.py::assign_movement_signal_delay. Returns None if 'b'
+    has no SUMO movement data."""
     mv_list = movements_by_node.get(b)
     if not mv_list:
         return None

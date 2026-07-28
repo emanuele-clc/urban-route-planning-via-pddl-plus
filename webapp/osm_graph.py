@@ -1,9 +1,9 @@
 """
 osm_graph.py
 ------------
-Parsing di un file .osm in un grafo contratto (solo incroci reali),
-selezione del sottografo e calcolo della congestione statica simulata.
-Estratto da webapp/app.py.
+Parsing of an .osm file into a contracted graph (real intersections only),
+subgraph selection, and computation of simulated static congestion.
+Extracted from webapp/app.py.
 """
 import math
 import re
@@ -18,7 +18,7 @@ HIGHWAY_TYPES = {
     "secondary_link", "tertiary_link", "unclassified", "living_street",
 }
 
-# ── parametri congestione ─────────────────────────────────────────────────────
+# ── congestion parameters ─────────────────────────────────────────────────────
 N_VEHICLES       = 10
 PERIPH_RADIUS_M  = 600
 DENSITY_RADIUS_M = 200
@@ -34,7 +34,7 @@ CONGESTION_DELAY_BY_HIGHWAY = {
 }
 
 
-# ── helpers base ──────────────────────────────────────────────────────────────
+# ── base helpers ──────────────────────────────────────────────────────────────
 
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371000
@@ -51,7 +51,7 @@ def slugify(name):
     return s if s else ""
 
 
-# ── parsing OSM (ora restituisce anche edge_highway) ──────────────────────────
+# ── OSM parsing (now also returns edge_highway) ────────────────────────────────
 
 def build_contracted_graph(osm_path):
     with open(osm_path, encoding="utf-8") as f:
@@ -122,7 +122,7 @@ def build_contracted_graph(osm_path):
     return node_data, adj, signal_node_ids, edge_highway
 
 
-# ── calcolo congestione ───────────────────────────────────────────────────────
+# ── congestion computation ──────────────────────────────────────────────────────
 
 def classify_zones(selected, node_data):
     lats = [node_data[n]["lat"] for n in selected]
@@ -193,7 +193,7 @@ def compute_vehicle_counts(selected, edges):
     return counts
 
 
-# ── altri helpers ─────────────────────────────────────────────────────────────
+# ── other helpers ─────────────────────────────────────────────────────────────
 
 def select_connected_subgraph(node_data, adj, max_nodes):
     seed = max(adj.keys(), key=lambda n: len(adj[n]))
@@ -243,14 +243,14 @@ def auto_start_goal(selected, edges, node_data):
 
 def select_local_subgraph(start_osm, goal_osm, edges, node_data,
                            max_nodes=150, margin_factor=1.6):
-    """Sottografo minimo da passare a ENHSP per risolvere start->goal: il
-    percorso piu' breve (sempre incluso) + un margine di deviazioni
-    plausibili (corridoio ellittico dist_da_start + dist_da_goal <=
-    ottimo*margin_factor), troncato a max_nodes prendendo prima i nodi piu'
-    vicini al percorso ottimo. Disaccoppia il costo del solve dalla
-    dimensione della mappa caricata (con 'tutti i nodi' su zone grandi il
-    grafo mostrato puo' avere migliaia di nodi anche per un tragitto di
-    poche centinaia di metri — vedi audit su dublin_grande_porto.osm)."""
+    """Minimal subgraph to pass to ENHSP to solve start->goal: the shortest
+    path (always included) + a margin of plausible detours (elliptical
+    corridor dist_from_start + dist_from_goal <= optimum*margin_factor),
+    truncated to max_nodes by taking first the nodes closest to the optimal
+    path. Decouples the cost of solving from the size of the loaded map
+    (with 'all nodes' on large zones the displayed graph can have thousands
+    of nodes even for a route of a few hundred meters — see audit on
+    dublin_grande_porto.osm)."""
     adj_fwd = defaultdict(dict)
     adj_rev = defaultdict(dict)
     for (a, b), (d, _spd) in edges.items():
@@ -259,11 +259,11 @@ def select_local_subgraph(start_osm, goal_osm, edges, node_data,
 
     dist_s, prev_s = dijkstra(start_osm, adj_fwd)
     if goal_osm not in dist_s:
-        return None  # goal non raggiungibile — il chiamante deve averlo gia' verificato
+        return None  # goal not reachable — the caller must have already checked this
 
     path = reconstruct_path(prev_s, goal_osm)
     if len(path) >= max_nodes:
-        return path  # il percorso da solo satura il tetto: nessun margine possibile
+        return path  # the path alone saturates the cap: no margin possible
 
     dist_g, _prev_g = dijkstra(goal_osm, adj_rev)
     budget = dist_s[goal_osm] * margin_factor

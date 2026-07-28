@@ -1,8 +1,8 @@
 """
 enhsp_runner.py
 ----------------
-Discovery ed esecuzione di ENHSP, parsing del piano prodotto. Estratto da
-webapp/app.py — usato dalle route /api/solve e /api/replan.
+Discovery and execution of ENHSP, parsing of the produced plan. Extracted
+from webapp/app.py — used by the /api/solve and /api/replan routes.
 """
 import os
 import re
@@ -14,28 +14,29 @@ import tempfile
 PROJECT_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 DOMAIN_PATH = os.path.join(PROJECT_ROOT, 'pddl_files', 'domain.pddl')
 
-# Heap per ENHSP. Il grounding di start-move (3 argomenti: prev, from, to)
-# cresce molto col numero di nodi: con la heap di default la JVM va in
-# OutOfMemory gia' sotto i 400 nodi. Con 2 GB si arriva comodamente a ~300.
-# Sovrascrivibile con la variabile d'ambiente ENHSP_HEAP (es. "4g").
-# 6 GB: -Xmx fissa solo il tetto, la JVM non alloca subito, quindi e' sicuro
-# anche su macchine con 8 GB. Se la JVM non parte, abbassalo (ENHSP_HEAP=2g).
+# Heap for ENHSP. The grounding of start-move (3 arguments: prev, from, to)
+# grows a lot with the number of nodes: with the default heap the JVM goes
+# OutOfMemory already under 400 nodes. With 2 GB it comfortably reaches ~300.
+# Overridable with the ENHSP_HEAP environment variable (e.g. "4g").
+# 6 GB: -Xmx only sets the ceiling, the JVM doesn't allocate it immediately,
+# so it's safe even on machines with 8 GB. If the JVM fails to start, lower
+# it (ENHSP_HEAP=2g).
 ENHSP_HEAP = os.environ.get('ENHSP_HEAP', '6g')
 
-# Tetto sul numero di nodi PASSATI A ENHSP (non alla visualizzazione della
-# mappa, che non ha limiti). Il grounding di start-move/signal-delay a tre
-# argomenti (prev, from, to) e' pesante: su un ambiente modesto (3 GB, 1 core,
-# heap 2 GB) 300 nodi -> 8 s, 400 -> 14 s, 939 -> memoria esaurita. Il default
-# e' quindi 1000, che lascia passare l'intera zona media (939 nodi) su un PC
-# normale con heap 6 GB; puo' richiedere qualche minuto perche' non c'e'
-# timeout. Su grande (3756 nodi) resta un tetto di sicurezza: per solve
-# affidabili conviene comunque restare sotto i ~400 nodi.
-# Regolabile con MAX_SOLVABLE_NODES; la heap con ENHSP_HEAP.
+# Cap on the number of nodes PASSED TO ENHSP (not on the map display, which
+# has no limits). The grounding of start-move/signal-delay with three
+# arguments (prev, from, to) is heavy: on a modest environment (3 GB, 1
+# core, 2 GB heap) 300 nodes -> 8 s, 400 -> 14 s, 939 -> out of memory. The
+# default is therefore 1000, which lets the entire medium zone (939 nodes)
+# through on a normal PC with a 6 GB heap; it can take a few minutes since
+# there is no timeout. On the large zone (3756 nodes) it remains a safety
+# cap: for reliable solves it's still better to stay under ~400 nodes.
+# Adjustable with MAX_SOLVABLE_NODES; the heap with ENHSP_HEAP.
 MAX_SOLVABLE_NODES = int(os.environ.get('MAX_SOLVABLE_NODES', '1000'))
 
-# Timeout di ENHSP in secondi. 0 = nessun limite: sui grafi grandi il grounding
-# puo' richiedere parecchi minuti e interromperlo a 180 s buttava via lavoro
-# gia' fatto. Impostare ENHSP_TIMEOUT=300 per rimettere un tetto.
+# ENHSP timeout in seconds. 0 = no limit: on large graphs grounding can take
+# several minutes and interrupting it at 180 s threw away work already
+# done. Set ENHSP_TIMEOUT=300 to put a cap back in.
 _t = int(os.environ.get('ENHSP_TIMEOUT', '0'))
 ENHSP_TIMEOUT = _t if _t > 0 else None
 
@@ -74,21 +75,23 @@ def enhsp_cmd(jar, domain, problem, heuristic=None):
     return cmd
 
 
-# Firma dell'overflow numerico dell'euristica 'aibr' (Float.MAX_VALUE):
-# su percorsi molto lunghi (~70+ hop) l'euristica interval-based cresce
-# esponenzialmente e satura, ed ENHSP legge la saturazione come "irraggiungibile"
-# anche quando una soluzione esiste (falso negativo, verificato sperimentalmente
-# su dublin_grande_porto.osm). 'blind' (nessuna guida euristica, ma numericamente
-# robusta) risolve correttamente questi casi — usata solo come fallback perche'
-# su problemi con molta piu' diramazione aibr guida la ricerca meglio.
+# Signature of the 'aibr' heuristic's numeric overflow (Float.MAX_VALUE): on
+# very long routes (~70+ hops) the interval-based heuristic grows
+# exponentially and saturates, and ENHSP reads the saturation as
+# "unreachable" even when a solution exists (false negative, verified
+# experimentally on dublin_grande_porto.osm). 'blind' (no heuristic
+# guidance, but numerically robust) correctly solves these cases — used
+# only as a fallback because on problems with much more branching aibr
+# guides the search better.
 AIBR_OVERFLOW_SIGNATURE = "3.4028235E38"
 
 
 def run_enhsp_output(jar, domain_abs, pddl_path, timeout):
-    """Esegue ENHSP e ritorna (output testuale, fallback_usato). Se 'aibr'
-    dichiara il problema irrisolvibile per overflow (vedi
-    AIBR_OVERFLOW_SIGNATURE), ritenta una volta con l'euristica 'blind'
-    prima di arrendersi; fallback_usato indica se e' scattato il retry."""
+    """Runs ENHSP and returns (text output, fallback_used). If 'aibr'
+    declares the problem unsolvable due to overflow (see
+    AIBR_OVERFLOW_SIGNATURE), retries once with the 'blind' heuristic
+    before giving up; fallback_used indicates whether the retry kicked
+    in."""
     result = subprocess.run(enhsp_cmd(jar, domain_abs, pddl_path),
                             capture_output=True, text=True, timeout=timeout)
     output = result.stdout + result.stderr
@@ -101,20 +104,20 @@ def run_enhsp_output(jar, domain_abs, pddl_path, timeout):
 
 
 def diagnose_enhsp(output):
-    """Traduce l'esito di ENHSP in un messaggio utile all'utente.
-    Distinguere le cause e' importante: 'nessuna soluzione' e 'memoria
-    esaurita' richiedono azioni completamente diverse."""
+    """Translates ENHSP's outcome into a message useful to the user.
+    Distinguishing the causes matters: 'no solution' and 'out of memory'
+    require completely different actions."""
     if 'OutOfMemoryError' in output or 'GC overhead' in output:
-        return (f"Memoria insufficiente per ENHSP (heap attuale: {ENHSP_HEAP}). "
-                f"Il numero di istanze da generare cresce col cubo dei nodi, "
-                f"quindi oltre ~{MAX_SOLVABLE_NODES} nodi non basta aumentare la RAM: "
-                f"rigenera il grafo con meno nodi. In alternativa alza "
-                f"ENHSP_HEAP e MAX_SOLVABLE_NODES.")
+        return (f"Insufficient memory for ENHSP (current heap: {ENHSP_HEAP}). "
+                f"The number of instances to generate grows with the cube of "
+                f"the nodes, so beyond ~{MAX_SOLVABLE_NODES} nodes increasing "
+                f"RAM is not enough: regenerate the graph with fewer nodes. "
+                f"Alternatively raise ENHSP_HEAP and MAX_SOLVABLE_NODES.")
     if 'Problem unsolvable' in output or 'unsolvable' in output.lower():
-        return ("ENHSP dichiara il problema irrisolvibile: la destinazione non e' "
-                "raggiungibile dal punto di partenza con i vincoli attuali.")
-    return ("ENHSP non ha trovato soluzione. Cause tipiche: troppi nodi "
-            "selezionati, oppure goal non raggiungibile dallo start.")
+        return ("ENHSP declares the problem unsolvable: the destination is "
+                "not reachable from the starting point with the current constraints.")
+    return ("ENHSP found no solution. Typical causes: too many nodes "
+            "selected, or the goal is not reachable from the start.")
 
 
 def parse_plan(output):
@@ -127,7 +130,7 @@ def parse_plan(output):
 
     route_names = []
     for line in plan_lines:
-        # start-move a 3 argomenti: (start-move ?prev ?from ?to)
+        # start-move with 3 arguments: (start-move ?prev ?from ?to)
         m = re.search(r'\(start-move\s+(\S+)\s+(\S+)\s+(\S+)\)', line, re.IGNORECASE)
         if m:
             frm = m.group(2).lower(); to = m.group(3).lower()
@@ -144,13 +147,13 @@ def parse_plan(output):
 
 
 def run_enhsp(pddl_content):
-    """Risolve un problema PDDL+ con ENHSP. Ritorna (plan_text, route, ms, errore, fallback_usato)."""
+    """Solves a PDDL+ problem with ENHSP. Returns (plan_text, route, ms, error, fallback_used)."""
     jar = trova_enhsp()
     domain_abs = os.path.abspath(DOMAIN_PATH)
     if not jar:
-        return None, None, None, "ENHSP non trovato — installa con: pip install up-enhsp", False
+        return None, None, None, "ENHSP not found — install with: pip install up-enhsp", False
     if not os.path.exists(domain_abs):
-        return None, None, None, f"domain.pddl non trovato in: {domain_abs}", False
+        return None, None, None, f"domain.pddl not found at: {domain_abs}", False
 
     tmp_dir = tempfile.mkdtemp()
     pddl_path = os.path.join(tmp_dir, 'problem.pddl')
@@ -159,10 +162,10 @@ def run_enhsp(pddl_content):
     try:
         output, used_fallback = run_enhsp_output(jar, domain_abs, pddl_path, ENHSP_TIMEOUT)
     except subprocess.TimeoutExpired:
-        return None, None, None, (f"ENHSP ha superato il timeout ({ENHSP_TIMEOUT}s): "
-                                  "riduci i nodi o alza ENHSP_TIMEOUT"), False
+        return None, None, None, (f"ENHSP exceeded the timeout ({ENHSP_TIMEOUT}s): "
+                                  "reduce the nodes or raise ENHSP_TIMEOUT"), False
     except FileNotFoundError:
-        return None, None, None, "Java non trovato — installa Java 17+", False
+        return None, None, None, "Java not found — install Java 17+", False
 
     if "Problem Solved" not in output:
         return None, None, None, diagnose_enhsp(output), used_fallback
