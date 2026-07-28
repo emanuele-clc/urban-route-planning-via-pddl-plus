@@ -123,7 +123,9 @@ def compute_edges_from_pddl(pddl_path, net_path):
             route_names = None
 
     # prova prima la net della zona indicata, poi le altre due
-    base = os.path.dirname(os.path.abspath(__file__))
+    # NB: lo script sta in scripts/, quindi la radice del progetto (dove c'e'
+    # net_files/) e' due livelli sopra, non uno.
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     net_candidates = [net_path] + [
         os.path.join(base, "net_files", f"{z}.net.xml")
         for z in ("piccola", "media", "grande")

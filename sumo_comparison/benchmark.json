@@ -1,0 +1,81 @@
+{
+  "runs": 3,
+  "heap": "4g",
+  "zones": {
+    "piccola": {
+      "size": {
+        "nodi": 14,
+        "archi": 18,
+        "turn_time_facts": 30,
+        "signal_delay_facts": 30,
+        "tlLogic_net": 27
+      },
+      "enhsp": {
+        "plan_length": 105,
+        "expanded_nodes": 98,
+        "states_evaluated": 191,
+        "planning_time_ms": 38.0,
+        "heuristic_time_ms": 16.0,
+        "search_time_ms": 31.0,
+        "solved": true,
+        "runs": 3,
+        "wall_mean_s": 0.71,
+        "wall_min_s": 0.49
+      },
+      "pipeline": {
+        "extract_s": 0.36,
+        "inject_s": 0.09
+      }
+    },
+    "media": {
+      "size": {
+        "nodi": 50,
+        "archi": 93,
+        "turn_time_facts": 195,
+        "signal_delay_facts": 195,
+        "tlLogic_net": 97
+      },
+      "enhsp": {
+        "plan_length": 212,
+        "expanded_nodes": 195,
+        "states_evaluated": 389,
+        "planning_time_ms": 238.0,
+        "heuristic_time_ms": 144.0,
+        "search_time_ms": 227.0,
+        "solved": true,
+        "runs": 3,
+        "wall_mean_s": 1.01,
+        "wall_min_s": 0.96
+      },
+      "pipeline": {
+        "extract_s": 2.76,
+        "inject_s": 0.22
+      }
+    },
+    "grande": {
+      "size": {
+        "nodi": 120,
+        "archi": 206,
+        "turn_time_facts": 396,
+        "signal_delay_facts": 396,
+        "tlLogic_net": 453
+      },
+      "enhsp": {
+        "plan_length": 177,
+        "expanded_nodes": 163,
+        "states_evaluated": 330,
+        "planning_time_ms": 141.0,
+        "heuristic_time_ms": 98.0,
+        "search_time_ms": 127.0,
+        "solved": true,
+        "runs": 3,
+        "wall_mean_s": 2.01,
+        "wall_min_s": 1.89
+      },
+      "pipeline": {
+        "extract_s": 5.4,
+        "inject_s": 0.39
+      }
+    }
+  }
+}
