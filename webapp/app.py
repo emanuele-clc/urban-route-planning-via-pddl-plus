@@ -325,14 +325,12 @@ def solve():
 
 @app.route('/api/replan', methods=['POST'])
 def replan():
-    """Recomputes the route avoiding roads/intersections made impassable.
+    """Recompute the route around roads/intersections that are now closed.
 
-    Replanning does NOT restart from the origin: it simulates a vehicle
-    already en route that finds the road closed. The first blocked element
-    along the current plan is located and replanning happens **from the
-    immediately preceding node** (the last reachable point), also passing
-    the node of origin to ENHSP, so that the cost of the first turn is the
-    real one."""
+    The car is already mid-trip, so we don't restart from the origin: we find
+    the first closed step of the current plan and replan from the node just
+    before it. We also pass that previous node to ENHSP so the first turn
+    isn't free."""
     data = request.get_json() or {}
     token = data.get('token')
     store = graph_store.get(token)
@@ -357,7 +355,7 @@ def replan():
     if not goal_osm:
         return jsonify({'error': f'Goal "{goal_pddl}" not found'}), 400
 
-    # --- set of blocked edges (in both directions: a closed road is closed both ways) ---
+    # a closed road is closed both ways
     blocked_edges = set()
     for pair in data.get('blocked_edges') or []:
         a, b = nm_inv.get(pair[0]), nm_inv.get(pair[1])
@@ -373,7 +371,7 @@ def replan():
     def is_blocked(a, b):
         return (a, b) in blocked_edges or a in blocked_nodes or b in blocked_nodes
 
-    # --- first point of the current plan hit by the block ---
+    # walk the current plan until we hit a closed road
     osm_route = [nm_inv.get(r) for r in route]
     hit = None
     for i in range(len(osm_route) - 1):
@@ -391,7 +389,8 @@ def replan():
     if replan_from in blocked_nodes:
         return jsonify({'error': 'The starting point of the recalculation is blocked'}), 400
 
-    # --- graph without the blocked elements ---
+    # graph without the closed roads, then a BFS to make sure the goal is
+    # still reachable from where we restart
     open_edges = {(a, b): v for (a, b), v in edges.items() if not is_blocked(a, b)}
     reach = {replan_from}
     q = deque([replan_from])
@@ -409,11 +408,9 @@ def replan():
             'blocked_at': nm.get(replan_from),
         }), 400
 
-    # same local subgraph used by /api/solve — see comment there. prev_osm
-    # must always be included as a PDDL object: write_pddl references it in
-    # (prev ...) and in the turn-times even if it no longer has an edge
-    # toward replan_from (road closed), so it must still appear among the
-    # (:objects ...).
+    # only feed ENHSP the area around the route, like /api/solve does.
+    # keep prev_osm among the objects even if its road is now closed:
+    # write_pddl still uses it in (prev ...) and in the turn-times.
     local_nodes = select_local_subgraph(replan_from, goal_osm, open_edges, node_data)
     if prev_osm and prev_osm not in local_nodes:
         local_nodes = local_nodes + [prev_osm]
@@ -431,18 +428,14 @@ def replan():
     if err:
         return jsonify({'error': err}), 400
 
-    # save alongside the others, so SUMO can also display the new plan
+    # also save it so "open in SUMO" can show the new plan
     try:
         os.makedirs(PDDL_DIR, exist_ok=True)
         with open(os.path.join(PDDL_DIR, 'problem_custom.pddl'), 'w', encoding='utf-8') as f:
             f.write(pddl_content)
-        # For SUMO only the new route is saved, not the whole trip. Reason:
-        # problem_custom.pddl starts at replan_from, and sumo_visualize
-        # centers the view on the PDDL start. Saving the already-travelled
-        # segment too made the vehicle spawn far from the view (off screen)
-        # and the route contained a return over the same edges, i.e. a
-        # U-turn that SUMO cannot always perform. This way the car starts
-        # exactly where the recalculation happens.
+        # save only the new leg, not the whole trip: the pddl starts at
+        # replan_from and SUMO centres the view there, so the car has to spawn
+        # at the reroute point (adding the old leg also made it do a U-turn).
         with open(os.path.join(PDDL_DIR, 'route_custom.json'), 'w', encoding='utf-8') as f:
             json.dump({'route': new_route or []}, f)
     except Exception:

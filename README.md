@@ -342,6 +342,75 @@ un veicolo **già in viaggio** che trova la strada chiusa, quindi ripianifica
 dal **nodo immediatamente precedente** alla chiusura, cioè l'ultimo punto
 raggiungibile.
 
+**Come funziona — spiegazione completa dal principio**
+
+Prima due parole sui termini, per chi parte da zero. La mappa della città è un
+*grafo*: gli **incroci** sono i **nodi**, le **strade** che li collegano sono gli
+**archi**. Il planner **ENHSP** è il programma che, dati un nodo di partenza e uno
+di arrivo, calcola il percorso migliore (quello che minimizza il tempo, tenendo
+conto di guida, semafori e svolte). Un "percorso" non è altro che una sequenza di
+nodi da attraversare.
+
+Il **replanning** serve quando, dopo aver già calcolato un percorso, alcune
+strade diventano impraticabili (lavori, incidenti) e ne serve uno nuovo che le
+eviti. L'idea di fondo imita quello che faresti al volante: se trovi una strada
+chiusa **non torni al punto di partenza**, prosegui da dove sei aggirando
+l'ostacolo. Ecco tutti i passaggi, in ordine.
+
+**Passo 0 — La situazione di partenza.** Hai già risolto un problema: esiste un
+percorso calcolato da ENHSP, cioè una lista di nodi dallo start al goal, disegnato
+sulla mappa.
+
+**Passo 1 — Segnali cosa è chiuso.** Clicchi sulla mappa le strade e gli incroci
+da rendere impraticabili. Due regole di modellazione: una strada chiusa lo è nei
+**due sensi di marcia**; chiudere un **incrocio** equivale a chiudere tutte le
+strade che vi entrano ed escono. Internamente diventano due insiemi:
+`blocked_edges` (strade chiuse) e `blocked_nodes` (incroci chiusi).
+
+**Passo 2 — Trovi dove il percorso incontra il primo blocco.** Il programma
+scorre il percorso attuale nodo per nodo e si ferma alla **prima strada chiusa**.
+Il nodo appena prima di quella strada è il punto da cui ripartire (`replan_from`):
+è l'ultimo posto che l'auto raggiunge prima dell'ostacolo. Il nodo ancora
+precedente serve a ricordare **da che direzione arrivava** l'auto (`prev`, utile
+al passo 5). Se nessuna strada del percorso è chiusa, non c'è nulla da
+ricalcolare e il programma lo dice subito.
+
+**Passo 3 — Costruisci una mappa "tagliata".** Si crea una copia del grafo in cui
+**spariscono** le strade e gli incroci chiusi (`open_edges` = solo gli archi non
+bloccati). ENHSP userà questa mappa: non vedendo affatto le strade chiuse, è
+impossibile che le riproponga. **È qui che i punti vengono esclusi.**
+
+**Passo 4 — Controlli che l'arrivo sia ancora raggiungibile.** Prima di far
+lavorare il planner, una visita del grafo (una *BFS*, cioè un'esplorazione a
+cerchi concentrici da `replan_from`) verifica che dal punto di ripartenza si possa
+ancora arrivare al goal usando solo le strade aperte. Se le chiusure **isolano**
+la destinazione, il programma lo comunica con un messaggio chiaro invece di far
+girare ENHSP inutilmente.
+
+**Passo 5 — Rifai girare ENHSP.** Questo è il cuore: si costruisce un **problema
+PDDL nuovo** — partenza = `replan_from`, arrivo = lo stesso goal, mappa = quella
+tagliata del passo 3 — e lo si dà a **ENHSP**, esattamente come per il primo
+calcolo. Il planner **non aggiusta** il vecchio piano: ne calcola uno nuovo da
+zero, che per forza aggira il blocco. Al problema si aggiunge anche il nodo
+`prev`, così la **prima svolta** dopo la ripartenza ha un costo realistico (l'auto
+sta già viaggiando in una direzione, non è ferma, quindi girare le costa tempo).
+Piccola ottimizzazione: a ENHSP non si dà tutta la città ma solo la porzione di
+mappa attorno al percorso, per farlo rispondere in fretta anche sulle mappe
+grandi.
+
+**Passo 6 — Mostri il risultato.** Il percorso finale è composto da due pezzi: il
+tratto **già percorso** (invariato, fino al blocco) e la **deviazione** appena
+calcolata. La mappa li disegna con colori diversi, insieme al piano originale
+sbiadito, e un pannello riassume quanto costa in più la deviazione (distanza,
+tempo, semafori attraversati).
+
+In sintesi, alle due domande tipiche: **sì, esclude i punti** (costruisce una
+mappa senza le strade chiuse) e **sì, rifà girare ENHSP** (un nuovo problema dal
+punto di blocco all'arrivo). Il codice è nella funzione `replan()` di
+`webapp/app.py` (endpoint `/api/replan`), che usa `write_pddl`
+(`webapp/pddl_writer.py`) per scrivere il problema e `run_enhsp`
+(`webapp/enhsp_runner.py`) per risolverlo.
+
 **Come si usa**
 
 1. Risolvi normalmente il problema (compare la sezione *Strade chiuse & ricalcolo*).

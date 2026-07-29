@@ -22,10 +22,10 @@ def write_pddl(zone, selected, node_data, edges, start_osm, goal_osm, nm,
                signal_nodes=None, congestion_delays=None, vehicle_counts=None,
                intersection_density=None, peripheral=None, edge_highway=None,
                prev_osm=None):
-    """prev_osm: node coming from when arriving at start_osm. Used for
-    REPLANNING: restarting from mid-route the vehicle already has an
-    orientation, so the first turn has a real cost. If None (initial plan,
-    stationary vehicle) start_osm itself is used and the first turn is 0."""
+    """prev_osm is the node we come from when arriving at start_osm. It's used
+    for replanning: mid-route the car already has a heading, so its first turn
+    costs something. When it's None (fresh plan, car stopped) we just use
+    start_osm and the first turn is 0."""
 
     if signal_nodes         is None: signal_nodes         = set()
     if congestion_delays    is None: congestion_delays    = {}

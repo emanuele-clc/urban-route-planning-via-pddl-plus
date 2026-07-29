@@ -32,6 +32,10 @@
     input[type="range"] { width: 100%; accent-color: #3b4fd8; }
     .range-row { display: flex; justify-content: space-between; font-size: 0.72rem; color: #4b5563; margin-top: 3px; }
     #range-val { color: #3b4fd8; font-weight: 700; }
+    .range-ends { display: flex; justify-content: space-between; font-size: 0.68rem; color: #6b7280; margin-top: 2px; }
+    .range-hint { font-size: 0.7rem; color: #64748b; margin: 6px 0 8px; line-height: 1.4; }
+    .all-nodes-row { display: flex; align-items: center; gap: 7px; font-size: 0.8rem; color: #cbd5e1; cursor: pointer; user-select: none; }
+    .all-nodes-row input { accent-color: #3b4fd8; cursor: pointer; width: 15px; height: 15px; }
 
     .btn { width: 100%; padding: 9px; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: opacity .15s, background .15s; margin-top: 12px; }
     .btn:disabled { opacity: .4; cursor: not-allowed; }
@@ -201,6 +205,168 @@
     .popup-btn-block { background:#7f1d1d; color:#fecaca; }
     .popup-btn-open  { background:#14532d; color:#bbf7d0; }
   </style>
+
+  <style id="theme-navy">
+    /* ============ Navy premium theme ============ */
+    :root{
+      --bg-0:#0a0f1c; --bg-1:#0c1424; --bg-2:#0f1a2e; --bg-3:#14233d;
+      --line:#1a2740; --line-2:#25395a;
+      --tx-0:#eaf1ff; --tx-1:#9fb0cc; --tx-2:#64748b; --tx-mut:#4b5b76;
+      --cy:#22d3ee; --cy-2:#0ea5e9; --cy-ink:#032330;
+      --grad:linear-gradient(135deg,#06b6d4,#0ea5e9);
+      --grad-soft:linear-gradient(135deg,#0e7490,#0369a1);
+      --ok:#34d399; --warn:#fbbf24; --danger:#f87171;
+      --shadow:0 10px 30px rgba(2,8,20,.45);
+    }
+    body{ font-family:'Inter','Segoe UI',system-ui,sans-serif; background:
+          radial-gradient(1200px 600px at 80% -10%, #10243f 0%, transparent 55%),
+          radial-gradient(900px 500px at -10% 110%, #0c2233 0%, transparent 50%),
+          var(--bg-0); color:var(--tx-1); }
+
+    header{ background:linear-gradient(90deg,#0d1728,#0a1120); border-bottom:1px solid var(--line);
+            padding:13px 22px; gap:11px; backdrop-filter:blur(6px); }
+    header::before{ content:""; width:26px; height:26px; border-radius:8px; background:var(--grad);
+            box-shadow:0 4px 14px rgba(14,165,233,.45); flex-shrink:0;
+            -webkit-mask:radial-gradient(circle at 50% 42%, transparent 30%, #000 31%); }
+    header h1{ font-size:1.02rem; font-weight:600; letter-spacing:.2px; color:#fff; }
+    header span{ color:var(--tx-2); font-size:.78rem; }
+    .badge{ background:rgba(34,211,238,.12); color:var(--cy); border:1px solid rgba(34,211,238,.35);
+            font-weight:600; letter-spacing:.04em; }
+
+    .sidebar{ width:344px; background:linear-gradient(180deg,#0c1424,#0a1020); border-right:1px solid var(--line); }
+    .sec{ padding:16px 18px; border-bottom:1px solid var(--line); }
+    .sec h2{ color:#61789b; font-size:.68rem; letter-spacing:.11em; }
+
+    .upload-zone{ border:1.5px dashed var(--line-2); border-radius:12px; background:rgba(20,35,61,.35);
+            transition:all .2s; }
+    .upload-zone:hover,.upload-zone.drag-over{ border-color:var(--cy); background:rgba(34,211,238,.06);
+            box-shadow:0 0 0 3px rgba(34,211,238,.08) inset; }
+    .upload-zone p{ color:var(--tx-1); }
+    .upload-zone .fname{ color:var(--cy); }
+
+    label.lbl{ color:var(--tx-1); font-weight:500; }
+    input[type=range]{ accent-color:var(--cy); height:5px; }
+    #range-val{ color:var(--cy); }
+    .range-ends,.range-hint{ color:var(--tx-2); }
+    .all-nodes-row{ color:var(--tx-0); }
+    .all-nodes-row input{ accent-color:var(--cy); }
+
+    .btn{ border-radius:10px; font-weight:600; letter-spacing:.01em; padding:10px;
+          transition:transform .12s, box-shadow .2s, background .2s, filter .2s; }
+    .btn:hover:not(:disabled){ transform:translateY(-1px); }
+    .btn:active:not(:disabled){ transform:translateY(0); }
+    .btn-primary{ background:var(--grad); color:#02222e; box-shadow:0 6px 18px rgba(14,165,233,.32); }
+    .btn-primary:hover:not(:disabled){ background:var(--grad); filter:brightness(1.07); box-shadow:0 8px 22px rgba(14,165,233,.42); }
+    .btn-green{ background:linear-gradient(135deg,#0e9f6e,#059669); color:#eafff5; box-shadow:0 6px 18px rgba(16,185,129,.25); }
+    .btn-green:hover:not(:disabled){ filter:brightness(1.08); }
+    .btn-outline{ border:1px solid var(--line-2); color:var(--tx-1); border-radius:7px; }
+    .btn-outline:hover{ background:var(--bg-3); color:#fff; border-color:var(--cy); }
+
+    .layer-pill{ background:rgba(20,35,61,.5); border:1px solid var(--line); color:var(--tx-2); border-radius:99px; }
+    .layer-pill:hover{ color:var(--tx-1); border-color:var(--line-2); }
+    .layer-pill.on{ background:rgba(34,211,238,.12); color:var(--cy); border-color:rgba(34,211,238,.5); }
+
+    .node-pick-row{ background:var(--bg-2); border:1px solid var(--line); border-radius:10px; }
+    .node-pick-row .node-name{ color:var(--tx-0); }
+    .node-pick-row .node-label{ color:var(--tx-2); letter-spacing:.08em; }
+    .dot-green{ background:var(--ok); box-shadow:0 0 8px rgba(52,211,153,.6); }
+    .dot-red{ background:#f43f5e; box-shadow:0 0 8px rgba(244,63,94,.55); }
+
+    .hint-box{ background:var(--bg-2); border:1px solid var(--line); color:var(--tx-2); border-radius:10px; }
+
+    .stat-card{ background:linear-gradient(160deg,#101d33,#0d1728); border:1px solid var(--line);
+                border-radius:11px; padding:11px 12px; }
+    .stat-card .val{ color:#fff; font-size:1.2rem; }
+    .stat-card .lbl{ color:var(--tx-2); letter-spacing:.03em; }
+
+    .cong-title{ color:#61789b; letter-spacing:.09em; }
+    .cong-bar-track{ background:var(--bg-3); }
+    .cong-bar-label{ color:var(--tx-1); }
+    .cong-bar-val{ color:var(--tx-2); }
+    .legend-item{ color:var(--tx-2); }
+
+    .alert{ border-radius:10px; }
+    .alert-err{ background:rgba(190,40,50,.14); border:1px solid rgba(248,113,113,.4); color:#fca5a5; }
+    .alert-warn{ background:rgba(180,120,10,.14); border:1px solid rgba(251,191,36,.4); color:#fcd34d; }
+    .alert-ok{ background:rgba(16,150,110,.14); border:1px solid rgba(52,211,153,.4); color:#8af0be; }
+
+    .tabs{ background:rgba(10,17,32,.7); border-bottom:1px solid var(--line); backdrop-filter:blur(6px); }
+    .tab{ color:var(--tx-2); font-weight:500; transition:color .15s; position:relative; }
+    .tab:hover{ color:var(--tx-1); }
+    .tab.active{ color:#fff; border-bottom-color:transparent; }
+    .tab.active::after{ content:""; position:absolute; left:14px; right:14px; bottom:-1px; height:2px;
+        border-radius:2px; background:var(--grad); box-shadow:0 0 10px rgba(34,211,238,.55);
+        animation:tabIn .28s cubic-bezier(.2,.7,.2,1); }
+    @keyframes tabIn{ from{opacity:0; transform:scaleX(.4);} to{opacity:1; transform:scaleX(1);} }
+
+    /* dropdowns: override old light-theme inline borders */
+    select{ background:#0f1a2e!important; color:var(--tx-0)!important;
+            border:1px solid var(--line-2)!important; border-radius:8px!important; }
+    select:focus{ outline:none; border-color:var(--cy)!important; box-shadow:0 0 0 3px rgba(34,211,238,.12)!important; }
+    option{ background:#0f1a2e; color:var(--tx-0); }
+
+    pre{ color:#cfe3ff; }
+    .plan-step{ border-bottom:1px solid var(--line); }
+    .plan-step .time{ color:var(--cy); }
+    .plan-step .action{ color:var(--tx-0); }
+    .copy-btn{ background:var(--bg-3); border:1px solid var(--line-2); color:var(--tx-1); border-radius:7px; }
+    .copy-btn:hover{ color:#fff; border-color:var(--cy); }
+
+    .cong-card{ background:linear-gradient(160deg,#101d33,#0d1728); border:1px solid var(--line); border-radius:12px; }
+    .cong-card h3{ color:var(--tx-0); }
+    .cong-table th{ color:var(--tx-2); border-bottom:1px solid var(--line-2); }
+    .cong-table td{ color:var(--tx-0); border-bottom:1px solid var(--line); }
+    .periph-badge{ background:rgba(139,92,246,.14); color:#c4b5fd; }
+    .urban-badge{ background:rgba(34,211,238,.12); color:var(--cy); }
+
+    .empty-state{ color:#5a6f92; gap:14px; }
+    .empty-state .eicon{ width:74px; height:74px; border-radius:20px;
+        display:flex; align-items:center; justify-content:center; font-size:2rem;
+        background:radial-gradient(circle at 50% 35%, rgba(34,211,238,.16), rgba(14,165,233,.05));
+        border:1px solid rgba(34,211,238,.25); box-shadow:0 8px 30px rgba(6,182,212,.12);
+        animation:floaty 3.2s ease-in-out infinite; }
+    @keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
+    .empty-state p{ color:#5a6f92; font-size:.84rem; }
+
+    .spinner{ border:2px solid rgba(255,255,255,.25); border-top-color:#fff; }
+
+    .leaflet-popup-content-wrapper{ background:#0f1a2e; border:1px solid var(--line-2); border-radius:12px; box-shadow:var(--shadow); }
+    .leaflet-popup-content{ color:var(--tx-0); }
+    .leaflet-popup-tip{ background:#0f1a2e; border:1px solid var(--line-2); }
+    .popup-name{ color:#fff; }
+    .popup-osm{ color:var(--tx-2); }
+    .popup-row{ color:var(--tx-1); }
+    .popup-row span{ color:#fff; }
+    .popup-btn-start{ background:linear-gradient(135deg,#0e9f6e,#059669); }
+    .popup-btn-goal{ background:linear-gradient(135deg,#f43f5e,#e11d48); }
+
+    #replan-btn{ background:linear-gradient(135deg,#f59e0b,#f97316)!important; color:#241100!important;
+                 box-shadow:0 6px 18px rgba(245,158,11,.3); }
+    .replan-card{ background:linear-gradient(160deg,#1c1608,#0f1a2e); border:1px solid #6b4a12; }
+    .edge-tip{ background:#0a1120; border:1px solid var(--line-2); color:var(--tx-0); border-radius:6px; }
+
+    /* micro-animations */
+    @keyframes riseIn{ from{opacity:0; transform:translateY(9px);} to{opacity:1; transform:none;} }
+    .stat-card{ animation:riseIn .42s cubic-bezier(.2,.7,.2,1) both; }
+    .stat-card:nth-child(2){ animation-delay:.05s; }
+    .stat-card:nth-child(3){ animation-delay:.10s; }
+    .stat-card:nth-child(4){ animation-delay:.15s; }
+    .cong-card{ animation:riseIn .5s cubic-bezier(.2,.7,.2,1) both; }
+    #pick-sec,#stats-sec{ animation:riseIn .4s ease both; }
+    .btn-primary,.btn-green{ position:relative; overflow:hidden; }
+    .btn-primary::after,.btn-green::after{ content:""; position:absolute; inset:0;
+        background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);
+        transform:translateX(-120%); transition:transform .6s; }
+    .btn-primary:hover::after,.btn-green:hover::after{ transform:translateX(120%); }
+
+    /* scrollbars */
+    .sidebar::-webkit-scrollbar,.code-wrap::-webkit-scrollbar,.plan-steps::-webkit-scrollbar,
+    .cong-tab-wrap::-webkit-scrollbar{ width:9px; height:9px; }
+    .sidebar::-webkit-scrollbar-thumb,.code-wrap::-webkit-scrollbar-thumb,.plan-steps::-webkit-scrollbar-thumb,
+    .cong-tab-wrap::-webkit-scrollbar-thumb{ background:#1e3350; border-radius:6px; border:2px solid transparent; background-clip:padding-box; }
+    .sidebar::-webkit-scrollbar-thumb:hover{ background:#2a496f; background-clip:padding-box; }
+    .sidebar::-webkit-scrollbar-track{ background:transparent; }
+  </style>
 </head>
 <body>
 
@@ -229,14 +395,11 @@
       <h2>Parameters</h2>
       <label class="lbl">Max nodes: <span id="range-val">200</span></label>
       <input type="range" id="max-nodes" min="10" max="1000" value="200" step="10">
-      <div class="range-row">
-        <span>10</span>
-        <span style="font-size:.68rem;color:#64748b">more nodes = more possible detours, but ENHSP is slower</span>
-        <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;color:#9ca3af;cursor:pointer">
-          <input type="checkbox" id="all-nodes" style="accent-color:#3b4fd8;cursor:pointer"> All nodes
-        </label>
-        <span>200</span>
-      </div>
+      <div class="range-ends"><span>10</span><span>1000</span></div>
+      <p class="range-hint">More nodes = more possible detours, but ENHSP is slower.</p>
+      <label class="all-nodes-row">
+        <input type="checkbox" id="all-nodes"> All nodes
+      </label>
 
       <!-- layer toggle -->
       <label class="lbl" style="margin-top:14px">Map view</label>
@@ -343,18 +506,18 @@
           <option value="video">Recorded video (supports much more traffic)</option>
         </select>
       </div>
-      <button class="btn" id="sumo-btn" style="display:none;background:#7c3aed;color:#fff;margin-top:6px" onclick="launchSumo('optimized')">
+      <button class="btn" id="sumo-btn" style="display:none;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;margin-top:6px;box-shadow:0 6px 18px rgba(124,58,237,.3)" onclick="launchSumo('optimized')">
         <span id="sumo-label">▶ Open in SUMO (optimized signals)</span>
         <div class="spinner" id="sumo-spinner"></div>
       </button>
-      <button class="btn" id="sumo-btn-base" style="display:none;background:#475569;color:#fff;margin-top:6px" onclick="launchSumo('baseline')">
+      <button class="btn" id="sumo-btn-base" style="display:none;background:#293548;color:#cbd5e1;border:1px solid #38496a;margin-top:6px" onclick="launchSumo('baseline')">
         <span id="sumo-label-base">▶ Open in SUMO (original signals)</span>
         <div class="spinner" id="sumo-spinner-base"></div>
       </button>
       <div id="sumo-msg"></div>
 
       <!-- POINT 4: simulated comparison baseline vs optimized -->
-      <div id="cmp-box" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #e2e8f0">
+      <div id="cmp-box" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #1a2740">
         <div class="cong-title" style="margin-bottom:6px">Comparison in SUMO</div>
         <div style="font-size:12px;color:#64748b;margin-bottom:8px">
           Simulates the zone with the original signals and with the optimized
@@ -814,8 +977,9 @@ function drawRoute(route) {
   const pts = route.map(id => { const n = nodeById(id); return n ? [n.lat, n.lon] : null; }).filter(Boolean);
   if (pts.length < 2) return;
   routeLayer = L.layerGroup();
-  L.polyline(pts, { color: '#3b4fd8', weight: 6, opacity: 0.9 }).addTo(routeLayer);
-  L.polyline(pts, { color: '#818cf8', weight: 2, opacity: 0.8, dashArray: '6 8' }).addTo(routeLayer);
+  L.polyline(pts, { color: '#0ea5e9', weight: 7, opacity: 0.35 }).addTo(routeLayer);   // glow
+  L.polyline(pts, { color: '#06b6d4', weight: 4, opacity: 0.95 }).addTo(routeLayer);   // core
+  L.polyline(pts, { color: '#a5f3fc', weight: 1.6, opacity: 0.95, dashArray: '2 10', className: 'route-flow' }).addTo(routeLayer);
   routeLayer.addTo(leafletMap);
   redrawMarkers();
   leafletMap.fitBounds(L.latLngBounds(pts).pad(0.1));
@@ -823,9 +987,8 @@ function drawRoute(route) {
 
 // ══ REPLANNING: road closures ════════════════════════════════════════════
 
-// Reachability of the goal ignoring the closed elements (client-side BFS:
-// instant, avoids only discovering after the round-trip that the closure
-// isolates the destination).
+// can we still reach the goal ignoring the closed elements? BFS in the
+// browser so we know before hitting the server
 function goalReachableFrom(fromId, extraBlockedKey) {
   const goal = state.selectedGoal;
   if (!fromId || !goal) return true;
@@ -1020,7 +1183,7 @@ function renderReplan(d) {
       <div class="replan-head">🚧 Road closed on <b>${d.blocked_edge[0]} → ${d.blocked_edge[1]}</b></div>
       <div class="replan-sub">Recalculating from node <b>${d.blocked_at}</b>, the last one reachable before the closure.</div>
       <div class="replan-legend">
-        <span><i class="sw" style="background:#22c55e"></i>already travelled</span>
+        <span><i class="sw" style="background:#06b6d4"></i>already travelled</span>
         <span><i class="sw" style="background:#f59e0b"></i>detour</span>
         <span><i class="sw" style="background:#64748b"></i>original plan</span>
       </div>
@@ -1050,8 +1213,10 @@ function drawReplanRoute(d) {
 
   const travPts = pts(d.travelled || []);
   if (travPts.length > 1) {
-    L.polyline(travPts, { color: '#166534', weight: 8, opacity: 0.85 }).addTo(replanLayer);
-    L.polyline(travPts, { color: '#22c55e', weight: 4, opacity: 1 }).addTo(replanLayer);
+    // already-travelled part: keep it cyan like the normal route, so the road
+    // doesn't change colour on replanning — only the detour is a new colour
+    L.polyline(travPts, { color: '#0ea5e9', weight: 7, opacity: 0.3 }).addTo(replanLayer);
+    L.polyline(travPts, { color: '#06b6d4', weight: 4, opacity: 0.95 }).addTo(replanLayer);
   }
 
   const newPts = pts(d.new_route || []);
@@ -1351,7 +1516,7 @@ async function compareSumo() {
       };
       document.getElementById('cmp-msg').innerHTML = `
         <table style="width:100%;font-size:12px;margin-top:8px;border-collapse:collapse">
-          <tr style="color:#64748b;border-bottom:1px solid #e2e8f0">
+          <tr style="color:#64748b;border-bottom:1px solid #25395a">
             <th style="text-align:left;padding:3px 6px">Metric</th>
             <th style="text-align:right;padding:3px 6px">Original</th>
             <th style="text-align:right;padding:3px 6px">Optimized</th>
