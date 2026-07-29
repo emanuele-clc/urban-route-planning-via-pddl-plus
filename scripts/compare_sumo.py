@@ -47,16 +47,19 @@ import os
 import sys
 import json
 import glob
-import heapq
 import shutil
 import argparse
 import subprocess
 import statistics
 import tempfile
 import xml.etree.ElementTree as ET
-from collections import defaultdict
 
-BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # radice del progetto
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # scripts/
+sys.path.insert(0, SCRIPT_DIR)
+from sumo_common import build_sumo_graph as _build_sumo_graph, dijkstra as dijkstra_edges, \
+    pddl_name_to_junction as resolve_junction  # noqa: E402  (riuso: vedi scripts/sumo_common.py)
+
+BASE = os.path.dirname(SCRIPT_DIR)  # radice del progetto
 NET_DIR = os.path.join(BASE, "net_files")
 SUMO_DIR = os.path.join(BASE, "sumo_extracted")
 CFG_DIR = os.path.join(BASE, "cfg_files")
@@ -101,71 +104,10 @@ def find_sumo_bin(name="sumo"):
 # GRAFO DELLA RETE SUMO (per calcolare le rotte una volta sola)
 # ---------------------------------------------------------------------------
 def build_sumo_graph(net_path):
-    root = ET.parse(net_path).getroot()
-    jpos = {}
-    for j in root.findall("junction"):
-        if not j.get("id", "").startswith(":"):
-            jpos[j.get("id")] = (float(j.get("x", 0)), float(j.get("y", 0)))
-    graph = defaultdict(list)
-    for e in root.findall("edge"):
-        eid = e.get("id")
-        if eid is None or eid.startswith(":"):
-            continue
-        fr, to = e.get("from"), e.get("to")
-        if not fr or not to:
-            continue
-        lanes = e.findall("lane")
-        length = float(lanes[0].get("length", 1)) if lanes else 1.0
-        graph[fr].append((to, eid, length))
+    """Wrapper su sumo_common.build_sumo_graph: qui serve solo (graph,
+    junc_ids), non eid_len (usato solo da sumo_visualize.py)."""
+    graph, jpos, _eid_len = _build_sumo_graph(net_path)
     return graph, set(jpos.keys())
-
-
-def dijkstra_edges(graph, start, goal):
-    """Percorso a costo minimo start->goal, come lista di id di archi."""
-    dist = {start: 0.0}
-    prev = {}
-    heap = [(0.0, start)]
-    while heap:
-        d, u = heapq.heappop(heap)
-        if u == goal:
-            break
-        if d > dist.get(u, float("inf")):
-            continue
-        for v, eid, length in graph[u]:
-            nd = d + length
-            if nd < dist.get(v, float("inf")):
-                dist[v] = nd
-                prev[v] = (u, eid)
-                heapq.heappush(heap, (nd, v))
-    if goal not in prev:
-        return None
-    edges = []
-    cur = goal
-    while cur in prev:
-        p, eid = prev[cur]
-        edges.append(eid)
-        cur = p
-    return list(reversed(edges))
-
-
-def resolve_junction(node_id, junc_ids):
-    """Stessa logica di sumo_visualize.py: id esatto -> suffisso -> membro di
-    un cluster generato da netconvert."""
-    nid = str(node_id).lstrip("n")
-    if nid in junc_ids:
-        return nid
-    m = [j for j in junc_ids if j.endswith(nid) and not j.startswith(":")]
-    if m:
-        return min(m, key=len)
-    hits = []
-    for j in junc_ids:
-        if not j.startswith("cluster_"):
-            continue
-        for member in j[len("cluster_"):].split("_"):
-            if member == nid or (member.isdigit() and member.endswith(nid)):
-                hits.append(j)
-                break
-    return min(hits, key=len) if hits else None
 
 
 # ---------------------------------------------------------------------------

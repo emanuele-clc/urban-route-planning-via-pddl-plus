@@ -85,6 +85,8 @@
     .tabs { display: flex; background: #13151f; border-bottom: 1px solid #1f2233; padding: 0 18px; flex-shrink: 0; }
     .tab { padding: 11px 16px; font-size: 0.8rem; color: #6b7280; cursor: pointer; border-bottom: 2px solid transparent; user-select: none; }
     .tab.active { color: #fff; border-bottom-color: #3b4fd8; }
+    .tab.disabled { opacity: .4; cursor: not-allowed; }
+    .tab.disabled:hover { color: #6b7280; }
 
     .tab-content { display: none; flex: 1; overflow: hidden; flex-direction: column; }
     .tab-content.active { display: flex; }
@@ -322,7 +324,26 @@
         <div id="replan-result"></div>
       </div>
 
-      <button class="btn" id="sumo-btn" style="display:none;background:#7c3aed;color:#fff;margin-top:10px" onclick="launchSumo('optimized')">
+      <div id="sumo-options-row" style="display:none;margin-top:10px">
+        <label style="display:block;font-size:12px;color:#64748b;margin-bottom:3px">
+          Background traffic
+        </label>
+        <select id="traffic-level" style="width:100%;padding:6px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;margin-bottom:8px;cursor:pointer">
+          <option value="0">Off</option>
+          <option value="0.5">Low</option>
+          <option value="1" selected>Medium (default)</option>
+          <option value="2.5">High</option>
+          <option value="5">Very high</option>
+        </select>
+        <label style="display:block;font-size:12px;color:#64748b;margin-bottom:3px">
+          SUMO output
+        </label>
+        <select id="sumo-output-mode" style="width:100%;padding:6px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;cursor:pointer">
+          <option value="live">Live SUMO window (interactive)</option>
+          <option value="video">Recorded video (supports much more traffic)</option>
+        </select>
+      </div>
+      <button class="btn" id="sumo-btn" style="display:none;background:#7c3aed;color:#fff;margin-top:6px" onclick="launchSumo('optimized')">
         <span id="sumo-label">▶ Open in SUMO (optimized signals)</span>
         <div class="spinner" id="sumo-spinner"></div>
       </button>
@@ -363,6 +384,7 @@
       <div class="tab" data-tab="pddl">📄 PDDL</div>
       <div class="tab" data-tab="plan">📋 Plan</div>
       <div class="tab" data-tab="congestion">🔥 Congestion</div>
+      <div class="tab disabled" data-tab="simulation" id="tab-btn-simulation" title="Generate a video simulation to enable this tab">🎬 Simulation</div>
     </div>
 
     <div class="tab-content active" id="tab-map">
@@ -443,6 +465,17 @@
 
       </div>
     </div>
+
+    <div class="tab-content" id="tab-simulation">
+      <div class="empty-state" id="sim-empty">
+        <div class="eicon">🎬</div>
+        <p>Generate a video simulation ("Recorded video" output mode) to see it here, full size.</p>
+      </div>
+      <div id="sim-video-wrap" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:auto">
+        <video id="sim-video" controls autoplay style="max-width:100%;max-height:100%;border-radius:10px"></video>
+        <div id="sim-video-caption" style="margin-top:10px;font-size:0.8rem;color:#6b7280"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -491,6 +524,7 @@ function edgeStyle(key) {
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
+    if (tab.classList.contains('disabled')) return;
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     tab.classList.add('active');
@@ -567,6 +601,7 @@ document.getElementById('gen-btn').addEventListener('click', async () => {
     renderCongestionTab();
     document.getElementById('pick-sec').style.display = 'block';
     document.getElementById('stats-sec').style.display = 'none';
+    resetSimTab();
     switchTab('map');
   } catch(e) { alert('Network error: ' + e.message); }
   finally { setLoading('gen', false); }
@@ -628,6 +663,13 @@ function renderMap() {
   if (!leafletMap) {
     leafletMap = L.map('map');
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap © CARTO', maxZoom: 19 }).addTo(leafletMap);
+    // I cerchi dei nodi hanno raggio in pixel fisso: a zoom basso (vista
+    // d'insieme di una zona intera) le junction sono vicine sullo schermo e i
+    // cerchi finiscono per coprire le strade che le collegano. Ridisegnarli
+    // ad ogni zoom con un raggio scalato (vedi nodeRadiusScale) tiene le
+    // strade visibili anche zoomando indietro, senza rimpicciolirli quando si
+    // e' zoomati avanti (dove lo spazio tra i nodi non manca).
+    leafletMap.on('zoomend', () => { if (state.nodes.length) redrawMarkers(); });
   } else {
     if (edgeLayer)  leafletMap.removeLayer(edgeLayer);
     if (routeLayer) leafletMap.removeLayer(routeLayer);
@@ -685,9 +727,21 @@ function nodeColor(n) {
   return n.is_signal ? '#78450a' : '#334155';
 }
 
+// Fattore di scala per il raggio (in pixel) dei cerchi dei nodi, in base
+// allo zoom corrente della mappa: a zoom >= 18 (molto ravvicinato) i cerchi
+// hanno la dimensione piena; sotto scalano linearmente fino a un minimo di
+// 0.35x (mai piu' piccoli, altrimenti diventano poco cliccabili/illeggibili)
+// cosi' a zoom basso non coprono le strade sottostanti.
+function nodeRadiusScale() {
+  if (!leafletMap) return 1;
+  const z = leafletMap.getZoom();
+  return Math.max(0.35, Math.min(1, (z - 12) / 6));
+}
+
 function redrawMarkers() {
   if (markerLayer) leafletMap.removeLayer(markerLayer);
   markerLayer = L.layerGroup();
+  const rScale = nodeRadiusScale();
   state.nodes.forEach(n => {
     const isStart  = n.id === state.selectedStart;
     const isGoal   = n.id === state.selectedGoal;
@@ -709,7 +763,8 @@ function redrawMarkers() {
     const isBlocked = state.blockedNodes.has(n.id);
     if (isBlocked) { color = '#dc2626'; border = '#fca5a5'; radius = 10; weight = 3; opacity = 1; }
 
-    const circle = L.circleMarker([n.lat, n.lon], { radius, fillColor: color, color: border, weight, fillOpacity: opacity });
+    const scaledRadius = Math.max(2, Math.round(radius * rScale));
+    const circle = L.circleMarker([n.lat, n.lon], { radius: scaledRadius, fillColor: color, color: border, weight, fillOpacity: opacity });
     if (isBlocked) circle.setStyle({ dashArray: '3 3' });
 
     const label = n.name || n.id;
@@ -1066,11 +1121,14 @@ function renderStats(data) {
   const sumoBtn  = document.getElementById('sumo-btn');
   const sumoBase = document.getElementById('sumo-btn-base');
   const cmpBox   = document.getElementById('cmp-box');
+  const sumoOptionsRow = document.getElementById('sumo-options-row');
   document.getElementById('sumo-msg').innerHTML = '';
+  resetSimTab();
   const setVis = (v) => {
     sumoBtn.style.display  = v;
     sumoBase.style.display = v;
     cmpBox.style.display   = v;
+    sumoOptionsRow.style.display = v === 'none' ? 'none' : 'block';
   };
   const fallbackWarn = data.used_fallback_heuristic
     ? `<div class="alert alert-warn">⚠️ The <code>aibr</code> heuristic hit a numeric overflow on this route: ENHSP was rerun with the <code>blind</code> heuristic to find the solution.</div>`
@@ -1193,29 +1251,71 @@ async function launchSumo(variant) {
   const btnId   = isBase ? 'sumo-btn-base'   : 'sumo-btn';
   const labelId = isBase ? 'sumo-label-base' : 'sumo-label';
   const spinId  = isBase ? 'sumo-spinner-base' : 'sumo-spinner';
+  const label   = document.getElementById(labelId);
+  const trafficScale = document.getElementById('traffic-level').value;
+  const videoMode = document.getElementById('sumo-output-mode').value === 'video';
 
-  document.getElementById(labelId).style.display = 'none';
+  label.style.display = 'none';
   document.getElementById(spinId).style.display = 'block';
   document.getElementById(btnId).disabled = true;
   document.getElementById('sumo-msg').innerHTML = '';
+  if (videoMode) {
+    document.getElementById('sumo-msg').innerHTML =
+      '<div class="alert alert-warn" style="margin-top:8px">⏳ Generating video, please wait…</div>';
+  }
   try {
-    const res = await fetch('/api/sumo', {
+    const endpoint = videoMode ? '/api/sumo_video' : '/api/sumo';
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ variant: variant })
+      body: JSON.stringify({ variant: variant, traffic_scale: trafficScale })
     });
     const data = await res.json();
     const what = isBase ? 'original signals' : 'optimized signals';
-    document.getElementById('sumo-msg').innerHTML = data.error
-      ? `<div class="alert alert-err" style="margin-top:8px">❌ ${data.error}</div>`
-      : `<div class="alert alert-ok" style="margin-top:8px">✅ SUMO started (${what})</div>`;
+    if (data.error) {
+      document.getElementById('sumo-msg').innerHTML =
+        `<div class="alert alert-err" style="margin-top:8px">❌ ${data.error}</div>`;
+    } else if (videoMode) {
+      document.getElementById('sumo-msg').innerHTML =
+        `<div class="alert alert-ok" style="margin-top:8px">✅ Video ready — see the 🎬 Simulation tab</div>`;
+      showSimVideo(data.url, `${what} · congestion level ${document.getElementById('traffic-level').selectedOptions[0].text}`);
+    } else {
+      document.getElementById('sumo-msg').innerHTML =
+        `<div class="alert alert-ok" style="margin-top:8px">✅ SUMO started (${what})</div>`;
+    }
   } catch(e) {
     document.getElementById('sumo-msg').innerHTML = `<div class="alert alert-err" style="margin-top:8px">Error: ${e.message}</div>`;
   } finally {
-    document.getElementById(labelId).style.display = 'block';
+    label.style.display = 'block';
     document.getElementById(spinId).style.display = 'none';
     document.getElementById(btnId).disabled = false;
   }
+}
+
+// Shows a generated video full-size in the "Simulation" tab (enables it and
+// switches to it), instead of a small player cramped in the sidebar.
+function showSimVideo(url, caption) {
+  const tabBtn = document.getElementById('tab-btn-simulation');
+  tabBtn.classList.remove('disabled');
+  document.getElementById('sim-empty').style.display = 'none';
+  document.getElementById('sim-video-wrap').style.display = 'flex';
+  document.getElementById('sim-video').src = url;
+  document.getElementById('sim-video-caption').textContent = caption || '';
+  switchTab('simulation');
+}
+
+// Resets the Simulation tab to its empty/disabled state (called when a new
+// route is solved: a lingering video from a previous route is stale).
+function resetSimTab() {
+  const tabBtn = document.getElementById('tab-btn-simulation');
+  tabBtn.classList.add('disabled');
+  document.getElementById('sim-empty').style.display = 'flex';
+  document.getElementById('sim-video-wrap').style.display = 'none';
+  const video = document.getElementById('sim-video');
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+  if (tabBtn.classList.contains('active')) switchTab('map');
 }
 
 // ── POINT 4: simulated comparison in SUMO ─────────────────────────────────────

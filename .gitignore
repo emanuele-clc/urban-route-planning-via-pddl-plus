@@ -29,4 +29,8 @@ comparison_results/
 diagnostics_out/
 sumo_comparison/results.json
 
+# Video generati da /api/sumo_video (webapp/app.py) via --video-out di
+# sumo_visualize.py: sovrascritti a ogni richiesta, non servono al repo.
+webapp/static/videos/
+
 possibili_ottimizzazioni.md

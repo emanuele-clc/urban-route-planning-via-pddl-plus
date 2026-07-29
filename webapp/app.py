@@ -471,37 +471,111 @@ def replan():
     })
 
 
-@app.route('/api/sumo', methods=['POST'])
-def launch_sumo():
-    """Opens the route in sumo-gui.
+def _sumo_cmd(variant, traffic_scale):
+    """Builds the common argv prefix for scripts/sumo_visualize.py shared by
+    the live (/api/sumo) and video (/api/sumo_video) endpoints.
 
     variant = 'optimized' (default) -> optimized signals (point 3), i.e.
                                        loads cfg_files/tls_<zone>.add.xml
     variant = 'baseline'            -> original signals from net.xml
-    In both cases the same sumo_visualize.py as always is used: only the
-    --baseline flag changes."""
-    data    = request.get_json(silent=True) or {}
-    variant = data.get('variant', 'optimized')
+    traffic_scale = 0    -> no background traffic (--traffic 0)
+    traffic_scale = 1    -> default congestion (unchanged from before)
+    traffic_scale > 1    -> proportionally more background vehicles, see
+        generate_background_traffic in sumo_visualize.py and
+        5_traffico_sfondo_sumo.md §11.
 
+    Every call gets its own --run-id: without it, two requests fired close
+    together (live+video, or two videos) would regenerate the SAME fixed
+    cfg/rou/gui/frames files for the zone and could overwrite each other's
+    inputs while still running (see 5_traffico_sfondo_sumo.md §12)."""
     base   = os.path.dirname(os.path.abspath(__file__))
     script = os.path.join(base, '..', 'scripts', 'sumo_visualize.py')
     pddl   = os.path.join(base, '..', 'pddl_files', 'problem_custom.pddl')
 
     if not os.path.exists(script):
-        return jsonify({'error': 'scripts/sumo_visualize.py not found'}), 400
+        return None, None, None, 'scripts/sumo_visualize.py not found'
     if not os.path.exists(pddl):
-        return jsonify({'error': 'problem_custom.pddl not found'}), 400
+        return None, None, None, 'problem_custom.pddl not found'
 
+    run_id = uuid.uuid4().hex[:8]
     cmd = [sys.executable or 'python', os.path.abspath(script),
            'pddl', os.path.abspath(pddl), 'piccola']
     if variant == 'baseline':
         cmd.append('--baseline')
+    cmd += ['--traffic', str(traffic_scale), '--run-id', run_id]
+    return cmd, os.path.dirname(os.path.abspath(script)), run_id, None
+
+
+@app.route('/api/sumo', methods=['POST'])
+def launch_sumo():
+    """Opens the route in an interactive sumo-gui window (fire-and-forget:
+    the process keeps running after this request returns). See _sumo_cmd
+    for variant/traffic_scale semantics."""
+    data    = request.get_json(silent=True) or {}
+    variant = data.get('variant', 'optimized')
+    traffic_scale = data.get('traffic_scale', 1)
+
+    cmd, cwd, run_id, err = _sumo_cmd(variant, traffic_scale)
+    if err:
+        return jsonify({'error': err}), 400
 
     try:
-        subprocess.Popen(cmd, cwd=os.path.dirname(os.path.abspath(script)))
+        subprocess.Popen(cmd, cwd=cwd)
         return jsonify({'success': True, 'variant': variant})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+VIDEO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'videos')
+
+
+@app.route('/api/sumo_video', methods=['POST'])
+def launch_sumo_video():
+    """Same simulation as /api/sumo, but instead of an interactive window it
+    records it (sumo-gui automated snapshots + ffmpeg, see --video in
+    sumo_visualize.py) and returns a URL to the resulting mp4. This request
+    blocks until the video is ready (typically a few seconds), unlike
+    /api/sumo which returns immediately. Decoupling capture from real-time
+    GUI rendering is what lets this mode handle much more background
+    traffic without becoming unwatchable — see 5_traffico_sfondo_sumo.md §11."""
+    data    = request.get_json(silent=True) or {}
+    variant = data.get('variant', 'optimized')
+    traffic_scale = data.get('traffic_scale', 1)
+
+    cmd, cwd, run_id, err = _sumo_cmd(variant, traffic_scale)
+    if err:
+        return jsonify({'error': err}), 400
+
+    os.makedirs(VIDEO_DIR, exist_ok=True)
+    final_path = os.path.join(VIDEO_DIR, f'sumo_{variant}.mp4')
+    # scrive prima su un percorso univoco per questa richiesta (run_id): se
+    # un'altra richiesta per la STESSA variant e' in corso in parallelo, i
+    # due ffmpeg non scrivono mai sullo stesso file a meta' (vedi §12).
+    tmp_path = os.path.join(VIDEO_DIR, f'.tmp_{variant}_{run_id}.mp4')
+    cmd += ['--video-out', tmp_path]
+
+    try:
+        r = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=180)
+    except subprocess.TimeoutExpired:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        return jsonify({'error': 'Video generation exceeded the timeout (180s)'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    if not os.path.exists(tmp_path):
+        return jsonify({'error': 'Video was not generated',
+                        'log': (r.stdout + r.stderr)[-1500:]}), 500
+
+    # pubblicazione atomica: il file servito al posto fisso (sumo_<variant>.mp4)
+    # passa in un solo colpo dalla versione precedente a quella nuova, mai a
+    # meta' scrittura, anche se un'altra richiesta lo sta leggendo in quel momento.
+    os.replace(tmp_path, final_path)
+
+    return jsonify({
+        'success': True, 'variant': variant,
+        'url': f'/static/videos/sumo_{variant}.mp4?t={int(os.path.getmtime(final_path))}',
+    })
 
 
 @app.route('/api/compare_sumo', methods=['POST'])

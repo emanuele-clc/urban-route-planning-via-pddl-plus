@@ -1,76 +1,8 @@
-import os, sys, math, subprocess, re, json, xml.etree.ElementTree as ET
-from collections import defaultdict
-import heapq
+import os, sys, math, random, subprocess, re, json, glob, xml.etree.ElementTree as ET
 
-# ── Dijkstra su net.xml ───────────────────────────────────────
-def build_sumo_graph(net_path):
-    root = ET.parse(net_path).getroot()
-    jpos = {}
-    for j in root.findall('junction'):
-        jpos[j.get('id')] = (float(j.get('x', 0)), float(j.get('y', 0)))
-    graph = defaultdict(list)
-    eid_len = {}
-    for e in root.findall('edge'):
-        eid = e.get('id')
-        if eid.startswith(':'): continue
-        fr, to = e.get('from'), e.get('to')
-        if not fr or not to: continue
-        lanes = e.findall('lane')
-        length = float(lanes[0].get('length', 1)) if lanes else 1.0
-        graph[fr].append((to, eid, length))
-        eid_len[eid] = length
-    return graph, jpos, eid_len
-
-def dijkstra(graph, start, goal):
-    dist = {start: 0}; prev = {}; heap = [(0, start)]
-    while heap:
-        d, u = heapq.heappop(heap)
-        if d > dist.get(u, float('inf')): continue
-        if u == goal: break
-        for v, eid, length in graph[u]:
-            nd = d + length
-            if nd < dist.get(v, float('inf')):
-                dist[v] = nd; prev[v] = (u, eid)
-                heapq.heappush(heap, (nd, v))
-    if goal not in prev: return None
-    edges = []
-    cur = goal
-    while cur in prev:
-        p, eid = prev[cur]; edges.append(eid); cur = p
-    return list(reversed(edges))
-
-def pddl_name_to_junction(pname, junc_ids):
-    """Mappa un nome PDDL (es. n1193756) alla junction SUMO corrispondente.
-
-    Tre tentativi, dal piu' preciso al piu' permissivo:
-      1. id esatto — il nome PDDL e' 'n' + id del nodo OSM;
-      2. junction il cui id TERMINA con quel suffisso — il nome PDDL conserva
-         solo le ultime 7 cifre dell'id OSM (vedi name_map_for in
-         build_problems.py), quindi l'id completo puo' essere piu' lungo;
-      3. junction CLUSTER che contiene quell'id fra i propri membri —
-         netconvert fonde piu' nodi OSM vicini in un'unica junction chiamata
-         'cluster_<id1>_<id2>_...'. Senza questo passo un nodo PDDL fuso in un
-         cluster risulta "non trovato" pur essendo presente nella rete.
-    """
-    suffix = pname.lstrip('n')
-    if not suffix:
-        return None
-    if suffix in junc_ids:
-        return suffix
-    matches = [j for j in junc_ids if j.endswith(suffix) and not j.startswith(':')]
-    if matches:
-        return min(matches, key=len)
-    cluster_hits = []
-    for j in junc_ids:
-        if not j.startswith('cluster_'):
-            continue
-        for member in j[len('cluster_'):].split('_'):
-            if member == suffix or (member.isdigit() and member.endswith(suffix)):
-                cluster_hits.append(j)
-                break
-    if cluster_hits:
-        return min(cluster_hits, key=len)
-    return None
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # scripts/
+sys.path.insert(0, SCRIPT_DIR)
+from sumo_common import build_sumo_graph, dijkstra, pddl_name_to_junction  # noqa: E402
 
 def route_to_sumo_edges(route_names, graph, jpos, junc_ids):
     """Converte l'INTERO piano ENHSP (sequenza di nodi PDDL) in una lista di
@@ -97,9 +29,52 @@ def route_to_sumo_edges(route_names, graph, jpos, junc_ids):
         all_edges.extend(seg)
     return all_edges if all_edges else None
 
+def generate_background_traffic(ego_edges, seed=42, scale=1.0,
+                                  base_vehicles=18, max_vehicles=120,
+                                  min_span_frac=0.45, max_span_frac=1.0):
+    """Genera veicoli di sfondo le cui rotte sono finestre CONTIGUE del
+    percorso REALMENTE seguito dal veicolo ENHSP (ego_edges), invece di
+    tragitti punto-a-punto sparsi su tutta la zona come nella versione
+    precedente (che usava le coppie (a,b) con dati di congestione del PDDL,
+    calcolate pero' su un sottografo dell'INTERA zona): la maggior parte di
+    quei veicoli finiva su strade mai inquadrate, perche' sia la vista dal
+    vivo sia il video seguono/sono centrati sul veicolo ENHSP (tracking,
+    vedi _capture_frames_traci) — vedi 5_traffico_sfondo_sumo.md §13.
+
+    Concentrare il traffico sulle stesse strade della macchina rossa ottiene
+    due cose insieme: (a) nessun veicolo sprecato fuori dall'inquadratura ->
+    simulazione piu' leggera a parita' di traffico visibile; (b) auto di
+    sfondo che percorrono tratti LUNGHI (non un singolo arco isolato)
+    sovrapposti al percorso reale -> sembra traffico che condivide la
+    strada con l'ego, invece di comparire/sparire su un arco isolato.
+
+    Il numero di veicoli scala con 'scale' (il livello di traffico scelto
+    dalla webapp, vedi TRAFFIC_SCALE / --traffic) e con la lunghezza del
+    percorso (route piu' lunghe hanno bisogno di piu' auto per sembrare
+    trafficate lungo tutta la loro estensione), con un tetto assoluto
+    (max_vehicles) per non ingolfare la GUI/il video anche al livello
+    'Very high'."""
+    rng = random.Random(seed)
+    n_edges = len(ego_edges)
+    if n_edges < 2 or scale <= 0:
+        return []
+    length_factor = max(1.0, n_edges / 10.0)
+    n_vehicles = min(max_vehicles, round(base_vehicles * scale * length_factor))
+    routes = []
+    for _ in range(n_vehicles):
+        span = round(n_edges * rng.uniform(min_span_frac, max_span_frac))
+        span = max(2, min(span, n_edges))
+        start_idx = rng.randint(0, n_edges - span)
+        routes.append(ego_edges[start_idx:start_idx + span])
+    return routes
+
+
 def compute_edges_from_pddl(pddl_path, net_path):
     """Legge start/goal (e il piano completo, se disponibile) dal PDDL,
-    calcola gli edge SUMO corrispondenti, ritorna (edges_str, cfg)."""
+    calcola gli edge SUMO corrispondenti, ritorna (edges_str, cfg). cfg
+    include anche 'total_length' del percorso, usato sia per la durata della
+    simulazione sia per dimensionare il traffico di sfondo (vedi
+    generate_background_traffic)."""
     text = open(pddl_path).read()
     m_start = re.search(r'\(at\s+([A-Za-z0-9_]+)\)', text)
     m_goal  = re.search(r':goal\s+\(at\s+([A-Za-z0-9_]+)\)', text)
@@ -225,10 +200,75 @@ def compute_edges_from_pddl(pddl_path, net_path):
 # ── Argomenti ────────────────────────────────────────────────
 # Uso standard:  python scripts/sumo_visualize.py [piccola|media|grande]
 # Uso dinamico:  python scripts/sumo_visualize.py pddl <percorso_pddl> [piccola|media|grande]
-# Opzione:       --baseline  -> NON carica i semafori ottimizzati (punto 3),
-#                               usa il programma originale "0" del net.xml.
+# Opzione:       --baseline   -> NON carica i semafori ottimizzati (punto 3),
+#                                usa il programma originale "0" del net.xml.
+# Opzione:       --traffic 0  -> disattiva il traffico di sfondo (solo il
+#                                veicolo ENHSP, come prima di questa funzione).
+#                                --traffic N (N>0, es. 2.5) scala il numero di
+#                                veicoli di sfondo di un fattore N: permette
+#                                di scegliere il "grado di congestione" dalla
+#                                webapp. Le rotte di sfondo sono finestre del
+#                                percorso reale dell'ENHSP (vedi
+#                                generate_background_traffic). Default 1.
+# Opzione:       --video      -> invece di aprire sumo-gui in modo interattivo,
+#                                registra la simulazione a schermate ("snapshot")
+#                                e le unisce con ffmpeg in un video mp4 (vedi
+#                                generate_video). Utile per mostrare MOLTO piu'
+#                                traffico di quanto sia fluido seguire dal vivo
+#                                nella GUI (vedi 5_traffico_sfondo_sumo.md §11).
+# Opzione:       --video-out <path> -> percorso esplicito del file mp4 di
+#                                output (implica --video); default
+#                                cfg_files/<zona>_video.mp4.
+# Opzione:       --run-id <id> -> suffisso univoco per i file di lavoro
+#                                (cfg/rou/gui, frames) di questa invocazione,
+#                                cosi' chiamate ravvicinate (dal vivo e/o
+#                                video) non si sovrascrivono a vicenda. Solo
+#                                modalita' dinamica (pddl). Usato dalla webapp.
 USE_OPTIMIZED_TLS = "--baseline" not in sys.argv
 sys.argv = [a for a in sys.argv if a != "--baseline"]
+
+USE_BACKGROUND_TRAFFIC = True
+TRAFFIC_SCALE = 1.0
+if "--traffic" in sys.argv:
+    i = sys.argv.index("--traffic")
+    val = sys.argv[i + 1] if i + 1 < len(sys.argv) else "1"
+    if val in ("0", "false", "False"):
+        USE_BACKGROUND_TRAFFIC = False
+        TRAFFIC_SCALE = 0.0
+    else:
+        try:
+            TRAFFIC_SCALE = float(val)
+        except ValueError:
+            TRAFFIC_SCALE = 1.0
+        USE_BACKGROUND_TRAFFIC = TRAFFIC_SCALE > 0
+    del sys.argv[i:i + 2]
+
+VIDEO_OUT = None
+if "--video-out" in sys.argv:
+    i = sys.argv.index("--video-out")
+    VIDEO_OUT = sys.argv[i + 1] if i + 1 < len(sys.argv) else None
+    del sys.argv[i:i + 2]
+VIDEO_MODE = ("--video" in sys.argv) or (VIDEO_OUT is not None)
+sys.argv = [a for a in sys.argv if a != "--video"]
+
+# --run-id <id> -> suffisso univoco per i file di lavoro (cfg/rou/gui,
+# frames) di QUESTA invocazione. Necessario perche' la webapp puo' lanciare
+# piu' simulazioni ravvicinate (dal vivo e/o video) sulla stessa zona: senza
+# un suffisso univoco condividerebbero gli stessi file fissi e una
+# invocazione potrebbe sovrascrivere gli input di un'altra ancora in corso
+# (bug riprodotto e descritto in 5_traffico_sfondo_sumo.md §12).
+RUN_ID = None
+if "--run-id" in sys.argv:
+    i = sys.argv.index("--run-id")
+    RUN_ID = sys.argv[i + 1] if i + 1 < len(sys.argv) else None
+    del sys.argv[i:i + 2]
+
+# Fotogrammi ~costanti indipendentemente dalla durata simulata (sim_end):
+# l'intervallo tra due snapshot si allarga per simulazioni piu' lunghe, cosi'
+# il tempo di generazione e la lunghezza del video restano prevedibili anche
+# per percorsi molto piu' lunghi del solito (vedi 5_traffico_sfondo_sumo.md §11).
+VIDEO_TARGET_FRAMES = 200
+VIDEO_FPS = 15
 
 zona = sys.argv[1] if len(sys.argv) > 1 else "piccola"
 dynamic_pddl = None
@@ -301,6 +341,13 @@ CONFIGS = {
 cfg = CONFIGS[zona]
 NET  = cfg["net"]
 
+# ── Traffico di sfondo ──────────────────────────────────────
+# Solo in modalita' dinamica (§3 di 5_traffico_sfondo_sumo.md): i preset
+# statici a CLI non hanno un percorso ENHSP calcolato da cui derivare le
+# rotte di sfondo (vedi generate_background_traffic, §13), quindi restano
+# con il solo veicolo ENHSP come prima.
+background_routes = []
+
 # ── Modalità dinamica: sovrascrive edges/x/y dal PDDL ────────
 if dynamic_pddl:
     print(f"[DINAMICO] Calcolo percorso da: {dynamic_pddl}")
@@ -315,6 +362,8 @@ if dynamic_pddl:
     cfg['time_s'] = '?'
     NET = dyn['net']   # usa la net dove sono stati trovati i nodi
     zona = zona + "_custom"
+    if RUN_ID:
+        zona = zona + "_" + RUN_ID
 
     # ── Durata simulazione dinamica ────────────────────────────
     # Il veicolo "auto" ha maxSpeed=4.0 m/s: con percorsi lunghi gli 800s
@@ -326,32 +375,91 @@ if dynamic_pddl:
     print(f"  (percorso {dyn['total_length']:.0f} m ~ {est_time:.0f} s a 4 m/s "
           f"→ fine simulazione impostata a {cfg['end']} s)")
 
+    # cfg['end'] NON viene ricalcolato in base al traffico di sfondo: resta
+    # ancorato solo al veicolo ENHSP (decisione presa, vedi §4.d).
+    if USE_BACKGROUND_TRAFFIC:
+        background_routes = generate_background_traffic(
+            edges_str.split(), scale=TRAFFIC_SCALE)
+        print(f"  (traffico di sfondo: {len(background_routes)} veicoli, livello x{TRAFFIC_SCALE:g})"
+              if background_routes else "  (traffico di sfondo: nessun veicolo generato)")
+
 # ── File di route ─────────────────────────────────────────────
 ROU_PATH = os.path.join(OUT, f"{zona}_piano.rou.xml")
+route_lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<routes>',
+               '    <vType id="auto" accel="1.5" decel="3.0" sigma="0.0"',
+               '           length="4.5" maxSpeed="4.0" color="1,0,0"',
+               '           width="2.0" shape="passenger"/>']
+if background_routes:
+    route_lines.append('    <vType id="traffic" accel="2.6" decel="4.5" sigma="0.4"')
+    route_lines.append('           length="4.5" maxSpeed="13.89" color="1,0.8,0"/>')
+route_lines.append(f'    <route id="piano_enhsp" edges="{cfg["edges"]}"/>')
+route_lines.append('    <vehicle id="veicolo_enhsp" type="auto" route="piano_enhsp"')
+route_lines.append('             depart="1" departSpeed="0"/>')
+depart_rng = random.Random(43)  # seed indipendente dal campionamento delle rotte
+for i, edges in enumerate(background_routes):
+    depart = round(i * 2.5 + depart_rng.uniform(0, 1.5), 1)
+    route_lines.append(f'    <vehicle id="bg{i}" type="traffic" depart="{depart}" departSpeed="0">')
+    route_lines.append(f'        <route edges="{" ".join(edges)}"/>')
+    route_lines.append('    </vehicle>')
+route_lines.append('</routes>')
 with open(ROU_PATH, "w") as f:
-    f.write("""<?xml version="1.0" encoding="UTF-8"?>
-<routes>
-    <vType id="auto" accel="1.5" decel="3.0" sigma="0.0"
-           length="4.5" maxSpeed="4.0" color="1,0,0"
-           width="2.0" shape="passenger"/>
-    <route id="piano_enhsp" edges="{edges}"/>
-    <vehicle id="veicolo_enhsp" type="auto" route="piano_enhsp"
-             depart="1" departSpeed="0"/>
-</routes>
-""".format(edges=cfg["edges"]))
+    f.write("\n".join(route_lines) + "\n")
 
 # ── Impostazioni grafica ──────────────────────────────────────
 GUI_PATH = os.path.join(OUT, f"gui_{zona}.xml")
-with open(GUI_PATH, "w") as f:
-    f.write("""<viewsettings>
+sim_end = cfg.get('end', 800)
+
+# In modalita' video il tracking (vedi piu' sotto, _capture_frames_traci) e'
+# il meccanismo PRIMARIO di cattura: la telecamera segue il veicolo ENHSP
+# invece di restare fissa sul preset statico. Gli elementi nativi
+# <snapshot file=".." time=".."/> (cattura automatica di sumo-gui in una run
+# non interattiva -S -Q, senza bisogno di TraCI) servono solo come RIPIEGO
+# se il tracking fallisce (vedi 5_traffico_sfondo_sumo.md §12): per questo il
+# file di gui-settings viene scritto la prima volta SENZA, e riscritto con
+# gli snapshot solo se serve davvero il ripiego.
+FRAMES_DIR = os.path.join(OUT, f"video_frames_{zona}")
+video_interval = 1
+if VIDEO_MODE:
+    os.makedirs(FRAMES_DIR, exist_ok=True)
+    for stale in glob.glob(os.path.join(FRAMES_DIR, "frame_*.png")):
+        os.remove(stale)
+    video_interval = max(1, round(sim_end / VIDEO_TARGET_FRAMES))
+
+# delay=200ms serve solo a rendere gradevole la riproduzione DAL VIVO: in
+# modalita' video sumo-gui rispetta questo ritardo anche in modo non
+# interattivo (-S -Q), rallentando artificialmente la cattura a ~5 step
+# simulati/secondo reale (900s simulati -> 180s reali) e rischiando di
+# superare il timeout. In VIDEO_MODE lo si azzera per catturare piu' veloce
+# possibile (vedi test in 5_traffico_sfondo_sumo.md §11).
+gui_delay = 0 if VIDEO_MODE else 200
+
+def _write_gui_settings(with_snapshots):
+    """Scrive/riscrive GUI_PATH. with_snapshots=True include gli elementi
+    <snapshot> nativi (serve solo per il ripiego senza tracking, vedi sopra)."""
+    snapshot_lines = ""
+    if with_snapshots:
+        parts = []
+        t = 0
+        idx = 0
+        while t <= sim_end:
+            fp = os.path.join(FRAMES_DIR, f"frame_{idx:04d}.png")
+            parts.append(f'    <snapshot file="{fp}" time="{t}"/>')
+            t += video_interval
+            idx += 1
+        snapshot_lines = "\n".join(parts)
+    with open(GUI_PATH, "w") as f:
+        f.write("""<viewsettings>
     <scheme name="real world"/>
-    <delay value="200"/>
+    <delay value="{delay}"/>
     <viewport zoom="{zoom}" x="{x}" y="{y}"/>
     <vehicles vehicleMode="0" vehicleQuality="2"
               vehicleExaggeration="15" showBlinker="true"
               colorScheme="given/assigned vehicle color"/>
+{snapshots}
 </viewsettings>
-""".format(**cfg))
+""".format(delay=gui_delay, snapshots=snapshot_lines, **cfg))
+
+_write_gui_settings(with_snapshots=False)
 
 # ── Semafori ottimizzati (punto 3) ────────────────────────────
 # Se esiste cfg_files/tls_<zona>.add.xml (generato da inject_signal_plan.py)
@@ -409,6 +517,64 @@ def trova_sumo_bin(nome):
     except Exception:
         return None
 
+def trova_ffmpeg():
+    try:
+        subprocess.run(["ffmpeg", "-version"], capture_output=True, check=True)
+        return "ffmpeg"
+    except Exception:
+        return None
+
+EGO_VEHICLE_ID = "veicolo_enhsp"
+VIDEO_ZOOM = 800     # vista de-zoommata: piu' isolati attorno al veicolo tracciato
+                     # (calibrato empiricamente, vedi 5_traffico_sfondo_sumo.md §12)
+VIDEO_TAIL_S = 15    # secondi extra catturati dopo l'arrivo del veicolo ENHSP
+
+def _capture_frames_traci(sumo_gui_bin, cfg_path, frames_dir, sim_end_s,
+                           interval_s, ego_id, zoom, tail_s):
+    """Cattura i fotogrammi del video guidando sumo-gui via TraCI: la
+    telecamera SEGUE il veicolo ENHSP (trackVehicle) con uno zoom piu' ampio
+    del preset statico (setZoom), invece del viewport fisso del
+    gui-settings, che spesso non era centrato sul percorso reale in
+    modalita' dinamica. Si ferma appena il veicolo arriva a destinazione
+    (+ tail_s di margine) invece di andare fino a sim_end_s: la simulazione
+    da sola non si fermerebbe (continua per il traffico di sfondo), e
+    fermarsi prima riduce anche il tempo di esposizione a un'eventuale
+    disconnessione di sumo-gui (vedi 5_traffico_sfondo_sumo.md §12).
+    Ritorna il numero di fotogrammi catturati; rilancia l'eccezione di TraCI
+    se la connessione cade (il chiamante decide se ritentare o ripiegare
+    sulla cattura nativa a schermate fisse)."""
+    import traci
+    view = "View #0"
+    traci.start([sumo_gui_bin, "-c", cfg_path, "--start", "--window-size", "1280,720"])
+    tracked = False
+    arrived_at = None
+    frame_idx = 0
+    next_shot = 0
+    step = 0
+    try:
+        while step <= sim_end_s:
+            if not tracked:
+                if ego_id in traci.vehicle.getIDList():
+                    traci.gui.trackVehicle(view, ego_id)
+                    traci.gui.setZoom(view, zoom)
+                    tracked = True
+            elif arrived_at is None and ego_id not in traci.vehicle.getIDList():
+                arrived_at = step   # veicolo arrivato (rimosso dalla simulazione)
+            if step >= next_shot:
+                fp = os.path.join(frames_dir, f"frame_{frame_idx:04d}.png")
+                traci.gui.screenshot(view, fp)
+                frame_idx += 1
+                next_shot += interval_s
+            traci.simulationStep()
+            step += 1
+            if arrived_at is not None and step >= arrived_at + tail_s:
+                break
+            if traci.simulation.getMinExpectedNumber() <= 0:
+                break
+    finally:
+        traci.close()
+    return frame_idx
+
 sumo_gui = trova_sumo_bin("sumo-gui")
 if not sumo_gui:
     print("[ERRORE] sumo-gui non trovato.")
@@ -437,9 +603,100 @@ print(f"File generati:")
 print(f"  Route : {ROU_PATH}")
 print(f"  Config: {CFG_PATH}")
 print()
-print("Apro sumo-gui...")
-print("→ Premi ▶ Play — l'auto rossa parte al secondo 1")
-print("→ Ctrl+A per adattare la vista")
-print("→ Click destro sull'auto → Track per seguirla")
 
-subprocess.Popen([sumo_gui, "-c", CFG_PATH])
+if VIDEO_MODE:
+    ffmpeg_bin = trova_ffmpeg()
+    if not ffmpeg_bin:
+        print("[ERRORE] ffmpeg non trovato (richiesto da --video).")
+        sys.exit(1)
+
+    out_path = os.path.abspath(VIDEO_OUT or os.path.join(OUT, f"{zona}_video.mp4"))
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+    print(f"Registrazione video: telecamera con tracking del veicolo, "
+          f"~1 fotogramma ogni {video_interval}s → {VIDEO_FPS} fps...")
+
+    tracking_ok = False
+    for tentativo in (1, 2):
+        try:
+            n_catturati = _capture_frames_traci(
+                sumo_gui, CFG_PATH, FRAMES_DIR, sim_end, video_interval,
+                EGO_VEHICLE_ID, VIDEO_ZOOM, VIDEO_TAIL_S)
+            if n_catturati > 0:
+                tracking_ok = True
+                break
+            print(f"  (tentativo {tentativo}: nessun fotogramma catturato)")
+        except Exception as e:
+            print(f"  (tentativo {tentativo} di tracking via TraCI fallito: {e})")
+        for stale in glob.glob(os.path.join(FRAMES_DIR, "frame_*.png")):
+            os.remove(stale)
+
+    if not tracking_ok:
+        # Ripiego: cattura nativa a schermate fisse (senza tracking, vista
+        # dal preset statico), affidabile ma senza il seguimento del
+        # veicolo — vedi 5_traffico_sfondo_sumo.md §12. Il gui-settings va
+        # riscritto per includere gli elementi <snapshot> nativi, esclusi
+        # finora perche' il tracking era il percorso primario.
+        print("  Tracking via TraCI non disponibile: ripiego sulla cattura nativa "
+              "a schermate fisse (senza tracking del veicolo)...")
+        _write_gui_settings(with_snapshots=True)
+        try:
+            cattura = subprocess.run(
+                [sumo_gui, "-c", CFG_PATH, "-S", "-Q", "--window-size", "1280,720"],
+                capture_output=True, text=True, timeout=120)
+        except subprocess.TimeoutExpired:
+            print("[ERRORE] sumo-gui ha superato il timeout durante la cattura (120s).")
+            sys.exit(1)
+        if not sorted(glob.glob(os.path.join(FRAMES_DIR, "frame_*.png"))):
+            print("[ERRORE] Nessun fotogramma catturato da sumo-gui.")
+            print((cattura.stdout or "")[-1500:])
+            print((cattura.stderr or "")[-1500:])
+            sys.exit(1)
+
+    frames = sorted(glob.glob(os.path.join(FRAMES_DIR, "frame_*.png")))
+    print(f"  {len(frames)} fotogrammi catturati"
+          f"{'' if tracking_ok else ' (ripiego senza tracking)'}, "
+          f"incapsulo in mp4 con ffmpeg...")
+
+    try:
+        enc = subprocess.run(
+            [ffmpeg_bin, "-y", "-framerate", str(VIDEO_FPS),
+             "-i", os.path.join(FRAMES_DIR, "frame_%04d.png"),
+             "-pix_fmt", "yuv420p", "-vf", "scale=1280:-2",
+             "-movflags", "+faststart", out_path],
+            capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired:
+        print("[ERRORE] ffmpeg ha superato il timeout durante la codifica (60s).")
+        sys.exit(1)
+
+    if enc.returncode != 0 or not os.path.exists(out_path):
+        print("[ERRORE] ffmpeg ha fallito la codifica del video.")
+        print((enc.stderr or "")[-1500:])
+        sys.exit(1)
+
+    for fpath in frames:
+        os.remove(fpath)
+    try:
+        os.rmdir(FRAMES_DIR)
+    except OSError:
+        pass
+    if RUN_ID:
+        # File di lavoro univoci di questa invocazione (vedi --run-id): non
+        # servono piu' una volta incapsulato il video. Senza questa pulizia
+        # si accumulerebbero indefinitamente in cfg_files/ a ogni richiesta
+        # della webapp (prima del run-id erano invece nomi fissi, riusati/
+        # sovrascritti a ogni chiamata).
+        for p in (ROU_PATH, GUI_PATH, CFG_PATH):
+            try:
+                os.remove(p)
+            except OSError:
+                pass
+
+    print(f"Video pronto: {out_path}")
+    print(f"VIDEO_OUTPUT:{out_path}")
+else:
+    print("Apro sumo-gui...")
+    print("→ Premi ▶ Play — l'auto rossa parte al secondo 1")
+    print("→ Ctrl+A per adattare la vista")
+    print("→ Click destro sull'auto → Track per seguirla")
+    subprocess.Popen([sumo_gui, "-c", CFG_PATH])
