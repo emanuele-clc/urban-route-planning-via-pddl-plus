@@ -697,3 +697,105 @@ gridlock nonostante fino a 120 veicoli concentrati sullo stesso
 corridoio). Fotogrammi estratti con `ffmpeg` a istanti diversi mostrano
 una fila visibile di veicoli gialli di sfondo lungo la stessa strada
 del veicolo rosso tracciato, in entrambi i test.
+
+## 14. Pre-spawn, andamento differenziato, traffico incrociante/parallelo (fatto)
+
+Richiesta dell'utente, tre parti: (a) pre-spawnare alcune auto lungo il
+percorso, cosi' non compaiono tutte dal nulla insieme alla rossa; (b)
+valutare la fattibilita' di un andamento (velocita') diverso da un'auto di
+sfondo all'altra, e implementarlo se fattibile; (c) concentrare il
+traffico sul percorso dell'ego (§13) ma restando coerenti col grado di
+congestione dell'arco, e aggiungere anche auto che viaggiano su altre vie
+parallele nello stesso corridoio o che attraversano il percorso rosso a
+un incrocio.
+
+**(b) Fattibilita' — valutata prima di implementare.** SUMO supporta
+nativamente `speedFactor` a livello di `vType`, con distribuzioni (es.
+`normc(media,dev_std,min,max)`, normale troncata) campionate UNA VOLTA per
+veicolo al momento dell'inserimento: nessuna logica per-veicolo da
+scrivere, e nessun impatto sul veicolo ENHSP (resta sul proprio `vType
+auto`, invariato). Valutata fattibile a costo quasi nullo → implementata.
+
+**(a) Pre-spawn.** Prima l'auto rossa partiva sempre a `depart="1"` e le
+auto di sfondo erano scaglionate (`depart = i*2.5 + jitter`) ma spesso
+partivano DOPO di lei. Ora: se c'e' traffico di sfondo, l'auto rossa parte
+a `ego_depart = 12` invece di 1 (se non c'e' sfondo resta `1`, ritardare
+non avrebbe senso — si vedrebbe solo strada vuota); le prime auto di
+sfondo (quelle con `depart` scaglionato < 12s, circa le prime 4-5)
+finiscono cosi' a precedere naturalmente la rossa, senza bisogno di una
+finestra di pre-spawn separata. In piu', TUTTE le auto di sfondo (non solo
+quelle pre-spawnate) partono con `departPos="random"` (posizione casuale
+lungo il primo arco della rotta, non sempre all'inizio) e
+`departSpeed="max"` invece di `"0"`: sembrano auto gia' in marcia trovate
+lungo la strada, non veicoli fermi che si materializzano dal nulla.
+
+**(b) Andamento differenziato — implementazione.** Il `vType id="traffic"`
+ha ora `speedFactor="normc(1,0.2,0.7,1.4)"`: ogni auto di sfondo mantiene
+per tutto il tragitto un proprio fattore di velocita' (chi circa il 30%
+piu' lento, chi fino al 40% piu' veloce del limite/`maxSpeed`), invece di
+viaggiare tutte alla stessa andatura.
+
+**(c) Concentrazione coerente + traffico incrociante/parallelo.**
+`compute_edges_from_pddl` ora fa anche il parsing delle righe
+`(= (vehicle-count nome_a nome_b) N)` gia' presenti nel PDDL
+(`parse_vehicle_counts`, la stessa fonte usata per il costo di
+pianificazione — vedi `webapp/pddl_writer.py`/`osm_graph.py`), e
+`route_to_sumo_edges` distribuisce quei conteggi sugli edge SUMO
+effettivamente generati per ciascun hop del piano ENHSP (`edge_weights`).
+`generate_background_traffic` usa `edge_weights` per pesare quale
+finestra viene scelta: ogni arco parte da un peso base 1 (resta comunque
+coperto anche se il PDDL non lo considera congestionato) piu' un bonus
+proporzionale al suo vehicle-count — le finestre che coprono gli archi
+piu' "congestionati" secondo il PDDL vengono scelte piu' spesso, invece
+del campionamento uniforme di prima.
+
+Due nuove funzioni generano traffico che NON segue il percorso rosso:
+
+- `generate_crossing_traffic`: per alcune junction del percorso ego (una
+  ogni 3, `every=3`), sceglie un arco in entrata e uno in uscita DIVERSI
+  da quelli dell'ego, generando un'auto che attraversa quell'incrocio
+  senza mai percorrere un arco della rossa — "il cui percorso interseca
+  quello della macchina rossa" richiesto. Estende la rotta di qualche arco
+  extra su entrambi i lati quando possibile, cosi' non compare/sparisce
+  esattamente sull'incrocio.
+- `generate_parallel_traffic`: sceglie coppie di junction VICINE al
+  percorso ego (entro `corridor_radius=180m`, usando le coordinate `jpos`
+  del net SUMO) ma non su di esso, e calcola un Dijkstra tra loro; scarta
+  il risultato se si allontana troppo dal corridoio lungo il tragitto o se
+  ricalca per piu' della meta' della sua lunghezza gli stessi archi
+  dell'ego (altrimenti sarebbe indistinguibile dal traffico "sovrapposto"
+  di §13, o percorrerebbe mezza citta').
+
+Ogni veicolo di sfondo generato porta un tag (`overlap`/`cross`/
+`parallel`) usato solo per assegnargli un orario di partenza coerente col
+suo ruolo: `overlap` resta scaglionato come in §13 (le prime precedono
+l'ego, pre-spawn); `parallel` ha un proprio stagger piu' largo (rotte piu'
+lunghe, su altre vie); `cross` e' sparso su tutta la durata della
+simulazione (fino a meta' di `sim_end`, tetto 300s) perche' rappresenta
+traffico che attraversa l'incrocio in modo continuo nel tempo, non un
+corteo unico.
+
+**Bug trovato e corretto in `generate_crossing_traffic`.** Le due
+direzioni di una strada a doppio senso, in queste net (esportate da OSM
+via `netconvert`), sono due edge con lo stesso id a meno del segno (es.
+`42902482` / `-42902482`). Scegliendo arco in entrata e arco in uscita
+indipendentemente, capitava che finissero per essere l'uno l'esatto
+opposto dell'altro: un'auto che arriva su una strada inverte subito a U e
+torna indietro sulla STESSA strada, invece di attraversare l'incrocio
+proseguendo su un'altra via (osservato nell'XML
+generato: rotte come `"32744354#0 -32744354#0 ..."` o
+`"185275576 -185275576 ..."`). Corretto escludendo, ad ogni scelta di arco
+adiacente (in entrata, in uscita, ed estensioni), l'id "opposto" di quello
+gia' scelto sul lato adiacente.
+
+**Verifica.** Con lo stesso `pddl_files/problem_custom.pddl` (44 archi,
+~2146 m): a `--traffic 1` generati 56 overlap + 6 cross + 5 parallel = 67
+veicoli; a `--traffic 2.5` generati 120 overlap (tetto) + 15 cross + 12
+parallel = 147 veicoli. Controllo automatico sull'XML generato (147
+rotte, `--traffic 2.5`): nessuna inversione a U residua dopo il fix.
+Entrambe le run in modalita' `--video` completate con successo (148/149
+fotogrammi catturati, tracking TraCI riuscito al primo tentativo, nessun
+segno di gridlock). Fotogramma estratto dal video a `--traffic 2.5`:
+lunga fila di veicoli gialli in coda lungo la strada dell'ego (coerente
+con la pesatura per congestione), auto rossa e traffico di sfondo
+visibili nello stesso corridoio.

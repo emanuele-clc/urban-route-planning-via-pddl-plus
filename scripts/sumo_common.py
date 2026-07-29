@@ -75,6 +75,18 @@ def dijkstra(graph, start, goal):
     return list(reversed(edges))
 
 
+def build_edge_endpoints(graph):
+    """{edge_id: (junction_from, junction_to)} a partire da 'graph' (vedi
+    build_sumo_graph): serve a risalire dagli edge SUMO di un percorso gia'
+    calcolato alle junction attraversate, senza doverle ritenere separatamente
+    (usato per il traffico 'incrociante'/'parallelo', vedi sumo_visualize.py)."""
+    endpoints = {}
+    for u, neighbors in graph.items():
+        for v, eid, _length in neighbors:
+            endpoints[eid] = (u, v)
+    return endpoints
+
+
 def pddl_name_to_junction(pname, junc_ids):
     """Mappa un id di nodo OSM/PDDL (es. 'n1193756' o '1193756') alla
     junction SUMO corrispondente.

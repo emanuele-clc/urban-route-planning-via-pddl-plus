@@ -1,37 +1,70 @@
 import os, sys, math, random, subprocess, re, json, glob, xml.etree.ElementTree as ET
+from collections import defaultdict
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # scripts/
 sys.path.insert(0, SCRIPT_DIR)
-from sumo_common import build_sumo_graph, dijkstra, pddl_name_to_junction  # noqa: E402
+from sumo_common import build_sumo_graph, build_edge_endpoints, dijkstra, pddl_name_to_junction  # noqa: E402
 
-def route_to_sumo_edges(route_names, graph, jpos, junc_ids):
+def parse_vehicle_counts(text):
+    """{(nome_a, nome_b): vehicle_count} dalle righe
+    (= (vehicle-count nome_a nome_b) N) gia' presenti nel PDDL (calcolate da
+    webapp/osm_graph.py:compute_vehicle_counts). Usato SOLO per pesare quali
+    archi del percorso ricevono piu' finestre di traffico di sfondo (vedi
+    generate_background_traffic): un arco che il PDDL considera piu'
+    congestionato ne riceve di piu' delle altre, cosi' la densita' visibile in
+    SUMO resta coerente con il grado di congestione usato per la
+    pianificazione — vedi 5_traffico_sfondo_sumo.md §14."""
+    out = {}
+    for m in re.finditer(r'\(=\s*\(vehicle-count\s+(\S+)\s+(\S+)\)\s+(\d+)\)', text):
+        out[(m.group(1), m.group(2))] = int(m.group(3))
+    return out
+
+def route_to_sumo_edges(route_names, graph, jpos, junc_ids, vehicle_counts=None):
     """Converte l'INTERO piano ENHSP (sequenza di nodi PDDL) in una lista di
     edge SUMO collegati, cosi' SUMO percorre le stesse strade scelte dal
     planner invece di un Dijkstra generico start->goal sulla rete SUMO.
+    Ritorna (all_edges, all_weights): 'weights' assegna a ciascun edge la
+    somma dei vehicle-count degli hop originali del piano "contratti" in
+    quell'edge (vedi sotto), 0 se vehicle_counts non e' passato.
 
     Molti nodi PDDL "intermedi" sono punti OSM di passaggio che SUMO ha
     semplificato (non sono junction separate): vengono saltati mantenendo
     l'ordine. Tra le junction SUMO realmente mappate che restano si fa
     Dijkstra segmento per segmento e si concatenano i risultati: il percorso
-    finale e' sempre una sequenza di edge collegati."""
+    finale e' sempre una sequenza di edge collegati.
+
+    Il piano ENHSP e i vehicle-count usano la STESSA granularita' (nodi OSM
+    del grafo contratto in webapp/osm_graph.py), ma piu' hop del piano
+    possono "contrarsi" su un'unica coppia di junction SUMO (quando un nodo
+    intermedio non e' mappabile): la congestione di quegli hop viene sommata
+    e assegnata per intero a tutti gli edge SUMO del segmento risultante."""
+    vehicle_counts = vehicle_counts or {}
     junctions = []
-    for name in route_names:
+    anchor_idx = []
+    for idx, name in enumerate(route_names):
         j = pddl_name_to_junction(name, junc_ids)
         if j and (not junctions or j != junctions[-1]):
             junctions.append(j)
+            anchor_idx.append(idx)
     if len(junctions) < 2:
-        return None
+        return None, None
     all_edges = []
+    all_weights = []
     for i in range(len(junctions) - 1):
         seg = dijkstra(graph, junctions[i], junctions[i+1])
         if not seg:
-            return None
+            return None, None
+        seg_weight = sum(
+            vehicle_counts.get((route_names[k], route_names[k+1]), 0)
+            for k in range(anchor_idx[i], anchor_idx[i+1]))
         all_edges.extend(seg)
-    return all_edges if all_edges else None
+        all_weights.extend([seg_weight] * len(seg))
+    return (all_edges, all_weights) if all_edges else (None, None)
 
-def generate_background_traffic(ego_edges, seed=42, scale=1.0,
+def generate_background_traffic(ego_edges, edge_weights=None, seed=42, scale=1.0,
                                   base_vehicles=18, max_vehicles=120,
-                                  min_span_frac=0.45, max_span_frac=1.0):
+                                  min_span_frac=0.45, max_span_frac=1.0,
+                                  congestion_bonus=0.6):
     """Genera veicoli di sfondo le cui rotte sono finestre CONTIGUE del
     percorso REALMENTE seguito dal veicolo ENHSP (ego_edges), invece di
     tragitti punto-a-punto sparsi su tutta la zona come nella versione
@@ -48,6 +81,13 @@ def generate_background_traffic(ego_edges, seed=42, scale=1.0,
     sovrapposti al percorso reale -> sembra traffico che condivide la
     strada con l'ego, invece di comparire/sparire su un arco isolato.
 
+    'edge_weights' (edge_id -> vehicle-count dal PDDL, vedi
+    parse_vehicle_counts/route_to_sumo_edges) pesa quali finestre vengono
+    scelte: ogni arco parte da un peso base 1 (resta comunque coperto anche
+    se il PDDL non lo considera congestionato) piu' un bonus proporzionale al
+    suo vehicle-count, cosi' le finestre che coprono gli archi piu'
+    "congestionati" secondo il PDDL vengono scelte piu' spesso — §14.
+
     Il numero di veicoli scala con 'scale' (il livello di traffico scelto
     dalla webapp, vedi TRAFFIC_SCALE / --traffic) e con la lunghezza del
     percorso (route piu' lunghe hanno bisogno di piu' auto per sembrare
@@ -58,14 +98,172 @@ def generate_background_traffic(ego_edges, seed=42, scale=1.0,
     n_edges = len(ego_edges)
     if n_edges < 2 or scale <= 0:
         return []
+    edge_weights = edge_weights or {}
+    w = [1.0 + congestion_bonus * edge_weights.get(e, 0) for e in ego_edges]
+    prefix = [0.0]
+    for wi in w:
+        prefix.append(prefix[-1] + wi)
+
     length_factor = max(1.0, n_edges / 10.0)
     n_vehicles = min(max_vehicles, round(base_vehicles * scale * length_factor))
     routes = []
     for _ in range(n_vehicles):
         span = round(n_edges * rng.uniform(min_span_frac, max_span_frac))
         span = max(2, min(span, n_edges))
-        start_idx = rng.randint(0, n_edges - span)
+        starts = list(range(0, n_edges - span + 1))
+        weights = [prefix[s + span] - prefix[s] for s in starts]
+        start_idx = rng.choices(starts, weights=weights, k=1)[0]
         routes.append(ego_edges[start_idx:start_idx + span])
+    return routes
+
+
+def generate_crossing_traffic(ego_edges, path_junctions, graph, edge_endpoints,
+                                seed=44, scale=1.0, every=3, max_extra_hops=2,
+                                max_vehicles=24):
+    """Veicoli che ATTRAVERSANO il percorso dell'ego in una singola junction
+    (una traversa/incrocio) senza mai percorrerne un arco: entrano da un arco
+    diverso, passano per una junction del percorso rosso ed escono su un
+    altro arco diverso. E' il "percorso che interseca quello della macchina
+    rossa" richiesto (a differenza di generate_background_traffic, che
+    invece SEGUE il percorso rosso) — vedi 5_traffico_sfondo_sumo.md §14.
+    'every' sceglie una junction del percorso ogni N (non tutte, altrimenti
+    il traffico incrociante diventerebbe piu' fitto di quello principale);
+    'max_extra_hops' estende la rotta di qualche arco su entrambi i lati
+    quando possibile, cosi' l'auto non compare/sparisce esattamente
+    sull'incrocio.
+
+    Le due direzioni di una stessa strada a doppio senso sono, in queste net
+    (esportate da OSM via netconvert), due edge con lo STESSO id a meno del
+    segno ('42902482' / '-42902482'): incoming e outgoing a una junction
+    vengono scelti indipendentemente, quindi senza attenzione potevano
+    combinarsi in un arco e nel suo esatto opposto -> un'inversione a U sul
+    posto invece di un attraversamento (bug osservato: es. rotta
+    "32744354#0 -32744354#0 ..."). _reverse_id + i controlli sotto lo
+    escludono ad ogni scelta di arco adiacente."""
+    def _reverse_id(eid):
+        return eid[1:] if eid.startswith('-') else '-' + eid
+
+    rng = random.Random(seed)
+    n_vehicles = min(max_vehicles, round(6 * scale))
+    if n_vehicles <= 0 or len(path_junctions) < 3 or not graph:
+        return []
+    ego_set = set(ego_edges)
+    reverse = defaultdict(list)  # junction_to -> [(junction_from, edge_id), ...]
+    for u, neighbors in graph.items():
+        for v, eid, _length in neighbors:
+            reverse[v].append((u, eid))
+
+    candidates = list(range(1, len(path_junctions) - 1, every)) or [len(path_junctions) // 2]
+    routes = []
+    tries = 0
+    while len(routes) < n_vehicles and tries < n_vehicles * 8:
+        tries += 1
+        J = path_junctions[rng.choice(candidates)]
+        incoming = [(u, eid) for (u, eid) in reverse.get(J, []) if eid not in ego_set]
+        outgoing = [(v, eid) for (v, eid, _l) in graph.get(J, []) if eid not in ego_set]
+        if not incoming or not outgoing:
+            continue
+        in_u, in_eid = rng.choice(incoming)
+        out_candidates = [(v, eid) for (v, eid) in outgoing if eid != _reverse_id(in_eid)]
+        if not out_candidates:
+            continue
+        out_v, out_eid = rng.choice(out_candidates)
+        route = [in_eid, out_eid]
+        cur = in_u
+        for _ in range(rng.randint(0, max_extra_hops)):
+            opts = [(u, eid) for (u, eid) in reverse.get(cur, [])
+                    if eid not in ego_set and eid not in route and eid != _reverse_id(route[0])]
+            if not opts:
+                break
+            u, eid = rng.choice(opts)
+            route.insert(0, eid)
+            cur = u
+        cur = out_v
+        for _ in range(rng.randint(0, max_extra_hops)):
+            opts = [(v, eid) for (v, eid, _l) in graph.get(cur, [])
+                    if eid not in ego_set and eid not in route and eid != _reverse_id(route[-1])]
+            if not opts:
+                break
+            v, eid = rng.choice(opts)
+            route.append(eid)
+            cur = v
+        routes.append(route)
+    return routes
+
+
+def _dist(p, q):
+    return math.hypot(p[0] - q[0], p[1] - q[1])
+
+
+def generate_parallel_traffic(ego_edges, path_junctions, graph, jpos, edge_endpoints,
+                                seed=45, scale=1.0, corridor_radius=180.0,
+                                max_vehicles=20, max_hops=40):
+    """Veicoli su strade DIVERSE da quella dell'ego ma che corrono nello
+    stesso corridoio (entro corridor_radius metri dal percorso rosso): "auto
+    che viaggiano parallelamente... su altre vie/traverse" — vedi
+    5_traffico_sfondo_sumo.md §14. A differenza di generate_background_traffic
+    (finestre dell'ego stesso), qui la rotta e' un Dijkstra tra due junction
+    VICINE al percorso ma non su di esso; viene scartata se si allontana
+    troppo dal corridoio o ricalca quasi solo l'ego (altrimenti sarebbe
+    indistinguibile dal traffico "sovrapposto" o percorrerebbe mezza citta')."""
+    rng = random.Random(seed)
+    n_vehicles = min(max_vehicles, round(5 * scale))
+    if n_vehicles <= 0 or not graph or not jpos:
+        return []
+    path_pts = [jpos[j] for j in path_junctions if j in jpos]
+    if len(path_pts) < 2:
+        return []
+
+    def nearest_idx(pt):
+        return min(range(len(path_pts)), key=lambda i: _dist(pt, path_pts[i]))
+
+    ego_junc_set = set(path_junctions)
+    ego_set = set(ego_edges)
+    side_by_pos = defaultdict(list)
+    for j, pt in jpos.items():
+        if j in ego_junc_set:
+            continue
+        i = nearest_idx(pt)
+        if _dist(pt, path_pts[i]) <= corridor_radius:
+            side_by_pos[i].append(j)
+
+    positions = sorted(side_by_pos)
+    if len(positions) < 2:
+        return []
+
+    routes = []
+    tries = 0
+    while len(routes) < n_vehicles and tries < n_vehicles * 10:
+        tries += 1
+        i0 = rng.choice(positions)
+        min_gap = max(2, len(path_pts) // 6)
+        far_positions = [p for p in positions if abs(p - i0) >= min_gap]
+        if not far_positions:
+            continue
+        i1 = rng.choice(far_positions)
+        start_j = rng.choice(side_by_pos[i0])
+        end_j = rng.choice(side_by_pos[i1])
+        if start_j == end_j:
+            continue
+        seg = dijkstra(graph, start_j, end_j)
+        if not seg or len(seg) > max_hops:
+            continue
+        overlap = sum(1 for e in seg if e in ego_set)
+        if overlap > len(seg) * 0.5:
+            continue
+        ok = True
+        for e in seg:
+            fr, to = edge_endpoints.get(e, (None, None))
+            if fr not in jpos or to not in jpos:
+                ok = False
+                break
+            mid = ((jpos[fr][0] + jpos[to][0]) / 2, (jpos[fr][1] + jpos[to][1]) / 2)
+            if _dist(mid, path_pts[nearest_idx(mid)]) > corridor_radius * 1.6:
+                ok = False
+                break
+        if not ok:
+            continue
+        routes.append(seg)
     return routes
 
 
@@ -74,8 +272,12 @@ def compute_edges_from_pddl(pddl_path, net_path):
     calcola gli edge SUMO corrispondenti, ritorna (edges_str, cfg). cfg
     include anche 'total_length' del percorso, usato sia per la durata della
     simulazione sia per dimensionare il traffico di sfondo (vedi
-    generate_background_traffic)."""
+    generate_background_traffic), e la geometria del percorso (graph, jpos,
+    edge_endpoints, path_junctions, edge_weights) usata dal traffico
+    incrociante/parallelo (generate_crossing_traffic,
+    generate_parallel_traffic) — vedi 5_traffico_sfondo_sumo.md §14."""
     text = open(pddl_path).read()
+    vehicle_counts = parse_vehicle_counts(text)
     m_start = re.search(r'\(at\s+([A-Za-z0-9_]+)\)', text)
     m_goal  = re.search(r':goal\s+\(at\s+([A-Za-z0-9_]+)\)', text)
     if not m_start or not m_goal:
@@ -174,8 +376,9 @@ def compute_edges_from_pddl(pddl_path, net_path):
     print(f"  GOAL : {goal_name} → {goal_j}")
 
     edges = None
+    weights = None
     if route_names:
-        edges = route_to_sumo_edges(route_names, graph, jpos, junc_ids)
+        edges, weights = route_to_sumo_edges(route_names, graph, jpos, junc_ids, vehicle_counts)
         if edges:
             print(f"  (percorso SUMO = piano ENHSP, {len(route_names)} nodi)")
         else:
@@ -183,11 +386,30 @@ def compute_edges_from_pddl(pddl_path, net_path):
 
     if not edges:
         edges = dijkstra(graph, start_j, goal_j)
+        weights = None
     if not edges:
         print(f"[ERRORE] Nessun percorso SUMO da {start_j} a {goal_j}")
         sys.exit(1)
 
     total_length = sum(eid_len.get(e, 0.0) for e in edges)
+
+    # Geometria del percorso, per il traffico incrociante/parallelo (vedi
+    # generate_crossing_traffic, generate_parallel_traffic, §14): edge_weights
+    # e' 0 per ogni arco quando 'weights' non e' disponibile (fallback
+    # Dijkstra senza piano ENHSP), che equivale a nessuna concentrazione
+    # extra su nessun arco (comportamento uniforme di prima).
+    edge_endpoints = build_edge_endpoints(graph)
+    edge_weights = {}
+    for e, wgt in zip(edges, weights or [0] * len(edges)):
+        edge_weights[e] = max(edge_weights.get(e, 0), wgt)
+    path_junctions = []
+    for e in edges:
+        fr, to = edge_endpoints.get(e, (None, None))
+        if fr is None:
+            continue
+        if not path_junctions:
+            path_junctions.append(fr)
+        path_junctions.append(to)
 
     sp = jpos[start_j]
     return ' '.join(edges), {
@@ -195,6 +417,10 @@ def compute_edges_from_pddl(pddl_path, net_path):
         'x': sp[0], 'y': sp[1],
         'net': used_net,
         'total_length': total_length,
+        'graph': graph, 'jpos': jpos,
+        'edge_endpoints': edge_endpoints,
+        'edge_weights': edge_weights,
+        'path_junctions': path_junctions,
     }
 
 # ── Argomenti ────────────────────────────────────────────────
@@ -207,9 +433,15 @@ def compute_edges_from_pddl(pddl_path, net_path):
 #                                --traffic N (N>0, es. 2.5) scala il numero di
 #                                veicoli di sfondo di un fattore N: permette
 #                                di scegliere il "grado di congestione" dalla
-#                                webapp. Le rotte di sfondo sono finestre del
-#                                percorso reale dell'ENHSP (vedi
-#                                generate_background_traffic). Default 1.
+#                                webapp. Il traffico di sfondo e' un mix di
+#                                tre tipi (vedi generate_background_traffic,
+#                                generate_crossing_traffic,
+#                                generate_parallel_traffic, §14): veicoli che
+#                                percorrono finestre del percorso reale
+#                                dell'ENHSP (pesate secondo il vehicle-count
+#                                del PDDL), veicoli che lo attraversano a
+#                                un incrocio senza seguirlo, e veicoli su
+#                                altre vie nello stesso corridoio. Default 1.
 # Opzione:       --video      -> invece di aprire sumo-gui in modo interattivo,
 #                                registra la simulazione a schermate ("snapshot")
 #                                e le unisce con ffmpeg in un video mp4 (vedi
@@ -378,27 +610,83 @@ if dynamic_pddl:
     # cfg['end'] NON viene ricalcolato in base al traffico di sfondo: resta
     # ancorato solo al veicolo ENHSP (decisione presa, vedi §4.d).
     if USE_BACKGROUND_TRAFFIC:
-        background_routes = generate_background_traffic(
-            edges_str.split(), scale=TRAFFIC_SCALE)
-        print(f"  (traffico di sfondo: {len(background_routes)} veicoli, livello x{TRAFFIC_SCALE:g})"
+        ego_edges_list = edges_str.split()
+        overlap_routes = generate_background_traffic(
+            ego_edges_list, edge_weights=dyn['edge_weights'], scale=TRAFFIC_SCALE)
+        crossing_routes = generate_crossing_traffic(
+            ego_edges_list, dyn['path_junctions'], dyn['graph'], dyn['edge_endpoints'],
+            scale=TRAFFIC_SCALE)
+        parallel_routes = generate_parallel_traffic(
+            ego_edges_list, dyn['path_junctions'], dyn['graph'], dyn['jpos'],
+            dyn['edge_endpoints'], scale=TRAFFIC_SCALE)
+        # 'kind' distingue solo per i log e per l'orario di partenza (vedi
+        # sotto): le auto incrocianti/parallele partono da subito (0..) come
+        # se stessero gia' circolando altrove in citta', quelle sovrapposte
+        # al percorso rosso restano scaglionate come prima (§13).
+        background_routes = (
+            [('overlap', r) for r in overlap_routes] +
+            [('cross', r) for r in crossing_routes] +
+            [('parallel', r) for r in parallel_routes])
+        print(f"  (traffico di sfondo: {len(overlap_routes)} sovrapposti al percorso + "
+              f"{len(crossing_routes)} incrocianti + {len(parallel_routes)} paralleli "
+              f"= {len(background_routes)} veicoli, livello x{TRAFFIC_SCALE:g})"
               if background_routes else "  (traffico di sfondo: nessun veicolo generato)")
 
 # ── File di route ─────────────────────────────────────────────
+# L'auto rossa parte con un ritardo (EGO_DEPART) solo se c'e' traffico di
+# sfondo da mostrare: cosi' le prime auto di sfondo gia' staccate (vedi
+# stagger sotto) sono gia' in strada quando parte la rossa ("pre-spawn"
+# richiesto dall'utente), invece di comparire dal nulla insieme a lei.
+# Senza sfondo il ritardo non ha senso (si vedrebbe solo una strada vuota
+# per qualche secondo), si mantiene il vecchio depart="1".
+ego_depart = 12.0 if background_routes else 1.0
+
 ROU_PATH = os.path.join(OUT, f"{zona}_piano.rou.xml")
 route_lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<routes>',
                '    <vType id="auto" accel="1.5" decel="3.0" sigma="0.0"',
                '           length="4.5" maxSpeed="4.0" color="1,0,0"',
                '           width="2.0" shape="passenger"/>']
 if background_routes:
+    # speedFactor: distribuzione normale troncata, campionata UNA VOLTA per
+    # veicolo all'inserimento -> ogni auto di sfondo mantiene per tutto il
+    # tragitto un suo fattore di velocita' (chi il 30% piu' lento, chi il 40%
+    # piu' veloce del limite/vType), invece di viaggiare tutte alla stessa
+    # andatura come prima (richiesta "andamento diverso l'una dall'altra") —
+    # nativo di SUMO, nessuna logica aggiuntiva necessaria — vedi §14.
     route_lines.append('    <vType id="traffic" accel="2.6" decel="4.5" sigma="0.4"')
-    route_lines.append('           length="4.5" maxSpeed="13.89" color="1,0.8,0"/>')
+    route_lines.append('           length="4.5" maxSpeed="13.89" color="1,0.8,0"')
+    route_lines.append('           speedFactor="normc(1,0.2,0.7,1.4)"/>')
 route_lines.append(f'    <route id="piano_enhsp" edges="{cfg["edges"]}"/>')
 route_lines.append('    <vehicle id="veicolo_enhsp" type="auto" route="piano_enhsp"')
-route_lines.append('             depart="1" departSpeed="0"/>')
+route_lines.append(f'             depart="{ego_depart:g}" departSpeed="0"/>')
 depart_rng = random.Random(43)  # seed indipendente dal campionamento delle rotte
-for i, edges in enumerate(background_routes):
-    depart = round(i * 2.5 + depart_rng.uniform(0, 1.5), 1)
-    route_lines.append(f'    <vehicle id="bg{i}" type="traffic" depart="{depart}" departSpeed="0">')
+sim_end_est = cfg.get('end', 800)
+overlap_i = parallel_i = 0
+for i, (kind, edges) in enumerate(background_routes):
+    # Ogni "kind" ha un proprio schema di partenza (vedi generate_background_
+    # traffic/generate_crossing_traffic/generate_parallel_traffic, §14):
+    # - overlap: scaglionate dall'inizio come prima -> le prime precedono
+    #   ego_depart e sono il "pre-spawn lungo il percorso" richiesto;
+    # - parallel: scaglionate a parte (stagger piu' largo, sono rotte piu'
+    #   lunghe su altre vie) cosi' non si accumulano tutte all'inizio;
+    # - cross: sparse per tutta la durata della simulazione (non solo
+    #   all'inizio), perche' rappresentano traffico che attraversa
+    #   l'incrocio in modo continuo nel tempo, non un singolo "corteo".
+    if kind == 'overlap':
+        depart = round(overlap_i * 2.5 + depart_rng.uniform(0, 1.5), 1)
+        overlap_i += 1
+    elif kind == 'parallel':
+        depart = round(parallel_i * 3.0 + depart_rng.uniform(0, 2.0), 1)
+        parallel_i += 1
+    else:  # 'cross'
+        depart = round(depart_rng.uniform(0, min(300.0, sim_end_est * 0.5)), 1)
+    # departPos/departSpeed "random"/"max" invece di partire ferme dal primo
+    # metro dell'arco: sembrano auto gia' in marcia trovate lungo la strada,
+    # non veicoli che si materializzano fermi accanto all'ego (altra parte
+    # della richiesta di "pre-spawn").
+    route_lines.append(
+        f'    <vehicle id="bg{i}" type="traffic" depart="{depart}" '
+        f'departPos="random" departSpeed="max">')
     route_lines.append(f'        <route edges="{" ".join(edges)}"/>')
     route_lines.append('    </vehicle>')
 route_lines.append('</routes>')
@@ -696,7 +984,7 @@ if VIDEO_MODE:
     print(f"VIDEO_OUTPUT:{out_path}")
 else:
     print("Apro sumo-gui...")
-    print("→ Premi ▶ Play — l'auto rossa parte al secondo 1")
+    print(f"→ Premi ▶ Play — l'auto rossa parte al secondo {ego_depart:g}")
     print("→ Ctrl+A per adattare la vista")
     print("→ Click destro sull'auto → Track per seguirla")
     subprocess.Popen([sumo_gui, "-c", CFG_PATH])
