@@ -34,24 +34,18 @@
         <phase duration="6.67" state="rr"/>
     </tlLogic>
     <tlLogic id="12639663" type="static" programID="optimized" offset="0">
-        <phase duration="56" state="GGrrrr"/>
-        <phase duration="4" state="yyrrrr"/>
-        <phase duration="56" state="rrGGGG"/>
-        <phase duration="4" state="rryyyy"/>
+        <phase duration="56" state="GGGrrrr"/>
+        <phase duration="4" state="yyyrrrr"/>
+        <phase duration="56" state="rrrGGGG"/>
+        <phase duration="4" state="rrryyyy"/>
     </tlLogic>
     <tlLogic id="1442755" type="static" programID="optimized" offset="0">
-        <phase duration="56" state="rrGgGg"/>
-        <phase duration="4" state="rryyyy"/>
         <phase duration="56" state="GGrrrr"/>
         <phase duration="4" state="yyrrrr"/>
-    </tlLogic>
-    <tlLogic id="1448436" type="static" programID="optimized" offset="0">
-        <phase duration="50.67" state="GggrrrrGGGg"/>
-        <phase duration="4" state="Gggrrrryyyy"/>
-        <phase duration="8" state="GGGrrrrrrrr"/>
-        <phase duration="4" state="yyyrrrrrrrr"/>
-        <phase duration="49.33" state="rrrGGGgGrrr"/>
-        <phase duration="4" state="rrryyyyGrrr"/>
+        <phase duration="56" state="rrGGrr"/>
+        <phase duration="4" state="rryyrr"/>
+        <phase duration="27" state="rrrrGG"/>
+        <phase duration="3" state="rrrryy"/>
     </tlLogic>
     <tlLogic id="2468942558" type="static" programID="optimized" offset="0">
         <phase duration="109.33" state="GGG"/>
@@ -67,9 +61,10 @@
         <phase duration="120" state="GG"/>
     </tlLogic>
     <tlLogic id="26756133" type="static" programID="optimized" offset="0">
-        <phase duration="109.33" state="GGGg"/>
-        <phase duration="4" state="yyyy"/>
-        <phase duration="6.67" state="rrrr"/>
+        <phase duration="109.33" state="GGrr"/>
+        <phase duration="4" state="Gyrr"/>
+        <phase duration="6.67" state="GrGG"/>
+        <phase duration="3" state="Gryy"/>
     </tlLogic>
     <tlLogic id="26912394" type="static" programID="optimized" offset="0">
         <phase duration="109.33" state="GG"/>
@@ -77,10 +72,10 @@
         <phase duration="6.67" state="rr"/>
     </tlLogic>
     <tlLogic id="3451120784" type="static" programID="optimized" offset="0">
-        <phase duration="56" state="rrGgGg"/>
-        <phase duration="4" state="rryyyy"/>
-        <phase duration="56" state="GGrrrr"/>
-        <phase duration="4" state="yyrrrr"/>
+        <phase duration="56" state="GgrrGg"/>
+        <phase duration="4" state="yyrryy"/>
+        <phase duration="56" state="rrGGrr"/>
+        <phase duration="4" state="rryyrr"/>
     </tlLogic>
     <tlLogic id="4043189655" type="static" programID="optimized" offset="0">
         <phase duration="109.33" state="G"/>
@@ -104,10 +99,10 @@
         <phase duration="4" state="rrrryyyyy"/>
     </tlLogic>
     <tlLogic id="cluster_10937078681_10937078682_659784" type="static" programID="optimized" offset="0">
-        <phase duration="96" state="GGGGrrrr"/>
-        <phase duration="4" state="yyyyrrrr"/>
-        <phase duration="16" state="rrrrGGGG"/>
-        <phase duration="4" state="rrrryyyy"/>
+        <phase duration="96" state="GGGrrrr"/>
+        <phase duration="4" state="yyyrrrr"/>
+        <phase duration="16" state="rrrGGGG"/>
+        <phase duration="4" state="rrryyyy"/>
     </tlLogic>
     <tlLogic id="cluster_10956454830_10956454832_11951145290_344982488_#1more" type="static" programID="optimized" offset="0">
         <phase duration="56" state="GGrr"/>
@@ -116,10 +111,10 @@
         <phase duration="4" state="rryy"/>
     </tlLogic>
     <tlLogic id="cluster_11642373015_434149497" type="static" programID="optimized" offset="0">
-        <phase duration="56" state="GggrrrGGGg"/>
-        <phase duration="4" state="yyyrrrGyyy"/>
-        <phase duration="56" state="rrrGGgGrrr"/>
-        <phase duration="4" state="rrryyyGrrr"/>
+        <phase duration="56" state="rrrGGgGGgg"/>
+        <phase duration="4" state="rrrGyyyyyy"/>
+        <phase duration="56" state="GGgGrrrrrr"/>
+        <phase duration="4" state="yyyGrrrrrr"/>
     </tlLogic>
     <tlLogic id="cluster_11642373017_26912398_305309020" type="static" programID="optimized" offset="0">
         <phase duration="109.33" state="GGggGGgg"/>
@@ -127,31 +122,15 @@
         <phase duration="6.67" state="rrrrrrrr"/>
     </tlLogic>
     <tlLogic id="cluster_11661938741_11661938742_11661938748_1396858833_#1more" type="static" programID="optimized" offset="0">
-        <phase duration="56" state="GGgGgrr"/>
-        <phase duration="4" state="yyyyyrr"/>
-        <phase duration="56" state="rrrrrGG"/>
-        <phase duration="4" state="rrrrryy"/>
-    </tlLogic>
-    <tlLogic id="cluster_11742165391_11742165392_11742165393_11742165399_#1more" type="static" programID="optimized" offset="0">
-        <phase duration="56" state="GGrrr"/>
-        <phase duration="4" state="yyrrr"/>
-        <phase duration="54.67" state="rrGGG"/>
-        <phase duration="4" state="rryyy"/>
-        <phase duration="1.33" state="rrrrr"/>
+        <phase duration="56" state="GGgrrGg"/>
+        <phase duration="4" state="yyyrryy"/>
+        <phase duration="56" state="rrrGGrr"/>
+        <phase duration="4" state="rrryyrr"/>
     </tlLogic>
     <tlLogic id="cluster_12717659201_12717659202_1448439" type="static" programID="optimized" offset="0">
-        <phase duration="109.33" state="GGGgGgg"/>
+        <phase duration="109.33" state="GGgGGgg"/>
         <phase duration="4" state="yyyyyyy"/>
         <phase duration="6.67" state="rrrrrrr"/>
-    </tlLogic>
-    <tlLogic id="cluster_1420455242_2385329737_3585952599_7015280842_#1more" type="static" programID="optimized" offset="0">
-        <phase duration="49.33" state="gGGggrrrrgGGgg"/>
-        <phase duration="4" state="gyyggrrrrgyygg"/>
-        <phase duration="8" state="GrrgGrrrrGrrgG"/>
-        <phase duration="4" state="yrryyrrrryrryy"/>
-        <phase duration="1.33" state="rrrrrrrrrrrrrr"/>
-        <phase duration="49.33" state="rrrrrGGGGrrrrr"/>
-        <phase duration="4" state="rrrrryyyyrrrrr"/>
     </tlLogic>
     <tlLogic id="cluster_1430847297_1573119429" type="static" programID="optimized" offset="0">
         <phase duration="60" state="GGGr"/>

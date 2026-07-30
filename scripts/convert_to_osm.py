@@ -7,9 +7,12 @@ zone = [
 ]
 
 for osm, net in zone:
-    
-    comando = f"netconvert --osm-files {osm} -o {net} --geometry.remove --junctions.join --tls.guess-signals"
-    
+
+    # --lefthand: Dublino (Irlanda) si guida a SINISTRA. Senza questa opzione
+    # netconvert costruisce la rete per la guida a destra e in SUMO le auto
+    # viaggiano dal lato sbagliato.
+    comando = f"netconvert --osm-files {osm} -o {net} --geometry.remove --junctions.join --tls.guess-signals --lefthand"
+
     os.system(comando)
 
 print("Tutte le conversioni sono finite!")

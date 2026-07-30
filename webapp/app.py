@@ -35,6 +35,28 @@ PDDL_DIR = os.path.join(PROJECT_ROOT, 'pddl_files')
 graph_store = {}
 
 
+def route_seg_geom(route, nm_inv, edge_geom, node_data):
+    """Geometria reale (polilinea lat/lon) di ogni tratto del percorso, nello
+    stesso ordine del piano. Serve a SUMO per agganciare il percorso alle
+    strade ESATTE scelte dal planner (map-matching in sumo_visualize): senza
+    la forma della via, fra due incroci SUMO potrebbe imboccare una parallela
+    piu' corta. Se un tratto non ha geometria salvata si ripiega sul segmento
+    dritto fra i due nodi."""
+    segs = []
+    for i in range(len(route) - 1):
+        a = nm_inv.get(route[i]); b = nm_inv.get(route[i + 1])
+        g = None
+        if a and b:
+            g = edge_geom.get((a, b))
+            if g is None and edge_geom.get((b, a)):
+                g = list(reversed(edge_geom[(b, a)]))
+        if not g and a and b and a in node_data and b in node_data:
+            g = [[node_data[a]['lat'], node_data[a]['lon']],
+                 [node_data[b]['lat'], node_data[b]['lon']]]
+        segs.append(g or [])
+    return segs
+
+
 # ── routes ────────────────────────────────────────────────────────────────────
 
 @app.route('/')
@@ -56,7 +78,7 @@ def generate():
     osm_file.save(osm_path)
 
     try:
-        node_data, adj, signal_node_ids, edge_highway = build_contracted_graph(osm_path)
+        node_data, adj, signal_node_ids, edge_highway, edge_geom = build_contracted_graph(osm_path)
         if not adj:
             return jsonify({'error': 'No drivable road found in the OSM file'}), 400
 
@@ -95,6 +117,7 @@ def generate():
             'cong_delays': cong_delays,
             'vehicle_counts': vc,
             'edge_highway': sub_hw,
+            'edge_geom':    edge_geom,
         }
 
         nodes_out = [{
@@ -110,6 +133,9 @@ def generate():
             'from': nm[a], 'to': nm[b], 'distance': d, 'speed': spd,
             'vehicle_count': vc.get((a, b), 0),
             'congestion_factor': round(1.0 + vc.get((a, b), 0) / 10.0, 2),
+            # real road geometry (lat/lon shape points) so the map can draw the
+            # route along the actual streets, matching SUMO
+            'geom': edge_geom.get((a, b)),
         } for (a, b), (d, spd) in edges.items()]
 
         return jsonify({
@@ -149,6 +175,7 @@ def solve():
     cong_delays  = store.get('cong_delays', {})
     vc           = store.get('vehicle_counts', {})
     sub_hw       = store.get('edge_highway', {})
+    edge_geom    = store.get('edge_geom', {})
 
     start_osm = nm_inv.get(start_pddl)
     goal_osm  = nm_inv.get(goal_pddl)
@@ -227,8 +254,19 @@ def solve():
                 # instead of recomputing its own start->goal Dijkstra.
                 route_path = os.path.join(PDDL_DIR, 'route_custom.json')
                 try:
+                    # salvo anche le coordinate di ogni nodo: servono a SUMO
+                    # per agganciare alla junction giusta i nodi che netconvert
+                    # ha semplificato (start/goal compresi), altrimenti l'auto
+                    # partirebbe da un altro punto.
+                    coords = {}
+                    for r in (route or []):
+                        o = nm_inv.get(r)
+                        if o and o in node_data:
+                            coords[r] = [node_data[o]['lat'], node_data[o]['lon']]
+                    seg_geom = route_seg_geom(route or [], nm_inv, edge_geom, node_data)
                     with open(route_path, 'w', encoding='utf-8') as f:
-                        json.dump({'route': route or []}, f)
+                        json.dump({'route': route or [], 'coords': coords,
+                                   'seg_geom': seg_geom}, f)
                 except Exception:
                     pass
 
@@ -346,6 +384,7 @@ def replan():
     cong_delays = store.get('cong_delays', {})
     vc = store.get('vehicle_counts', {})
     sub_hw = store.get('edge_highway', {})
+    edge_geom = store.get('edge_geom', {})
 
     route = data.get('route') or []
     goal_pddl = data.get('goal')
@@ -436,8 +475,15 @@ def replan():
         # save only the new leg, not the whole trip: the pddl starts at
         # replan_from and SUMO centres the view there, so the car has to spawn
         # at the reroute point (adding the old leg also made it do a U-turn).
+        coords = {}
+        for r in (new_route or []):
+            o = nm_inv.get(r)
+            if o and o in node_data:
+                coords[r] = [node_data[o]['lat'], node_data[o]['lon']]
+        seg_geom = route_seg_geom(new_route or [], nm_inv, edge_geom, node_data)
         with open(os.path.join(PDDL_DIR, 'route_custom.json'), 'w', encoding='utf-8') as f:
-            json.dump({'route': new_route or []}, f)
+            json.dump({'route': new_route or [], 'coords': coords,
+                       'seg_geom': seg_geom}, f)
     except Exception:
         pass
 

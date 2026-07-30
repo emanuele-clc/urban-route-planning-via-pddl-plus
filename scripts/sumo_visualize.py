@@ -19,7 +19,146 @@ def parse_vehicle_counts(text):
         out[(m.group(1), m.group(2))] = int(m.group(3))
     return out
 
-def route_to_sumo_edges(route_names, graph, jpos, junc_ids, vehicle_counts=None):
+def fit_lonlat_affine(route_names, route_coords, junc_ids, jpos):
+    """Trasformazione affine (lon,lat) -> (x,y) del sistema di coordinate della
+    rete SUMO, ricavata ai minimi quadrati dai nodi del piano che mappano per
+    id (di cui conosciamo sia lat/lon — salvate dalla webapp — sia la posizione
+    rete via jpos). Su un'area piccola la proiezione UTM e' di fatto lineare,
+    quindi l'affine e' accuratissima. Ritorna (cx, cy) oppure None."""
+    if not route_coords:
+        return None
+    rows = []; xs = []; ys = []
+    for name in (route_names or []):
+        j = pddl_name_to_junction(name, junc_ids)
+        c = route_coords.get(name)
+        if j and j in jpos and c:
+            rows.append([float(c[1]), float(c[0]), 1.0])   # lon, lat, 1
+            xs.append(jpos[j][0]); ys.append(jpos[j][1])
+    if len(rows) < 3:
+        return None
+    try:
+        import numpy as np
+        A = np.array(rows, dtype=float)
+        cx, *_ = np.linalg.lstsq(A, np.array(xs, dtype=float), rcond=None)
+        cy, *_ = np.linalg.lstsq(A, np.array(ys, dtype=float), rcond=None)
+        return (cx, cy)
+    except Exception:
+        return None
+
+
+def _lonlat_to_xy(lat, lon, coef):
+    cx, cy = coef
+    return (cx[0] * lon + cx[1] * lat + cx[2],
+            cy[0] * lon + cy[1] * lat + cy[2])
+
+
+def load_edge_shapes(net_path):
+    """{edge_id: [(x,y), ...]} — forma della prima corsia di ogni edge normale
+    del net.xml (esclusi gli edge interni ':...'). Serve al map-matching per
+    riconoscere quale edge SUMO corrisponde a un tratto reale del percorso."""
+    root = ET.parse(net_path).getroot()
+    shapes = {}
+    for e in root.findall('edge'):
+        eid = e.get('id')
+        if not eid or eid.startswith(':') or e.get('function') == 'internal':
+            continue
+        lane = e.find('lane')
+        if lane is None or not lane.get('shape'):
+            continue
+        try:
+            pts = [tuple(map(float, p.split(','))) for p in lane.get('shape').split()]
+        except Exception:
+            continue
+        if len(pts) >= 2:
+            shapes[eid] = pts
+    return shapes
+
+
+def _geo_dijkstra(graph, start, goal, geom_xy, edge_shapes, lam=4.0):
+    """Come dijkstra(), ma quando deve RIEMPIRE un buco fra due incroci del
+    piano (nodi intermedi che SUMO ha semplificato) sceglie il cammino che
+    ADERISCE alla via reale invece del piu' corto in assoluto. 'geom_xy' e' la
+    polilinea reale di quel tratto (coordinate rete); il costo di ogni edge e'
+    la sua lunghezza + lam * (distanza media della sua forma dalla polilinea),
+    cosi' fra due strade parallele vince quella su cui passa davvero il
+    percorso della webapp. Localizzato al singolo buco: non introduce le
+    deviazioni globali del map-matching su tutto il tragitto."""
+    import heapq
+    memo = {}
+
+    def pen(eid):
+        if eid in memo:
+            return memo[eid]
+        pts = edge_shapes.get(eid)
+        if not pts:
+            memo[eid] = 0.0; return 0.0
+        step = max(1, len(pts) // 3)
+        tot = 0.0; c = 0
+        for (x, y) in pts[::step]:
+            tot += min((gx - x) ** 2 + (gy - y) ** 2 for gx, gy in geom_xy) ** 0.5
+            c += 1
+        memo[eid] = tot / c if c else 0.0
+        return memo[eid]
+
+    dist = {start: 0.0}; prev = {}; heap = [(0.0, start)]
+    while heap:
+        d, u = heapq.heappop(heap)
+        if d > dist.get(u, float('inf')):
+            continue
+        if u == goal:
+            break
+        for v, eid, length in graph[u]:
+            nd = d + length + lam * pen(eid)
+            if nd < dist.get(v, float('inf')):
+                dist[v] = nd; prev[v] = (u, eid)
+                heapq.heappush(heap, (nd, v))
+    if goal not in prev:
+        return None
+    edges = []; cur = goal
+    while cur in prev:
+        p, eid = prev[cur]; edges.append(eid); cur = p
+    return list(reversed(edges))
+
+
+def make_snapper(junc_ids, jpos, route_names, route_coords):
+    """Ritorna una funzione snap(name) -> id junction SUMO.
+
+    Prima prova la mappatura per id (pddl_name_to_junction: esatta/suffisso/
+    cluster). Se fallisce — cioe' netconvert ha semplificato quel nodo OSM e
+    non esiste come junction — ripiega su una mappatura GEOGRAFICA: stima la
+    posizione del nodo nel sistema di coordinate della rete e prende la
+    junction piu' vicina.
+
+    La stima usa una trasformazione affine (lon,lat) -> (x,y) ricavata ai
+    minimi quadrati dai nodi del piano che INVECE mappano per id (di cui
+    conosciamo sia la coppia lat/lon, salvata dalla webapp in route_custom.json,
+    sia le coordinate rete via jpos). Su un'area piccola la proiezione UTM e'
+    di fatto lineare, quindi l'affine e' accuratissima.
+
+    Serviva perche' quando lo START non e' una junction SUMO la vecchia logica
+    ripiegava sul primo nodo mappabile del piano, facendo partire l'auto piu'
+    avanti e nella direzione sbagliata (bug: "parte verso sotto invece che a
+    sinistra")."""
+    coef = fit_lonlat_affine(route_names, route_coords, junc_ids, jpos)
+    jitems = list(jpos.items())
+
+    def snap(name):
+        j = pddl_name_to_junction(name, junc_ids)
+        if j:
+            return j
+        c = route_coords.get(name)
+        if coef is not None and c and jitems:
+            px, py = _lonlat_to_xy(float(c[0]), float(c[1]), coef)
+            best_j, _ = min(jitems,
+                            key=lambda kv: (kv[1][0] - px) ** 2 + (kv[1][1] - py) ** 2)
+            return best_j
+        return None
+
+    return snap
+
+
+def route_to_sumo_edges(route_names, graph, jpos, junc_ids, vehicle_counts=None, snap=None,
+                        seg_geom=None, coef=None, edge_shapes=None):
     """Converte l'INTERO piano ENHSP (sequenza di nodi PDDL) in una lista di
     edge SUMO collegati, cosi' SUMO percorre le stesse strade scelte dal
     planner invece di un Dijkstra generico start->goal sulla rete SUMO.
@@ -39,19 +178,55 @@ def route_to_sumo_edges(route_names, graph, jpos, junc_ids, vehicle_counts=None)
     intermedio non e' mappabile): la congestione di quegli hop viene sommata
     e assegnata per intero a tutti gli edge SUMO del segmento risultante."""
     vehicle_counts = vehicle_counts or {}
+    if snap is None:
+        snap = lambda name: pddl_name_to_junction(name, junc_ids)
+    # ANCORE = solo i nodi che mappano per ID a una junction SUMO: sono punti
+    # sicuri del percorso. I nodi intermedi che NON mappano (semplificati da
+    # netconvert) NON vengono forzati sulla "junction piu' vicina" — farlo
+    # creava piccoli giri a U quando quella junction e' leggermente fuori
+    # percorso — ma la loro geometria reale viene comunque usata per riempire
+    # il buco fra due ancore (vedi _geo_dijkstra sotto). Lo snap geografico
+    # resta solo per START e GOAL, che servono come estremi anche se non
+    # mappano.
+    n_route = len(route_names)
     junctions = []
     anchor_idx = []
     for idx, name in enumerate(route_names):
         j = pddl_name_to_junction(name, junc_ids)
+        if not j and (idx == 0 or idx == n_route - 1):
+            j = snap(name)
         if j and (not junctions or j != junctions[-1]):
             junctions.append(j)
             anchor_idx.append(idx)
     if len(junctions) < 2:
         return None, None
+    geo_ok = bool(seg_geom and coef is not None and edge_shapes)
     all_edges = []
     all_weights = []
     for i in range(len(junctions) - 1):
-        seg = dijkstra(graph, junctions[i], junctions[i+1])
+        a, b = junctions[i], junctions[i+1]
+        # Se le due junction sono collegate DIRETTAMENTE, quell'arco e' la
+        # strada scelta dal piano: usalo tale e quale. Se invece c'e' un buco
+        # (un nodo intermedio del piano non e' una junction SUMO) lo si riempie
+        # col cammino che ADERISCE alla geometria reale di quel tratto
+        # (_geo_dijkstra): cosi' fra due parallele si prende quella giusta,
+        # non una scorciatoia diversa dal percorso della webapp. Solo se manca
+        # la geometria si ripiega sul Dijkstra a lunghezza minima.
+        direct = sorted((ln, eid) for (to, eid, ln) in graph.get(a, []) if to == b)
+        if direct:
+            seg = [direct[0][1]]
+        else:
+            seg = None
+            if geo_ok:
+                G = []
+                for k in range(anchor_idx[i], anchor_idx[i+1]):
+                    if k < len(seg_geom):
+                        for p in (seg_geom[k] or []):
+                            G.append(_lonlat_to_xy(float(p[0]), float(p[1]), coef))
+                if len(G) >= 2:
+                    seg = _geo_dijkstra(graph, a, b, G, edge_shapes)
+            if not seg:
+                seg = dijkstra(graph, a, b)
         if not seg:
             return None, None
         seg_weight = sum(
@@ -426,15 +601,22 @@ def compute_edges_from_pddl(pddl_path, net_path):
     # piano completo calcolato da ENHSP (sequenza di nodi), se la webapp
     # lo ha salvato accanto al problem.pddl
     route_names = None
+    route_coords = {}
+    route_seg_geom = []
     route_path = os.path.join(os.path.dirname(os.path.abspath(pddl_path)), "route_custom.json")
     if os.path.exists(route_path):
         try:
             with open(route_path) as f:
-                r = (json.load(f).get('route')) or []
+                data = json.load(f)
+            r = (data.get('route')) or []
+            route_coords = data.get('coords') or {}
+            route_seg_geom = data.get('seg_geom') or []
             if len(r) >= 2:
                 route_names = r
         except Exception:
             route_names = None
+            route_coords = {}
+            route_seg_geom = []
 
     # prova prima la net della zona indicata, poi le altre due
     # NB: lo script sta in scripts/, quindi la radice del progetto (dove c'e'
@@ -458,13 +640,14 @@ def compute_edges_from_pddl(pddl_path, net_path):
             continue
         graph, jpos, eid_len, edge_type, connected_pairs = build_sumo_graph(candidate)
         junc_ids = set(jpos.keys())
-        start_j = pddl_name_to_junction(start_name, junc_ids)
-        goal_j = pddl_name_to_junction(goal_name, junc_ids)
+        snap = make_snapper(junc_ids, jpos, route_names, route_coords)
+        start_j = snap(start_name)
+        goal_j = snap(goal_name)
 
         # junction del piano, in ordine, saltando i nodi non mappabili
         route_js = []
         for nm_ in (route_names or []):
-            j = pddl_name_to_junction(nm_, junc_ids)
+            j = snap(nm_)
             if j and (not route_js or j != route_js[-1]):
                 route_js.append(j)
 
@@ -473,7 +656,7 @@ def compute_edges_from_pddl(pddl_path, net_path):
             'net': candidate, 'graph': graph, 'jpos': jpos, 'eid_len': eid_len,
             'edge_type': edge_type, 'connected_pairs': connected_pairs,
             'junc_ids': junc_ids, 'start_j': start_j, 'goal_j': goal_j,
-            'route_js': route_js, 'score': score,
+            'route_js': route_js, 'score': score, 'snap': snap,
         }
         if best is None or score > best['score']:
             best = cand
@@ -490,6 +673,7 @@ def compute_edges_from_pddl(pddl_path, net_path):
     connected_pairs = best['connected_pairs']
     used_net = best['net']
     start_j, goal_j, route_js = best['start_j'], best['goal_j'], best['route_js']
+    snap = best['snap']
 
     if used_net != net_path:
         print(f"  (uso net: {os.path.basename(used_net)})")
@@ -517,10 +701,21 @@ def compute_edges_from_pddl(pddl_path, net_path):
 
     edges = None
     weights = None
+    # Percorso SUMO = piano ENHSP, seguito incrocio per incrocio. Gli archi
+    # diretti sono le strade scelte dal planner; i buchi (nodi semplificati da
+    # netconvert) si riempiono col cammino che ADERISCE alla geometria reale
+    # del tratto (map-matching LOCALE), cosi' SUMO percorre esattamente le
+    # stesse vie marcate sulla webapp senza le deviazioni di un map-matching
+    # globale.
     if route_names:
-        edges, weights = route_to_sumo_edges(route_names, graph, jpos, junc_ids, vehicle_counts)
+        coef = fit_lonlat_affine(route_names, route_coords, junc_ids, jpos)
+        edge_shapes = load_edge_shapes(used_net) if route_seg_geom else None
+        edges, weights = route_to_sumo_edges(
+            route_names, graph, jpos, junc_ids, vehicle_counts, snap=snap,
+            seg_geom=route_seg_geom, coef=coef, edge_shapes=edge_shapes)
         if edges:
-            print(f"  (percorso SUMO = piano ENHSP, {len(route_names)} nodi)")
+            print(f"  (percorso SUMO = piano ENHSP, {len(route_names)} nodi, "
+                  f"{len(edges)} edge)")
         else:
             print("  (piano non mappabile passo-passo, uso Dijkstra start→goal)")
 
@@ -551,7 +746,10 @@ def compute_edges_from_pddl(pddl_path, net_path):
             path_junctions.append(fr)
         path_junctions.append(to)
 
-    sp = jpos[start_j]
+    # centra la vista sull'inizio reale del primo edge percorso (col
+    # map-matching la partenza puo' non coincidere con la junction 'start_j')
+    fr0 = edge_endpoints.get(edges[0], (None, None))[0]
+    sp = jpos.get(fr0) or jpos[start_j]
     return ' '.join(edges), {
         'start': start_name, 'goal': goal_name,
         'x': sp[0], 'y': sp[1],
@@ -685,7 +883,7 @@ CONFIGS = {
             "4396056 1288830596 1179644329 1179644328 "
             "1254511872 1254511870 1254511871 125864859 "
             "5976028#2 5976028#3 16247623#1 "
-            "4396059#0 4396059#2 846644599 668344588 "
+            "4396059#0 4396059#2 846644599 "
             "-317003249#3 -317003249#2 -369564011 -5826896 876578189 4919471"
         ),
         "zoom": 3000, "x": 144, "y": 535,
@@ -916,6 +1114,32 @@ for _, lines in entries:
 route_lines.append('</routes>')
 with open(ROU_PATH, "w") as f:
     f.write("\n".join(route_lines) + "\n")
+
+# ── Centra la vista sul punto dove nasce l'auto ───────────────
+# Il veicolo ENHSP parte all'inizio del PRIMO arco della rotta: leggo la
+# prima coordinata della sua corsia dal net.xml e ci centro il viewport,
+# cosi' la finestra si apre sempre inquadrando l'auto — in ogni zona e sia
+# in modalita' standard sia dinamica (dove il preset x/y fisso spesso non
+# cadeva sul punto di partenza reale).
+def _first_edge_spawn_xy(net_path, first_edge_id):
+    try:
+        root = ET.parse(net_path).getroot()
+        for e in root.findall('edge'):
+            if e.get('id') == first_edge_id:
+                lane = e.find('lane')
+                if lane is not None and lane.get('shape'):
+                    x, y = lane.get('shape').split()[0].split(',')[:2]
+                    return float(x), float(y)
+    except Exception:
+        pass
+    return None
+
+_first_edge = (cfg.get('edges', '').split() or [None])[0]
+_spawn = _first_edge_spawn_xy(NET, _first_edge) if _first_edge else None
+if _spawn:
+    cfg['x'], cfg['y'] = _spawn
+    cfg['zoom'] = cfg.get('zoom', 3000) or 3000
+    print(f"  Vista    : centrata sulla partenza (x={_spawn[0]:.0f}, y={_spawn[1]:.0f})")
 
 # ── Impostazioni grafica ──────────────────────────────────────
 GUI_PATH = os.path.join(OUT, f"gui_{zona}.xml")

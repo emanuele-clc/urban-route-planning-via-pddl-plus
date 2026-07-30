@@ -97,29 +97,42 @@ def build_contracted_graph(osm_path):
 
     adj = defaultdict(dict)
     edge_highway = {}
+    # edge_geom[(a, b)] = full road geometry [[lat, lon], ...] between the two
+    # junctions, including the OSM shape points that node contraction dropped.
+    # Lets the map draw the route along the real streets instead of straight
+    # lines between intersections (which looked different from SUMO).
+    edge_geom = {}
+
+    def _xy(n):
+        return [node_data[n]["lat"], node_data[n]["lon"]]
+
     for nds, spd, oneway, hw in good_ways:
-        seg_start = None; seg_dist = 0
+        seg_start = None; seg_dist = 0; seg_coords = []
         for i, nid in enumerate(nds):
             if i == 0:
                 if nid in junctions:
-                    seg_start = nid; seg_dist = 0
+                    seg_start = nid; seg_dist = 0; seg_coords = [_xy(nid)]
                 continue
             prev = nds[i - 1]
             if prev in node_data and nid in node_data:
                 seg_dist += haversine(node_data[prev]["lat"], node_data[prev]["lon"],
                                       node_data[nid]["lat"],  node_data[nid]["lon"])
+            if seg_start is not None and nid in node_data:
+                seg_coords.append(_xy(nid))
             if nid in junctions:
                 if seg_start and seg_start != nid and seg_dist > 0:
                     if nid not in adj[seg_start] or adj[seg_start][nid][0] > seg_dist:
                         adj[seg_start][nid] = (seg_dist, spd)
                         edge_highway[(seg_start, nid)] = hw
+                        edge_geom[(seg_start, nid)] = list(seg_coords)
                     if not oneway:
                         if seg_start not in adj[nid] or adj[nid][seg_start][0] > seg_dist:
                             adj[nid][seg_start] = (seg_dist, spd)
                             edge_highway[(nid, seg_start)] = hw
-                seg_start = nid; seg_dist = 0
+                            edge_geom[(nid, seg_start)] = list(reversed(seg_coords))
+                seg_start = nid; seg_dist = 0; seg_coords = [_xy(nid)]
 
-    return node_data, adj, signal_node_ids, edge_highway
+    return node_data, adj, signal_node_ids, edge_highway, edge_geom
 
 
 # ── congestion computation ──────────────────────────────────────────────────────

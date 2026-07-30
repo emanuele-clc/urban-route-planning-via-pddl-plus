@@ -660,6 +660,7 @@ let state = {
   replan: null,              // result of the last recalculation
   routeHints: {},            // "A|B" -> 'safe' | 'critical' (is closure feasible?)
   edgeLines: {},             // "A|B" -> {line, from, to}
+  edgeGeom: {},              // "A>B" -> real road geometry [[lat,lon],...]
 };
 let leafletMap = null, markerLayer = null, edgeLayer = null, routeLayer = null;
 let blockLayer = null, replanLayer = null;
@@ -756,6 +757,8 @@ document.getElementById('gen-btn').addEventListener('click', async () => {
     const data = await res.json();
     if (data.error) { alert('Error: ' + data.error); return; }
     state.token = data.token; state.nodes = data.nodes; state.edges = data.edges;
+    state.edgeGeom = {};
+    data.edges.forEach(e => { if (e.geom && e.geom.length > 1) state.edgeGeom[e.from + '>' + e.to] = e.geom; });
     state.autoStart = data.auto_start; state.autoGoal = data.auto_goal;
     state.selectedStart = data.auto_start; state.selectedGoal = data.auto_goal;
     state.reachableFromStart = computeReachable(data.auto_start);
@@ -848,10 +851,10 @@ function renderMap() {
     if (!a || !b) return;
     const key = edgeKey(e.from, e.to);
     if (state.edgeLines[key]) return;              // avoids A->B / B->A duplicates
-    const line = L.polyline([[a.lat,a.lon],[b.lat,b.lon]], edgeStyle(key));
+    const ll = edgeGeomFor(e.from, e.to) || [[a.lat,a.lon],[b.lat,b.lon]];
+    const line = L.polyline(ll, edgeStyle(key));
     // invisible, thicker lane: makes clicking much easier
-    const hit = L.polyline([[a.lat,a.lon],[b.lat,b.lon]],
-                           { color:'#000', weight:12, opacity:0, interactive:true });
+    const hit = L.polyline(ll, { color:'#000', weight:12, opacity:0, interactive:true });
     const onClick = () => { if (state.blockMode) toggleBlockedEdge(key, e.from, e.to); };
     hit.on('click', onClick);
     line.on('click', onClick);
@@ -972,9 +975,31 @@ function redrawMarkers() {
   markerLayer.addTo(leafletMap);
 }
 
+// real road geometry for a directed hop (falls back to the straight segment)
+function edgeGeomFor(from, to) {
+  const g = state.edgeGeom || {};
+  if (g[from + '>' + to]) return g[from + '>' + to];
+  if (g[to + '>' + from]) return g[to + '>' + from].slice().reverse();
+  return null;
+}
+// full lat/lng list of a route, following the real streets hop by hop
+function routeLatLngs(route) {
+  const out = [];
+  for (let i = 0; i < route.length - 1; i++) {
+    const geo = edgeGeomFor(route[i], route[i + 1]);
+    if (geo && geo.length > 1) {
+      for (let k = (out.length ? 1 : 0); k < geo.length; k++) out.push(geo[k]);
+    } else {
+      const a = nodeById(route[i]), b = nodeById(route[i + 1]);
+      if (a && b) { if (!out.length) out.push([a.lat, a.lon]); out.push([b.lat, b.lon]); }
+    }
+  }
+  return out;
+}
+
 function drawRoute(route) {
   if (routeLayer) leafletMap.removeLayer(routeLayer);
-  const pts = route.map(id => { const n = nodeById(id); return n ? [n.lat, n.lon] : null; }).filter(Boolean);
+  const pts = routeLatLngs(route);
   if (pts.length < 2) return;
   routeLayer = L.layerGroup();
   L.polyline(pts, { color: '#0ea5e9', weight: 7, opacity: 0.35 }).addTo(routeLayer);   // glow
@@ -1205,7 +1230,7 @@ function drawReplanRoute(d) {
   if (routeLayer)  { leafletMap.removeLayer(routeLayer);  routeLayer = null; }
   if (replanLayer) leafletMap.removeLayer(replanLayer);
   replanLayer = L.layerGroup();
-  const pts = ids => ids.map(id => { const n = nodeById(id); return n ? [n.lat, n.lon] : null; }).filter(Boolean);
+  const pts = ids => routeLatLngs(ids || []);   // follow the real streets
 
   const oldPts = pts(state.lastRoute || []);
   if (oldPts.length > 1)
