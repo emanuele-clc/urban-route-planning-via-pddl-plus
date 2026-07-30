@@ -18,10 +18,43 @@ from collections import defaultdict
 
 
 def build_sumo_graph(net_path):
-    """Legge net.xml e ritorna (graph, jpos, eid_len):
+    """Legge net.xml e ritorna (graph, jpos, eid_len, edge_type, connected_pairs):
     - graph: {junction_from: [(junction_to, edge_id, length), ...]}
     - jpos:  {junction_id: (x, y)} (esclude le junction interne ':...')
     - eid_len: {edge_id: length}
+    - edge_type: {edge_id: tipo strada OSM SENZA il prefisso 'highway.' che
+      netconvert scrive nell'attributo 'type' (es. 'residential',
+      'primary'), cosi' e' direttamente compatibile con le chiavi gia'
+      usate da CONGESTION_DELAY_BY_HIGHWAY in webapp/osm_graph.py invece di
+      richiedere una normalizzazione (o un mancato match silenzioso) in
+      ogni punto che lo consuma — vedi 6_proposte_realismo_traffico.md,
+      incoerenza A. Stringa vuota se l'attributo manca.
+    - connected_pairs: {(edge_id_from, edge_id_to), ...} dagli elementi
+      <connection> del net.xml. 'graph' dice solo quali edge condividono
+      una junction (from/to), NON se SUMO permette davvero quel passaggio:
+      due edge diversi possono arrivare/partire dalla stessa junction senza
+      che esista una <connection> reale fra loro (es. per via di divieti di
+      svolta, o — caso osservato — due strade DIVERSE che collegano la
+      stessa coppia di junction, dove solo una delle combinazioni e'
+      effettivamente connessa). Un percorso che concatena due edge non in
+      connected_pairs e' un errore FATALE per SUMO ("Error: Vehicle ... has
+      no valid route. No connection between edge X and edge Y" — la
+      simulazione si ferma subito, ancora piu' grave del warning di ordine
+      di partenza gia' visto), quindi qualunque codice che compone rotte
+      arco-per-arco SENZA passare da un Dijkstra sull'intero percorso
+      (come dijkstra() qui sotto, che e' comunque a livello di junction e
+      non lo garantisce nemmeno lui) deve validare ogni coppia di edge
+      adiacenti contro connected_pairs prima di accettarla — vedi
+      generate_crossing_traffic/generate_parallel_traffic/
+      generate_wander_traffic in sumo_visualize.py.
+
+    ATTENZIONE per chi tocca la firma di questa funzione: NON e' usata solo
+    da sumo_visualize.py. scripts/compare_sumo.py la importa con alias
+    (`build_sumo_graph as _build_sumo_graph`) e la spacchetta
+    posizionalmente in un wrapper locale — vedi incoerenza B nello stesso
+    documento. Se si aggiungono altri valori di ritorno, aggiornare anche
+    quel wrapper (o farlo con un `grep -rn "build_sumo_graph(" scripts/`
+    per essere sicuri di aver trovato tutti i chiamanti).
     """
     root = ET.parse(net_path).getroot()
     jpos = {}
@@ -32,6 +65,7 @@ def build_sumo_graph(net_path):
         jpos[jid] = (float(j.get('x', 0)), float(j.get('y', 0)))
     graph = defaultdict(list)
     eid_len = {}
+    edge_type = {}
     for e in root.findall('edge'):
         eid = e.get('id')
         if eid is None or eid.startswith(':'):
@@ -43,7 +77,16 @@ def build_sumo_graph(net_path):
         length = float(lanes[0].get('length', 1)) if lanes else 1.0
         graph[fr].append((to, eid, length))
         eid_len[eid] = length
-    return graph, jpos, eid_len
+        raw_type = e.get('type', '')
+        edge_type[eid] = raw_type.split('.', 1)[1] if '.' in raw_type else raw_type
+    connected_pairs = set()
+    for c in root.findall('connection'):
+        fr, to = c.get('from'), c.get('to')
+        # gli edge interni (':...', le "vie" dentro l'incrocio) non sono
+        # mai id di edge percorribili in una <route>, quindi irrilevanti qui
+        if fr and to and not fr.startswith(':') and not to.startswith(':'):
+            connected_pairs.add((fr, to))
+    return graph, jpos, eid_len, edge_type, connected_pairs
 
 
 def dijkstra(graph, start, goal):

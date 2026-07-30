@@ -105,8 +105,9 @@ def find_sumo_bin(name="sumo"):
 # ---------------------------------------------------------------------------
 def build_sumo_graph(net_path):
     """Wrapper su sumo_common.build_sumo_graph: qui serve solo (graph,
-    junc_ids), non eid_len (usato solo da sumo_visualize.py)."""
-    graph, jpos, _eid_len = _build_sumo_graph(net_path)
+    junc_ids), non eid_len/edge_type/connected_pairs (usati solo da
+    sumo_visualize.py)."""
+    graph, jpos, _eid_len, _edge_type, _connected_pairs = _build_sumo_graph(net_path)
     return graph, set(jpos.keys())
 
 

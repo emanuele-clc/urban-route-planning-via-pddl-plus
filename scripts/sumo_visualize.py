@@ -61,10 +61,62 @@ def route_to_sumo_edges(route_names, graph, jpos, junc_ids, vehicle_counts=None)
         all_weights.extend([seg_weight] * len(seg))
     return (all_edges, all_weights) if all_edges else (None, None)
 
-def generate_background_traffic(ego_edges, edge_weights=None, seed=42, scale=1.0,
-                                  base_vehicles=18, max_vehicles=120,
+def _reverse_id(eid):
+    """L'id dell'edge SUMO che percorre la STESSA strada in direzione
+    opposta. In queste net (esportate da OSM via netconvert) le due
+    direzioni di una via a doppio senso sono quasi sempre lo stesso id a
+    meno del segno ('42902482' / '-42902482'): qualunque logica che sceglie
+    archi adiacenti in un grafo deve escludere l'id "opposto" dell'arco
+    appena scelto sul lato adiacente, altrimenti si ottiene un'inversione a
+    U immediata invece di un attraversamento (bug reale trovato e corretto
+    in generate_crossing_traffic — vedi 5_traffico_sfondo_sumo.md §14)."""
+    return eid[1:] if eid.startswith('-') else '-' + eid
+
+
+def _templates_and_repeat(n_wanted, max_templates):
+    """Da un numero di veicoli 'voluto' (gia' scalato secondo TRAFFIC_SCALE
+    e limitato da un tetto assoluto) deriva (n_templates, repeat):
+    n_templates rotte DISTINTE da generare, ciascuna ripetuta 'repeat' volte
+    nel tempo con un <flow> invece che con un singolo <vehicle> (vedi
+    6_proposte_realismo_traffico.md, punto 2). Senza questo, ogni rotta
+    generata sarebbe un veicolo unico che parte quasi subito e non si
+    ripresenta mai piu': con simulazioni lunghe (sim_end anche 1000+s) il
+    traffico di sfondo si dirada nella seconda meta' perche' i veicoli gia'
+    inseriti completano la rotta e vengono rimossi senza sostituti. Con
+    meno template ripetuti nel tempo, lo stesso budget di veicoli resta
+    presente per tutta la durata della simulazione invece di esaurirsi nei
+    primi minuti."""
+    if n_wanted <= 0:
+        return 0, 0
+    n_templates = min(max_templates, n_wanted)
+    repeat = max(1, round(n_wanted / n_templates))
+    return n_templates, repeat
+
+
+# Bonus di densita' per tipo di strada OSM (vedi build_sumo_graph/edge_type
+# in sumo_common.py): stesse chiavi di CONGESTION_DELAY_BY_HIGHWAY in
+# webapp/osm_graph.py (il prefisso 'highway.' scritto da netconvert
+# nell'attributo 'type' del net.xml viene gia' tolto in build_sumo_graph),
+# cosi' le due tabelle restano coerenti senza doverle tradurre a runtime —
+# vedi 6_proposte_realismo_traffico.md, punto 3 e incoerenza A. Sono pesi
+# relativi (non secondi di ritardo come CONGESTION_DELAY_BY_HIGHWAY): una
+# primaria pesa piu' di una residenziale a prescindere dal vehicle-count
+# del PDDL, che resta comunque il segnale primario (vedi congestion_bonus
+# in generate_background_traffic).
+ROAD_TYPE_WEIGHT = {
+    "primary": 2.0, "primary_link": 1.5,
+    "secondary": 1.2, "secondary_link": 1.0,
+    "tertiary": 0.6, "tertiary_link": 0.4,
+    "residential": 0.3, "living_street": 0.1,
+    "motorway": 0.0, "motorway_link": 0.0,
+    "trunk": 0.0, "trunk_link": 0.0, "unclassified": 0.0,
+}
+
+
+def generate_background_traffic(ego_edges, edge_weights=None, edge_type=None, seed=42, scale=1.0,
+                                  base_vehicles=28, max_vehicles=170, max_templates=28,
                                   min_span_frac=0.45, max_span_frac=1.0,
-                                  congestion_bonus=0.6):
+                                  congestion_bonus=0.6, road_type_bonus=0.5):
     """Genera veicoli di sfondo le cui rotte sono finestre CONTIGUE del
     percorso REALMENTE seguito dal veicolo ENHSP (ego_edges), invece di
     tragitti punto-a-punto sparsi su tutta la zona come nella versione
@@ -82,44 +134,54 @@ def generate_background_traffic(ego_edges, edge_weights=None, seed=42, scale=1.0
     strada con l'ego, invece di comparire/sparire su un arco isolato.
 
     'edge_weights' (edge_id -> vehicle-count dal PDDL, vedi
-    parse_vehicle_counts/route_to_sumo_edges) pesa quali finestre vengono
-    scelte: ogni arco parte da un peso base 1 (resta comunque coperto anche
-    se il PDDL non lo considera congestionato) piu' un bonus proporzionale al
-    suo vehicle-count, cosi' le finestre che coprono gli archi piu'
-    "congestionati" secondo il PDDL vengono scelte piu' spesso — §14.
+    parse_vehicle_counts/route_to_sumo_edges) ed 'edge_type' (edge_id ->
+    tipo strada OSM, vedi build_sumo_graph) pesano insieme quali finestre
+    vengono scelte: ogni arco parte da un peso base 1 (resta comunque
+    coperto anche se il PDDL non lo considera congestionato e non e' una
+    strada "importante") piu' un bonus proporzionale al suo vehicle-count
+    PIU' un bonus per il suo tipo di strada (una primaria pesa piu' di una
+    residenziale a prescindere dal campione di 10 O/D del PDDL), cosi' le
+    finestre scelte piu' spesso sono coerenti con ENTRAMBI i segnali — §13,
+    §14, e punto 3/incoerenza A di 6_proposte_realismo_traffico.md.
 
     Il numero di veicoli scala con 'scale' (il livello di traffico scelto
     dalla webapp, vedi TRAFFIC_SCALE / --traffic) e con la lunghezza del
     percorso (route piu' lunghe hanno bisogno di piu' auto per sembrare
     trafficate lungo tutta la loro estensione), con un tetto assoluto
     (max_vehicles) per non ingolfare la GUI/il video anche al livello
-    'Very high'."""
+    'Very high'. Ritorna (routes, repeat): vedi _templates_and_repeat —
+    'routes' e' una lista di al piu' 'max_templates' rotte DISTINTE,
+    'repeat' quante volte ciascuna va ripetuta nel tempo (punto 2)."""
     rng = random.Random(seed)
     n_edges = len(ego_edges)
     if n_edges < 2 or scale <= 0:
-        return []
+        return [], 0
     edge_weights = edge_weights or {}
-    w = [1.0 + congestion_bonus * edge_weights.get(e, 0) for e in ego_edges]
+    edge_type = edge_type or {}
+    w = [1.0 + congestion_bonus * edge_weights.get(e, 0)
+             + road_type_bonus * ROAD_TYPE_WEIGHT.get(edge_type.get(e, ''), 0)
+         for e in ego_edges]
     prefix = [0.0]
     for wi in w:
         prefix.append(prefix[-1] + wi)
 
     length_factor = max(1.0, n_edges / 10.0)
     n_vehicles = min(max_vehicles, round(base_vehicles * scale * length_factor))
+    n_templates, repeat = _templates_and_repeat(n_vehicles, max_templates)
     routes = []
-    for _ in range(n_vehicles):
+    for _ in range(n_templates):
         span = round(n_edges * rng.uniform(min_span_frac, max_span_frac))
         span = max(2, min(span, n_edges))
         starts = list(range(0, n_edges - span + 1))
         weights = [prefix[s + span] - prefix[s] for s in starts]
         start_idx = rng.choices(starts, weights=weights, k=1)[0]
         routes.append(ego_edges[start_idx:start_idx + span])
-    return routes
+    return routes, repeat
 
 
-def generate_crossing_traffic(ego_edges, path_junctions, graph, edge_endpoints,
+def generate_crossing_traffic(ego_edges, path_junctions, graph, edge_endpoints, connected_pairs,
                                 seed=44, scale=1.0, every=3, max_extra_hops=2,
-                                max_vehicles=24):
+                                max_vehicles=36, max_templates=14):
     """Veicoli che ATTRAVERSANO il percorso dell'ego in una singola junction
     (una traversa/incrocio) senza mai percorrerne un arco: entrano da un arco
     diverso, passano per una junction del percorso rosso ed escono su un
@@ -130,33 +192,31 @@ def generate_crossing_traffic(ego_edges, path_junctions, graph, edge_endpoints,
     il traffico incrociante diventerebbe piu' fitto di quello principale);
     'max_extra_hops' estende la rotta di qualche arco su entrambi i lati
     quando possibile, cosi' l'auto non compare/sparisce esattamente
-    sull'incrocio.
+    sull'incrocio. Vedi _reverse_id per il bug di inversione a U gia'
+    corretto.
 
-    Le due direzioni di una stessa strada a doppio senso sono, in queste net
-    (esportate da OSM via netconvert), due edge con lo STESSO id a meno del
-    segno ('42902482' / '-42902482'): incoming e outgoing a una junction
-    vengono scelti indipendentemente, quindi senza attenzione potevano
-    combinarsi in un arco e nel suo esatto opposto -> un'inversione a U sul
-    posto invece di un attraversamento (bug osservato: es. rotta
-    "32744354#0 -32744354#0 ..."). _reverse_id + i controlli sotto lo
-    escludono ad ogni scelta di arco adiacente."""
-    def _reverse_id(eid):
-        return eid[1:] if eid.startswith('-') else '-' + eid
-
+    'connected_pairs' (da build_sumo_graph, vedi il docstring li') valida
+    ogni transizione arco->arco: 'graph' dice solo che due edge condividono
+    una junction, non che SUMO permetta davvero quel passaggio (bug fatale
+    osservato: "no connection between edge X and edge Y", la simulazione
+    si ferma subito) — ogni candidato in_eid->out_eid e ogni estensione va
+    scartato se la coppia non e' in connected_pairs. Ritorna (routes,
+    repeat), vedi _templates_and_repeat."""
     rng = random.Random(seed)
-    n_vehicles = min(max_vehicles, round(6 * scale))
+    n_vehicles = min(max_vehicles, round(10 * scale))
     if n_vehicles <= 0 or len(path_junctions) < 3 or not graph:
-        return []
+        return [], 0
     ego_set = set(ego_edges)
     reverse = defaultdict(list)  # junction_to -> [(junction_from, edge_id), ...]
     for u, neighbors in graph.items():
         for v, eid, _length in neighbors:
             reverse[v].append((u, eid))
 
+    n_templates, repeat = _templates_and_repeat(n_vehicles, max_templates)
     candidates = list(range(1, len(path_junctions) - 1, every)) or [len(path_junctions) // 2]
     routes = []
     tries = 0
-    while len(routes) < n_vehicles and tries < n_vehicles * 8:
+    while len(routes) < n_templates and tries < n_templates * 8:
         tries += 1
         J = path_junctions[rng.choice(candidates)]
         incoming = [(u, eid) for (u, eid) in reverse.get(J, []) if eid not in ego_set]
@@ -164,7 +224,8 @@ def generate_crossing_traffic(ego_edges, path_junctions, graph, edge_endpoints,
         if not incoming or not outgoing:
             continue
         in_u, in_eid = rng.choice(incoming)
-        out_candidates = [(v, eid) for (v, eid) in outgoing if eid != _reverse_id(in_eid)]
+        out_candidates = [(v, eid) for (v, eid) in outgoing
+                           if eid != _reverse_id(in_eid) and (in_eid, eid) in connected_pairs]
         if not out_candidates:
             continue
         out_v, out_eid = rng.choice(out_candidates)
@@ -172,7 +233,8 @@ def generate_crossing_traffic(ego_edges, path_junctions, graph, edge_endpoints,
         cur = in_u
         for _ in range(rng.randint(0, max_extra_hops)):
             opts = [(u, eid) for (u, eid) in reverse.get(cur, [])
-                    if eid not in ego_set and eid not in route and eid != _reverse_id(route[0])]
+                    if eid not in ego_set and eid not in route and eid != _reverse_id(route[0])
+                    and (eid, route[0]) in connected_pairs]
             if not opts:
                 break
             u, eid = rng.choice(opts)
@@ -181,23 +243,24 @@ def generate_crossing_traffic(ego_edges, path_junctions, graph, edge_endpoints,
         cur = out_v
         for _ in range(rng.randint(0, max_extra_hops)):
             opts = [(v, eid) for (v, eid, _l) in graph.get(cur, [])
-                    if eid not in ego_set and eid not in route and eid != _reverse_id(route[-1])]
+                    if eid not in ego_set and eid not in route and eid != _reverse_id(route[-1])
+                    and (route[-1], eid) in connected_pairs]
             if not opts:
                 break
             v, eid = rng.choice(opts)
             route.append(eid)
             cur = v
         routes.append(route)
-    return routes
+    return routes, repeat
 
 
 def _dist(p, q):
     return math.hypot(p[0] - q[0], p[1] - q[1])
 
 
-def generate_parallel_traffic(ego_edges, path_junctions, graph, jpos, edge_endpoints,
+def generate_parallel_traffic(ego_edges, path_junctions, graph, jpos, edge_endpoints, connected_pairs,
                                 seed=45, scale=1.0, corridor_radius=180.0,
-                                max_vehicles=20, max_hops=40):
+                                max_vehicles=32, max_hops=40, max_templates=14):
     """Veicoli su strade DIVERSE da quella dell'ego ma che corrono nello
     stesso corridoio (entro corridor_radius metri dal percorso rosso): "auto
     che viaggiano parallelamente... su altre vie/traverse" — vedi
@@ -205,14 +268,22 @@ def generate_parallel_traffic(ego_edges, path_junctions, graph, jpos, edge_endpo
     (finestre dell'ego stesso), qui la rotta e' un Dijkstra tra due junction
     VICINE al percorso ma non su di esso; viene scartata se si allontana
     troppo dal corridoio o ricalca quasi solo l'ego (altrimenti sarebbe
-    indistinguibile dal traffico "sovrapposto" o percorrerebbe mezza citta')."""
+    indistinguibile dal traffico "sovrapposto" o percorrerebbe mezza citta').
+
+    dijkstra() lavora a livello di junction: due edge consecutivi nel
+    risultato condividono sempre una junction, ma questo NON garantisce che
+    esista una <connection> reale in quella junction (stesso problema di
+    generate_crossing_traffic, vedi 'connected_pairs' in build_sumo_graph)
+    — la rotta va quindi validata arco-per-arco anche se e' "un cammino
+    minimo" sul grafo. Ritorna (routes, repeat), vedi
+    _templates_and_repeat."""
     rng = random.Random(seed)
-    n_vehicles = min(max_vehicles, round(5 * scale))
+    n_vehicles = min(max_vehicles, round(9 * scale))
     if n_vehicles <= 0 or not graph or not jpos:
-        return []
+        return [], 0
     path_pts = [jpos[j] for j in path_junctions if j in jpos]
     if len(path_pts) < 2:
-        return []
+        return [], 0
 
     def nearest_idx(pt):
         return min(range(len(path_pts)), key=lambda i: _dist(pt, path_pts[i]))
@@ -229,11 +300,12 @@ def generate_parallel_traffic(ego_edges, path_junctions, graph, jpos, edge_endpo
 
     positions = sorted(side_by_pos)
     if len(positions) < 2:
-        return []
+        return [], 0
 
+    n_templates, repeat = _templates_and_repeat(n_vehicles, max_templates)
     routes = []
     tries = 0
-    while len(routes) < n_vehicles and tries < n_vehicles * 10:
+    while len(routes) < n_templates and tries < n_templates * 10:
         tries += 1
         i0 = rng.choice(positions)
         min_gap = max(2, len(path_pts) // 6)
@@ -247,6 +319,8 @@ def generate_parallel_traffic(ego_edges, path_junctions, graph, jpos, edge_endpo
             continue
         seg = dijkstra(graph, start_j, end_j)
         if not seg or len(seg) > max_hops:
+            continue
+        if any((a, b) not in connected_pairs for a, b in zip(seg, seg[1:])):
             continue
         overlap = sum(1 for e in seg if e in ego_set)
         if overlap > len(seg) * 0.5:
@@ -264,7 +338,70 @@ def generate_parallel_traffic(ego_edges, path_junctions, graph, jpos, edge_endpo
         if not ok:
             continue
         routes.append(seg)
-    return routes
+    return routes, repeat
+
+
+def generate_wander_traffic(path_junctions, graph, jpos, connected_pairs, seed=46, scale=1.0,
+                             corridor_radius=250.0, min_hops=4, max_hops=14,
+                             max_vehicles=24, max_templates=12):
+    """Traffico 'vagante': random-walk sulla rete a partire da una junction
+    del percorso ego, scegliendo ad ogni passo un arco in uscita a caso (mai
+    l'esatto opposto di quello appena percorso, vedi _reverse_id, e sempre
+    con una <connection> reale rispetto all'arco precedente, vedi
+    'connected_pairs' in build_sumo_graph — altrimenti SUMO si rifiuta di
+    avviare la simulazione con un errore fatale, non solo un warning). E'
+    la versione LEGGERA della proposta 4 di 6_proposte_realismo_traffico.md
+    (svolte non deterministiche agli incroci): niente probabilita' di
+    svolta calibrate ne' un binario esterno (jtrrouter, valutato ma scartato
+    per questa prima implementazione — vedi il documento), solo un numero
+    di passi scelto a caso tra min_hops e max_hops come criterio di
+    terminazione esplicito. Necessario perche' le zone (piccola/media/
+    grande) sono sotto-aree ritagliate di una citta', non l'intera rete: un
+    random-walk senza limite di passi puo' rimbalzare indefinitamente sulle
+    stesse strade invece di attraversarle e uscirne (rischio segnalato nel
+    documento). Il walk si ferma anche appena esce da corridor_radius metri
+    dal percorso ego, per restare comunque nella zona inquadrata dalla
+    telecamera che segue l'ego. Ritorna (routes, repeat), vedi
+    _templates_and_repeat."""
+    rng = random.Random(seed)
+    n_vehicles = min(max_vehicles, round(8 * scale))
+    if n_vehicles <= 0 or not graph or not jpos or len(path_junctions) < 2:
+        return [], 0
+    path_pts = [jpos[j] for j in path_junctions if j in jpos]
+    if not path_pts:
+        return [], 0
+
+    def near_corridor(j):
+        pt = jpos.get(j)
+        if not pt:
+            return False
+        return min(_dist(pt, p) for p in path_pts) <= corridor_radius
+
+    starts = [j for j in path_junctions if graph.get(j)] or list(path_junctions)
+    n_templates, repeat = _templates_and_repeat(n_vehicles, max_templates)
+    routes = []
+    tries = 0
+    while len(routes) < n_templates and tries < n_templates * 8:
+        tries += 1
+        cur = rng.choice(starts)
+        n_hops = rng.randint(min_hops, max_hops)
+        route = []
+        last_eid = None
+        for _ in range(n_hops):
+            opts = [(v, eid) for (v, eid, _l) in graph.get(cur, [])
+                    if last_eid is None or (eid != _reverse_id(last_eid)
+                                             and (last_eid, eid) in connected_pairs)]
+            if not opts:
+                break
+            v, eid = rng.choice(opts)
+            route.append(eid)
+            last_eid = eid
+            cur = v
+            if not near_corridor(cur):
+                break
+        if len(route) >= 2:
+            routes.append(route)
+    return routes, repeat
 
 
 def compute_edges_from_pddl(pddl_path, net_path):
@@ -273,7 +410,7 @@ def compute_edges_from_pddl(pddl_path, net_path):
     include anche 'total_length' del percorso, usato sia per la durata della
     simulazione sia per dimensionare il traffico di sfondo (vedi
     generate_background_traffic), e la geometria del percorso (graph, jpos,
-    edge_endpoints, path_junctions, edge_weights) usata dal traffico
+    edge_endpoints, path_junctions, edge_weights, edge_type) usata dal traffico
     incrociante/parallelo (generate_crossing_traffic,
     generate_parallel_traffic) — vedi 5_traffico_sfondo_sumo.md §14."""
     text = open(pddl_path).read()
@@ -319,7 +456,7 @@ def compute_edges_from_pddl(pddl_path, net_path):
     for candidate in net_candidates:
         if not os.path.exists(candidate):
             continue
-        graph, jpos, eid_len = build_sumo_graph(candidate)
+        graph, jpos, eid_len, edge_type, connected_pairs = build_sumo_graph(candidate)
         junc_ids = set(jpos.keys())
         start_j = pddl_name_to_junction(start_name, junc_ids)
         goal_j = pddl_name_to_junction(goal_name, junc_ids)
@@ -334,6 +471,7 @@ def compute_edges_from_pddl(pddl_path, net_path):
         score = (2 if (start_j and goal_j) else 0) + len(route_js)
         cand = {
             'net': candidate, 'graph': graph, 'jpos': jpos, 'eid_len': eid_len,
+            'edge_type': edge_type, 'connected_pairs': connected_pairs,
             'junc_ids': junc_ids, 'start_j': start_j, 'goal_j': goal_j,
             'route_js': route_js, 'score': score,
         }
@@ -348,6 +486,8 @@ def compute_edges_from_pddl(pddl_path, net_path):
 
     graph, jpos = best['graph'], best['jpos']
     eid_len, junc_ids = best['eid_len'], best['junc_ids']
+    edge_type = best['edge_type']
+    connected_pairs = best['connected_pairs']
     used_net = best['net']
     start_j, goal_j, route_js = best['start_j'], best['goal_j'], best['route_js']
 
@@ -420,6 +560,8 @@ def compute_edges_from_pddl(pddl_path, net_path):
         'graph': graph, 'jpos': jpos,
         'edge_endpoints': edge_endpoints,
         'edge_weights': edge_weights,
+        'edge_type': edge_type,
+        'connected_pairs': connected_pairs,
         'path_junctions': path_junctions,
     }
 
@@ -434,14 +576,22 @@ def compute_edges_from_pddl(pddl_path, net_path):
 #                                veicoli di sfondo di un fattore N: permette
 #                                di scegliere il "grado di congestione" dalla
 #                                webapp. Il traffico di sfondo e' un mix di
-#                                tre tipi (vedi generate_background_traffic,
+#                                quattro tipi di rotta (vedi
+#                                generate_background_traffic,
 #                                generate_crossing_traffic,
-#                                generate_parallel_traffic, §14): veicoli che
+#                                generate_parallel_traffic,
+#                                generate_wander_traffic, §14 e
+#                                6_proposte_realismo_traffico.md): veicoli che
 #                                percorrono finestre del percorso reale
 #                                dell'ENHSP (pesate secondo il vehicle-count
-#                                del PDDL), veicoli che lo attraversano a
-#                                un incrocio senza seguirlo, e veicoli su
-#                                altre vie nello stesso corridoio. Default 1.
+#                                del PDDL E il tipo di strada OSM), veicoli
+#                                che lo attraversano a un incrocio senza
+#                                seguirlo, veicoli su altre vie nello stesso
+#                                corridoio, e veicoli "vaganti" (random-walk
+#                                a lunghezza limitata). Ogni rotta-template
+#                                puo' ripetersi nel tempo (<flow>, punto 2),
+#                                e i veicoli sono un mix di auto/furgone/moto
+#                                (<vTypeDistribution>, punto 1). Default 1.
 # Opzione:       --video      -> invece di aprire sumo-gui in modo interattivo,
 #                                registra la simulazione a schermate ("snapshot")
 #                                e le unisce con ffmpeg in un video mp4 (vedi
@@ -611,25 +761,37 @@ if dynamic_pddl:
     # ancorato solo al veicolo ENHSP (decisione presa, vedi §4.d).
     if USE_BACKGROUND_TRAFFIC:
         ego_edges_list = edges_str.split()
-        overlap_routes = generate_background_traffic(
-            ego_edges_list, edge_weights=dyn['edge_weights'], scale=TRAFFIC_SCALE)
-        crossing_routes = generate_crossing_traffic(
-            ego_edges_list, dyn['path_junctions'], dyn['graph'], dyn['edge_endpoints'],
+        overlap_routes, overlap_repeat = generate_background_traffic(
+            ego_edges_list, edge_weights=dyn['edge_weights'], edge_type=dyn['edge_type'],
             scale=TRAFFIC_SCALE)
-        parallel_routes = generate_parallel_traffic(
+        crossing_routes, crossing_repeat = generate_crossing_traffic(
+            ego_edges_list, dyn['path_junctions'], dyn['graph'], dyn['edge_endpoints'],
+            dyn['connected_pairs'], scale=TRAFFIC_SCALE)
+        parallel_routes, parallel_repeat = generate_parallel_traffic(
             ego_edges_list, dyn['path_junctions'], dyn['graph'], dyn['jpos'],
-            dyn['edge_endpoints'], scale=TRAFFIC_SCALE)
-        # 'kind' distingue solo per i log e per l'orario di partenza (vedi
-        # sotto): le auto incrocianti/parallele partono da subito (0..) come
-        # se stessero gia' circolando altrove in citta', quelle sovrapposte
-        # al percorso rosso restano scaglionate come prima (§13).
+            dyn['edge_endpoints'], dyn['connected_pairs'], scale=TRAFFIC_SCALE)
+        wander_routes, wander_repeat = generate_wander_traffic(
+            dyn['path_junctions'], dyn['graph'], dyn['jpos'], dyn['connected_pairs'],
+            scale=TRAFFIC_SCALE)
+        # 'kind' distingue il ruolo di ciascuna rotta-TEMPLATE per l'orario/
+        # la finestra di partenza (vedi sotto, sezione "File di route") e
+        # per il tipo di veicolo. Ogni rotta viene ripetuta 'repeat' volte
+        # nel tempo (vedi _templates_and_repeat, punto 2 di
+        # 6_proposte_realismo_traffico.md) invece di essere un singolo
+        # veicolo unico, cosi' il traffico di sfondo resta presente per
+        # tutta sim_end invece di esaurirsi nei primi minuti (§13/§14).
         background_routes = (
-            [('overlap', r) for r in overlap_routes] +
-            [('cross', r) for r in crossing_routes] +
-            [('parallel', r) for r in parallel_routes])
-        print(f"  (traffico di sfondo: {len(overlap_routes)} sovrapposti al percorso + "
-              f"{len(crossing_routes)} incrocianti + {len(parallel_routes)} paralleli "
-              f"= {len(background_routes)} veicoli, livello x{TRAFFIC_SCALE:g})"
+            [('overlap', r, overlap_repeat) for r in overlap_routes] +
+            [('cross', r, crossing_repeat) for r in crossing_routes] +
+            [('parallel', r, parallel_repeat) for r in parallel_routes] +
+            [('wander', r, wander_repeat) for r in wander_routes])
+        n_instances = (len(overlap_routes) * overlap_repeat + len(crossing_routes) * crossing_repeat +
+                       len(parallel_routes) * parallel_repeat + len(wander_routes) * wander_repeat)
+        print(f"  (traffico di sfondo: {len(overlap_routes)} template sovrapposti al percorso (x{overlap_repeat}) + "
+              f"{len(crossing_routes)} incrocianti (x{crossing_repeat}) + "
+              f"{len(parallel_routes)} paralleli (x{parallel_repeat}) + "
+              f"{len(wander_routes)} vaganti (x{wander_repeat}) "
+              f"= {len(background_routes)} rotte, ~{n_instances} veicoli nel tempo, livello x{TRAFFIC_SCALE:g})"
               if background_routes else "  (traffico di sfondo: nessun veicolo generato)")
 
 # ── File di route ─────────────────────────────────────────────
@@ -647,48 +809,110 @@ route_lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<routes>',
                '           length="4.5" maxSpeed="4.0" color="1,0,0"',
                '           width="2.0" shape="passenger"/>']
 if background_routes:
-    # speedFactor: distribuzione normale troncata, campionata UNA VOLTA per
-    # veicolo all'inserimento -> ogni auto di sfondo mantiene per tutto il
-    # tragitto un suo fattore di velocita' (chi il 30% piu' lento, chi il 40%
-    # piu' veloce del limite/vType), invece di viaggiare tutte alla stessa
-    # andatura come prima (richiesta "andamento diverso l'una dall'altra") —
-    # nativo di SUMO, nessuna logica aggiuntiva necessaria — vedi §14.
-    route_lines.append('    <vType id="traffic" accel="2.6" decel="4.5" sigma="0.4"')
-    route_lines.append('           length="4.5" maxSpeed="13.89" color="1,0.8,0"')
-    route_lines.append('           speedFactor="normc(1,0.2,0.7,1.4)"/>')
+    # Mix di tipi di veicolo invece di un solo vType "traffic" clonato:
+    # <vTypeDistribution> fa scegliere a SUMO uno dei tre vType per ogni
+    # veicolo/flow che referenzia "traffic_mix" (nessuna logica aggiuntiva
+    # lato Python) — vedi 6_proposte_realismo_traffico.md, punto 1.
+    # Probabilita' alzate per van/moto (25%/5% -> 30%/15%): con le
+    # probabilita' originali, su un campione di ~20-40 veicoli attivi la
+    # moto (5%) restava quasi sempre a 1-2 esemplari, poco percepibile.
+    # Anche i COLORI erano un problema di percepibilita' a se': van grigio
+    # e moto quasi nera si confondevano con le strade (linee nere su sfondo
+    # verde nello stile della mappa) anche quando presenti — ora blu/ciano,
+    # ben distinti da giallo (auto), rosso (ego), nero (strade) e verde
+    # (sfondo). Il colore resta fisso PER TIPO (non per singolo veicolo,
+    # limite noto e accettato nel documento). speedFactor (distribuzione
+    # normale troncata, campionata una volta per veicolo all'inserimento)
+    # resta su ciascun tipo per la variazione di velocita' gia'
+    # implementata (§14): ogni auto mantiene per tutto il tragitto un suo
+    # fattore (chi piu' lento, chi piu' veloce), invece di viaggiare tutte
+    # alla stessa andatura.
+    route_lines.append('    <vTypeDistribution id="traffic_mix">')
+    route_lines.append('        <vType id="traffic_car" accel="2.6" decel="4.5" sigma="0.4"')
+    route_lines.append('               length="4.5" maxSpeed="13.89" color="1,0.8,0"')
+    route_lines.append('               speedFactor="normc(1,0.2,0.7,1.4)" probability="0.55"/>')
+    route_lines.append('        <vType id="traffic_van" accel="1.8" decel="3.5" sigma="0.3"')
+    route_lines.append('               length="6.5" width="2.1" maxSpeed="11.0" color="0.2,0.45,0.95"')
+    route_lines.append('               speedFactor="normc(0.9,0.15,0.7,1.1)" probability="0.30"/>')
+    route_lines.append('        <vType id="traffic_moto" accel="3.2" decel="5.0" sigma="0.5"')
+    route_lines.append('               length="2.2" width="0.9" maxSpeed="15.0" color="0,0.9,0.9"')
+    route_lines.append('               speedFactor="normc(1.1,0.25,0.7,1.5)" probability="0.15"/>')
+    route_lines.append('    </vTypeDistribution>')
 route_lines.append(f'    <route id="piano_enhsp" edges="{cfg["edges"]}"/>')
-route_lines.append('    <vehicle id="veicolo_enhsp" type="auto" route="piano_enhsp"')
-route_lines.append(f'             depart="{ego_depart:g}" departSpeed="0"/>')
+
+# SUMO richiede che <vehicle>/<flow> compaiano nel .rou.xml in ordine NON
+# DECRESCENTE di partenza (depart per i <vehicle>, begin per i <flow>): se
+# non lo sono, non e' un errore fatale, ma SUMO scarta silenziosamente ogni
+# elemento "fuori ordine" stampando "Route file should be sorted by
+# departure time, ignoring 'bgN'" (bug reale trovato durante la verifica di
+# questa implementazione: l'ego con depart=12 veniva scritto PRIMA di
+# molte auto di sfondo con depart/begin minore, e i quattro generatori
+# scrivevano un blocco dopo l'altro con depart calcolati indipendentemente,
+# quindi non globalmente ordinati — la maggior parte del traffico veniva
+# silenziosamente scartata senza nessun errore visibile, ne' in modalita'
+# video (traci.start non cattura lo stderr del processo sumo-gui che
+# lancia) ne' dal vivo). Si raccolgono quindi tutti gli elementi
+# <vehicle>/<flow> (ego incluso) con la loro chiave di partenza, e si
+# scrivono ordinati per quella chiave invece che nell'ordine di
+# generazione.
+entries = []  # [(sort_key, [righe xml]), ...]
+entries.append((ego_depart, [
+    '    <vehicle id="veicolo_enhsp" type="auto" route="piano_enhsp"',
+    f'             depart="{ego_depart:g}" departSpeed="0"/>',
+]))
+
 depart_rng = random.Random(43)  # seed indipendente dal campionamento delle rotte
 sim_end_est = cfg.get('end', 800)
 overlap_i = parallel_i = 0
-for i, (kind, edges) in enumerate(background_routes):
-    # Ogni "kind" ha un proprio schema di partenza (vedi generate_background_
-    # traffic/generate_crossing_traffic/generate_parallel_traffic, §14):
-    # - overlap: scaglionate dall'inizio come prima -> le prime precedono
-    #   ego_depart e sono il "pre-spawn lungo il percorso" richiesto;
-    # - parallel: scaglionate a parte (stagger piu' largo, sono rotte piu'
+for i, (kind, edges, repeat) in enumerate(background_routes):
+    edges_attr = " ".join(edges)
+    if repeat > 1:
+        # Piu' di un veicolo per questa rotta-template: <flow> invece di un
+        # singolo <vehicle> ripetuto a mano, cosi' il traffico resta
+        # presente per tutta la durata della simulazione invece di
+        # esaurirsi nei primi minuti (vedi generate_background_traffic/
+        # _templates_and_repeat, punto 2 di 6_proposte_realismo_traffico.md).
+        # "number" (conteggio totale fisso) invece di "period"/"probability"
+        # mantiene lo stesso tetto assoluto gia' validato (max_vehicles) —
+        # SUMO distribuisce da solo i "repeat" inserimenti fra begin ed end.
+        entries.append((0.0, [
+            f'    <route id="r_bg{i}" edges="{edges_attr}"/>',
+            f'    <flow id="bg{i}" type="traffic_mix" route="r_bg{i}" '
+            f'begin="0" end="{sim_end_est:g}" number="{repeat}" '
+            f'departPos="random" departSpeed="max"/>',
+        ]))
+        continue
+    # repeat <= 1 (scale bassa: pochi veicoli totali, sotto la soglia per
+    # cui vale la pena ripetere un template): resta un singolo <vehicle>
+    # con lo stesso schema di partenza per-kind di prima (§13/§14) —
+    # - overlap: scaglionate dall'inizio -> le prime precedono ego_depart,
+    #   il "pre-spawn lungo il percorso" richiesto;
+    # - parallel: scaglionate a parte (stagger piu' largo, rotte piu'
     #   lunghe su altre vie) cosi' non si accumulano tutte all'inizio;
-    # - cross: sparse per tutta la durata della simulazione (non solo
-    #   all'inizio), perche' rappresentano traffico che attraversa
-    #   l'incrocio in modo continuo nel tempo, non un singolo "corteo".
+    # - cross/wander: orario casuale su tutta la prima meta' della
+    #   simulazione, invece che solo all'inizio.
     if kind == 'overlap':
         depart = round(overlap_i * 2.5 + depart_rng.uniform(0, 1.5), 1)
         overlap_i += 1
     elif kind == 'parallel':
         depart = round(parallel_i * 3.0 + depart_rng.uniform(0, 2.0), 1)
         parallel_i += 1
-    else:  # 'cross'
+    else:  # 'cross' o 'wander'
         depart = round(depart_rng.uniform(0, min(300.0, sim_end_est * 0.5)), 1)
     # departPos/departSpeed "random"/"max" invece di partire ferme dal primo
     # metro dell'arco: sembrano auto gia' in marcia trovate lungo la strada,
     # non veicoli che si materializzano fermi accanto all'ego (altra parte
     # della richiesta di "pre-spawn").
-    route_lines.append(
-        f'    <vehicle id="bg{i}" type="traffic" depart="{depart}" '
-        f'departPos="random" departSpeed="max">')
-    route_lines.append(f'        <route edges="{" ".join(edges)}"/>')
-    route_lines.append('    </vehicle>')
+    entries.append((depart, [
+        f'    <vehicle id="bg{i}" type="traffic_mix" depart="{depart}" '
+        f'departPos="random" departSpeed="max">',
+        f'        <route edges="{edges_attr}"/>',
+        '    </vehicle>',
+    ]))
+
+entries.sort(key=lambda entry: entry[0])
+for _, lines in entries:
+    route_lines.extend(lines)
 route_lines.append('</routes>')
 with open(ROU_PATH, "w") as f:
     f.write("\n".join(route_lines) + "\n")
