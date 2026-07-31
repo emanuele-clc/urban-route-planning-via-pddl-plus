@@ -1,0 +1,182 @@
+[
+  {
+    "zone": "piccola",
+    "n": 15,
+    "drive_turn": {
+      "pred_mean": 104.5,
+      "meas_mean": 106.1,
+      "mae": 10.4,
+      "bias": 1.5,
+      "bias_pct": 3.9,
+      "corr": 0.898
+    },
+    "signal": {
+      "pred_mean": 57.7,
+      "meas_mean": 53.5,
+      "mae": 24.0,
+      "bias": -4.2,
+      "bias_pct": -7.1,
+      "corr": 0.478
+    },
+    "total": {
+      "pred_mean": 162.2,
+      "meas_mean": 159.6,
+      "mae": 30.4,
+      "bias": -2.6,
+      "bias_pct": 0.2,
+      "corr": 0.729
+    },
+    "rows": [
+      {
+        "dist": 829,
+        "n_sig": 6,
+        "pred_drive_turn": 122.0,
+        "pred_signal": 52.6,
+        "pred_total": 174.7,
+        "meas_moving": 107.0,
+        "meas_waiting": 52.0,
+        "meas_total": 159.0
+      },
+      {
+        "dist": 579,
+        "n_sig": 8,
+        "pred_drive_turn": 82.9,
+        "pred_signal": 69.2,
+        "pred_total": 152.1,
+        "meas_moving": 99.0,
+        "meas_waiting": 105.0,
+        "meas_total": 204.0
+      },
+      {
+        "dist": 499,
+        "n_sig": 4,
+        "pred_drive_turn": 70.7,
+        "pred_signal": 35.1,
+        "pred_total": 105.8,
+        "meas_moving": 73.0,
+        "meas_waiting": 50.0,
+        "meas_total": 123.0
+      },
+      {
+        "dist": 828,
+        "n_sig": 5,
+        "pred_drive_turn": 109.8,
+        "pred_signal": 56.9,
+        "pred_total": 166.7,
+        "meas_moving": 102.0,
+        "meas_waiting": 10.0,
+        "meas_total": 112.0
+      },
+      {
+        "dist": 360,
+        "n_sig": 6,
+        "pred_drive_turn": 59.6,
+        "pred_signal": 34.3,
+        "pred_total": 94.0,
+        "meas_moving": 63.0,
+        "meas_waiting": 48.0,
+        "meas_total": 111.0
+      },
+      {
+        "dist": 426,
+        "n_sig": 4,
+        "pred_drive_turn": 62.2,
+        "pred_signal": 33.2,
+        "pred_total": 95.3,
+        "meas_moving": 84.0,
+        "meas_waiting": 31.0,
+        "meas_total": 115.0
+      },
+      {
+        "dist": 990,
+        "n_sig": 8,
+        "pred_drive_turn": 123.2,
+        "pred_signal": 84.8,
+        "pred_total": 208.0,
+        "meas_moving": 129.0,
+        "meas_waiting": 44.0,
+        "meas_total": 173.0
+      },
+      {
+        "dist": 605,
+        "n_sig": 3,
+        "pred_drive_turn": 89.8,
+        "pred_signal": 34.6,
+        "pred_total": 124.4,
+        "meas_moving": 96.0,
+        "meas_waiting": 1.0,
+        "meas_total": 97.0
+      },
+      {
+        "dist": 746,
+        "n_sig": 5,
+        "pred_drive_turn": 90.4,
+        "pred_signal": 56.9,
+        "pred_total": 147.3,
+        "meas_moving": 106.0,
+        "meas_waiting": 10.0,
+        "meas_total": 116.0
+      },
+      {
+        "dist": 852,
+        "n_sig": 4,
+        "pred_drive_turn": 110.3,
+        "pred_signal": 51.7,
+        "pred_total": 161.9,
+        "meas_moving": 127.0,
+        "meas_waiting": 78.0,
+        "meas_total": 205.0
+      },
+      {
+        "dist": 738,
+        "n_sig": 8,
+        "pred_drive_turn": 122.0,
+        "pred_signal": 71.1,
+        "pred_total": 193.1,
+        "meas_moving": 108.0,
+        "meas_waiting": 45.0,
+        "meas_total": 153.0
+      },
+      {
+        "dist": 591,
+        "n_sig": 5,
+        "pred_drive_turn": 86.9,
+        "pred_signal": 52.1,
+        "pred_total": 139.0,
+        "meas_moving": 85.0,
+        "meas_waiting": 51.0,
+        "meas_total": 136.0
+      },
+      {
+        "dist": 893,
+        "n_sig": 8,
+        "pred_drive_turn": 128.2,
+        "pred_signal": 70.2,
+        "pred_total": 198.3,
+        "meas_moving": 130.0,
+        "meas_waiting": 128.0,
+        "meas_total": 258.0
+      },
+      {
+        "dist": 1007,
+        "n_sig": 7,
+        "pred_drive_turn": 156.0,
+        "pred_signal": 70.7,
+        "pred_total": 226.6,
+        "meas_moving": 128.0,
+        "meas_waiting": 61.0,
+        "meas_total": 189.0
+      },
+      {
+        "dist": 1067,
+        "n_sig": 10,
+        "pred_drive_turn": 153.8,
+        "pred_signal": 92.5,
+        "pred_total": 246.3,
+        "meas_moving": 154.0,
+        "meas_waiting": 89.0,
+        "meas_total": 243.0
+      }
+    ]
+  }
+]

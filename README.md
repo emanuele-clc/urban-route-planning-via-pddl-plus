@@ -273,6 +273,63 @@ aprire la simulazione con i semafori ottimizzati o con quelli originali.
 
 ---
 
+## Calibrazione del modello contro SUMO (`calibrate_sumo.py`)
+
+Il dominio PDDL+ stima il tempo di un percorso con una formula: guida come
+distanza diviso velocità, più i ritardi di Webster ai semafori e i tempi di
+svolta. Ma resta una stima. La domanda naturale è: quanto è realistica? Per
+rispondere confrontiamo, sullo stesso identico percorso, il tempo che il modello
+prevede con il tempo che SUMO misura simulando il veicolo nel dettaglio, con
+accelerazioni, frenate e attese vere ai rossi.
+
+Il confronto è tenuto pulito in due modi. Previsto e misurato usano la stessa
+lista di archi SUMO, quindi non c'è il rischio di confrontare percorsi diversi.
+E i veicoli sono isolati, cioè partono molto distanziati nel tempo, così quello
+che si misura è il percorso in sé e non la congestione. Guardiamo tre cose: la
+parte deterministica (guida più svolte) contro il tempo in movimento in SUMO
+(durata meno attesa), il modello dei semafori contro l'attesa misurata ai rossi,
+e il totale contro la durata complessiva.
+
+| Zona | N | Confronto | Previsto (s) | Misurato (s) | Bias | Bias % | Corr |
+|---|--:|---|--:|--:|--:|--:|--:|
+| **piccola** | 30 | guida+svolte vs movimento | 102.1 | 106.7 | +4.6 | +5.7% | 0.94 |
+| | 30 | semafori (Webster) vs attesa | 58.9 | 67.2 | +8.3 | +13.6% | 0.23 |
+| | 30 | TOTALE vs durata | 160.9 | 173.9 | +12.9 | +7.5% | 0.61 |
+| **media** | 30 | guida+svolte vs movimento | 164.5 | 184.2 | +19.7 | +13.2% | 0.96 |
+| | 30 | semafori (Webster) vs attesa | 107.2 | 81.4 | -25.8 | -21.7% | 0.59 |
+| | 30 | TOTALE vs durata | 271.8 | 265.6 | -6.2 | -3.8% | 0.89 |
+| **grande** | 30 | guida+svolte vs movimento | 181.5 | 206.8 | +25.3 | +13.5% | 0.96 |
+| | 30 | semafori (Webster) vs attesa | 120.5 | 129.0 | +8.5 | +15.6% | 0.26 |
+| | 30 | TOTALE vs durata | 302.0 | 335.8 | +33.7 | +10.9% | 0.63 |
+
+Il bias è misurato meno previsto: positivo vuol dire che il modello sottostima.
+
+Il risultato più importante è la riga guida più svolte. La correlazione è alta
+su tutte le zone (0.94–0.96), cioè il modello ordina bene i percorsi per durata:
+più prevede lungo, più SUMO misura lungo. Lo scarto è piccolo e sempre nello
+stesso verso, il modello sottostima del 6–13%, ed è quello che ci si aspetta,
+perché a velocità costante non conta il tempo perso per accelerare e frenare a
+ogni incrocio, che SUMO invece simula. È un errore sistematico, quindi
+correggibile con un fattore se serve.
+
+Sui semafori la dispersione è più alta (correlazione più bassa) ed era prevista:
+Webster è un ritardo medio su tanti arrivi casuali, mentre l'attesa di un singolo
+passaggio dipende da quando esattamente il veicolo arriva al rosso, e può trovare
+verde pieno o rosso pieno. Le medie però restano vicine, ed è quello che conta
+quando il modello somma molti semafori lungo un percorso. Alla fine il tempo
+totale previsto sta entro circa il 10% di quello misurato su tutte e tre le zone,
+il che dice che il modello che il planner usa per scegliere è realistico.
+
+```bash
+python scripts/calibrate_sumo.py                 # tutte le zone
+python scripts/calibrate_sumo.py media --n-routes 30
+```
+
+L'output finisce in `sumo_comparison/calibration.json` (un record per percorso) e
+`sumo_comparison/calibration.md`.
+
+---
+
 ## Dominio PDDL+
 
 Il dominio ha un'azione discreta, un processo continuo e un evento automatico.
@@ -529,6 +586,7 @@ confronto in simulazione.
 │   ├── extract_sumo_data.py       # Estrae semafori/settaggi/turn dai net.xml SUMO
 │   ├── inject_signal_plan.py      # Punto 3: inietta il piano ottimizzato in SUMO
 │   ├── compare_sumo.py            # Punto 4: confronto in simulazione baseline vs ottimizzato
+│   ├── calibrate_sumo.py          # Punto 5: calibrazione del modello PDDL+ contro SUMO
 │   ├── download_dublin_map.py     # Scarica le mappe OSM tramite osmnx
 │   ├── convert_to_osm.py          # Converte OSM in net.xml tramite netconvert
 │   ├── sumo_visualize.py          # Visualizza il piano in sumo-gui

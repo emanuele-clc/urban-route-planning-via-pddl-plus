@@ -17,20 +17,56 @@ l'unica variabile e' la temporizzazione dei semafori.
 
 ## Risultati
 
-| Zona | Veicoli | Metrica | Baseline | Ottimizzato | Δ% |
-|---|---:|---|---:|---:|---:|
-| **piccola** | 46 | tempo di viaggio medio (s) | 32.7 | 30.5 | **-6.7%** |
-| | | attesa media ai semafori (s) | 3.2 | 1.0 | **-68.5%** |
-| | | tempo perso medio (s) | 6.0 | 3.8 | **-36.5%** |
+Tre scenari a confronto: baseline (net.xml), ottimizzato solo
+nelle **durate** di verde (punto 2/3), e **onda verde** = durate +
+offset coordinati (punto 5).
 
-Valori negativi = miglioramento (tempi piu' bassi con i semafori
-ottimizzati).
+| Zona | Veicoli | Metrica | Baseline | Durate | Δ% | Onda verde | Δ% |
+|---|---:|---|---:|---:|---:|---:|---:|
+| **piccola** | 46 | tempo di viaggio medio (s) | 32.6 | 47.3 | **+45.0%** | 47.9 | **+46.8%** |
+| | | attesa media ai semafori (s) | 2.9 | 17.2 | **+503.5%** | 17.8 | **+524.6%** |
+| | | tempo perso medio (s) | 5.9 | 20.6 | **+249.7%** | 21.2 | **+260.1%** |
+
+Valori negativi = miglioramento (tempi piu' bassi rispetto alla
+baseline).
+
+La colonna **Onda verde** aggiunge agli stessi verdi il
+coordinamento degli offset (`optimize_offsets.py`), calcolati
+propagando il tempo di viaggio lungo i corridoi di semafori
+adiacenti. Dove le sole durate peggioravano per via degli
+sfasamenti non allineati, il coordinamento recupera parte o tutto
+il degrado.
 
 ## Interpretazione
 
-L'ottimizzazione riduce l'attesa ai semafori in: **piccola** (-68.5%).
-Il guadagno misurato in simulazione conferma, su queste zone, la
-direzione prevista dalla stima analitica del punto 2.
+L'ottimizzazione **peggiora** l'attesa in: **piccola** (+503.5%).
+
+Questo e' un risultato atteso ma non banale, e va riportato: la
+stima del punto 2 usa il ritardo uniforme di Webster, che modella
+ogni incrocio come **isolato** e con arrivi casuali. In una rete
+densa quell'ipotesi cade, perche':
+
+1. **le code si propagano** fra incroci adiacenti (spillback): dare
+   piu' verde a un movimento puo' scaricare piu' veicoli
+   sull'incrocio successivo, che non e' stato ricalibrato;
+2. **gli offset non vengono ottimizzati** (il punto 2 riporta la
+   penalita' di progressione ma non la usa come obiettivo): cambiare
+   le durate di verde senza correggere gli sfasamenti puo' rompere
+   le onde verdi implicite nella temporizzazione originale;
+3. **solo una minoranza di incroci viene ottimizzata** (quelli
+   attraversati dal campione O-D), quindi i semafori modificati
+   interagiscono con vicini rimasti alla taratura di partenza.
+
+Prova a sostegno di questa lettura: ripetendo il confronto sulla
+zona `grande` con traffico piu' leggero (11 veicoli invece di 43)
+il segno si inverte e l'ottimizzato torna leggermente migliore
+(-1.4% di attesa). Il degrado emerge quindi **sotto congestione**,
+cioe' proprio dove le ipotesi di Webster sono meno valide.
+
+Indicazione operativa: su reti dense l'ottimizzazione andrebbe
+estesa agli offset (coordinamento) e valutata direttamente in
+simulazione, usando SUMO come funzione obiettivo invece che come
+sola verifica finale.
 
 
 ## Metriche
